@@ -1,9 +1,9 @@
-﻿namespace RMS.Web.Core.Enums
+﻿namespace RMS.Web.Core.Enums;
+public enum RentalsConfigurations
 {
-    public enum RentalsConfigurations
-    {
-        RentalDuration = 7,
-        MaxRentalDuration = 14,
-        MaxAllowedCopies = 3
-    }
+    RentalDuration = 7,
+    MaxRentalDuration = 14,
+    MaxAllowedCopies = 3
 }
+
+

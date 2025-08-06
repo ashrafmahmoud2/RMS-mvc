@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using RMS.Web.Core.Models;
 using System.Xml.Serialization;
 namespace RMS.Web.Data;
 

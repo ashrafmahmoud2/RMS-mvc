@@ -1,16 +1,16 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using RMS.Web.Core.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RMS.Web.Core.Models;
 
 public class ToppingOption
 {
-    [Key]
     public int Id { get; set; }
 
-    [Required]
     public int ToppingGroupId { get; set; }
+    public ToppingGroup ToppingGroup { get; set; } = null!;
 
-    [Required, StringLength(100)]
+    [StringLength(100)]
     public string Name { get; set; } = null!;
 
     [Column(TypeName = "decimal(10,2)")]
@@ -21,9 +21,12 @@ public class ToppingOption
 
     public bool IsAvailable { get; set; } = true;
 
-    [ForeignKey("ToppingGroupId")]
-    public ToppingGroup ToppingGroup { get; set; } = null!;
+    public int MaxAllowedQuantity { get; set; }
 }
+
+
+
+
 
 
 

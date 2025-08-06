@@ -10,7 +10,7 @@ public class Branch
 
     public int AreaId { get; set; }
 
-    public int GovernrateId { get; set; }
+    public int GovernorateId { get; set; }
 
     [Required, StringLength(255)]
     public string Address { get; set; } = null!;
@@ -18,55 +18,16 @@ public class Branch
     [Required, StringLength(20)]
     public string Phone { get; set; } = null!;
 
+    public decimal MaxCashOnDeliveryAllowed { get; set; }
+
     public string? BranchImages { get; set; }
 
-    public bool IsActive { get; set; } = true;
+    public bool IsBusy { get; set; } = false; //allow to bruch to close and open in exption days
+    public bool IsOpen { get; set; } = false;
 
+    public int? MaxAllowedOrdersInDay { get; set; } //if order be over the limit the branch will make IsBusy = true
     public ICollection<BranchWorkingHour> BranchWorkingHours { get; set; } = new List<BranchWorkingHour>();
     public ICollection<BranchWorkingHourException> WorkingHourExceptions { get; set; } = new List<BranchWorkingHourException>();
-}
-
-public class BranchWorkingHour
-{
-    public int Id { get; set; }
-
-    [Required]
-    public int BranchId { get; set; }
-
-    [Required]
-    public DayOfWeek DayOfWeek { get; set; }
-
-    [Required]
-    public TimeSpan OpeningTime { get; set; }
-
-    [Required]
-    public TimeSpan ClosingTime { get; set; }
-
-    // Navigation
-    public Branch Branch { get; set; } = null!;
-}
-
-
-public class BranchWorkingHourException
-{
-    public int Id { get; set; }
-
-    public string ExceptionName { get; set; } = null!;
-
-    [Required]
-    public int BranchId { get; set; }
-
-    [Required]
-    public DateOnly Date { get; set; }
-
-    [Required]
-    public TimeSpan OpeningTime { get; set; }
-
-    [Required]
-    public TimeSpan ClosingTime { get; set; }
-
-    // Navigation
-    public Branch Branch { get; set; } = null!;
 }
 
 

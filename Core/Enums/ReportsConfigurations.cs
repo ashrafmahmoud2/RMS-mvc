@@ -1,8 +1,10 @@
-﻿namespace RMS.Web.Core.Enums
+﻿namespace RMS.Web.Core.Enums;
+
+public enum ReportsConfigurations
 {
-    public enum ReportsConfigurations
-    {
-        PageSize = 50,
-        MaxPaginationNumber = 10
-    }
+    PageSize = 50,
+    MaxPaginationNumber = 10
 }
+
+
+

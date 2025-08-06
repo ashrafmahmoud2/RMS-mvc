@@ -1,22 +1,29 @@
-﻿namespace RMS.Web.Core.Models;
+﻿using RMS.Web.Core.Enums;
+
+namespace RMS.Web.Core.Models;
 
 public class ToppingGroup
 {
     public int Id { get; set; }
 
-    [Required, StringLength(100)]
+    [StringLength(100)]
     public string Title { get; set; } = null!;
 
     public bool IsRequired { get; set; } = false;
 
-    public int MaxSelection { get; set; } = 1;
+    public ToppingGroupType Type { get; set; } = ToppingGroupType.Addon;
 
-    public int SortOrder { get; set; } = 0;
+    public int MaxAllowedOptions { get; set; }
+
+    public int MinAllowedOptions { get; set; }
+
+    public int SortOrder { get; set; }
 
     public ICollection<ItemToppingGroup> ItemToppingGroups { get; set; } = new List<ItemToppingGroup>();
 
     public ICollection<ToppingOption> ToppingOptions { get; set; } = new List<ToppingOption>();
 }
+
 
 
 
