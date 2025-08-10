@@ -4,7 +4,8 @@ public class BranchWorkingHourException
 {
     public int Id { get; set; }
 
-    public string ExceptionName { get; set; } = null!;
+    public string ExceptionNameEn { get; set; } = null!;
+    public string ExceptionNameAr { get; set; } = null!;
 
     [Required]
     public int BranchId { get; set; }

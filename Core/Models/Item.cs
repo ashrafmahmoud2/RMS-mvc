@@ -1,4 +1,4 @@
-﻿using RMS.Web.Core.Models.Topping;
+﻿using RMS.Web.Core.Models;
 
 namespace RMS.Web.Core.Models;
 
@@ -39,8 +39,8 @@ public class Item
     public Allergy? Allergy { get; set; }
 
 
-    public string? ItemStatusEn { get; set; } 
-    public string? ItemStatusAr { get; set; } 
+    public string? CardLabelsEn { get; set; } 
+    public string? CardLabelsAr { get; set; } 
 
 
     [MaxLength(255)]
@@ -63,8 +63,9 @@ public class Item
 
     public int? SortInCategory { get; set; }
 
-    // Navigation
     public ICollection<ItemToppingGroup> ItemToppingGroups { get; set; } = new List<ItemToppingGroup>();
+
+    //public ICollection<Allergy> Allergies { get; set; } = new List<Allergy>(); //you need to delete data then but again
 }
 
 

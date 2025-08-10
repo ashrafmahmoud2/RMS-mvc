@@ -1,12 +1,16 @@
 ﻿namespace RMS.Web.Core.Models;
 
-[Index(nameof(Name), IsUnique = true)]
+[Index(nameof(NameEn), IsUnique = true)]
+[Index(nameof(NameAr), IsUnique = true)]
 public class Category
 {
     public int Id { get; set; }
 
-    [Required, StringLength(100)]
-    public string Name { get; set; } = null!;
+    [ StringLength(100)]
+    public string NameEn { get; set; } = null!;
+
+    [StringLength(100)]
+    public string NameAr { get; set; } = null!;
 
     [StringLength(255)]
     public string? Icon { get; set; }
@@ -18,7 +22,7 @@ public class Category
 
     public int? CategorySort { get; set; }
 
-    public string ItemsLayout { get; set; }= null!;
+    public string ItemsCardsLayout { get; set; }= null!;
 }
 
 

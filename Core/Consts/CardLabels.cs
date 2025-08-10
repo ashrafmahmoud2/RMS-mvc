@@ -1,6 +1,6 @@
 ﻿namespace RMS.Web.Core.Consts;
 
-public static class ItemStatus
+public static class CardLabels
 {
     public const string TopSellingEn = "Top Selling";
     public const string TopSellingAr = "#1 الأكثر مبيعاً";

@@ -3,6 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RMS.Web.Core.Models;
 
+//[Index(nameof(NameEn), nameof(Price), IsUnique = true)]
+//[Index(nameof(NameAr), nameof(Price), IsUnique = true)]
 public class ToppingOption
 {
     public int Id { get; set; }
@@ -11,7 +13,10 @@ public class ToppingOption
     public ToppingGroup ToppingGroup { get; set; } = null!;
 
     [StringLength(100)]
-    public string Name { get; set; } = null!;
+    public string NameEn {  get; set; } = null!;
+
+    [StringLength(100)]
+    public string NameAr { get; set; } = null!;
 
     [Column(TypeName = "decimal(10,2)")]
     public decimal Price { get; set; } = 0;
@@ -22,6 +27,9 @@ public class ToppingOption
     public bool IsAvailable { get; set; } = true;
 
     public int MaxAllowedQuantity { get; set; }
+
+    public bool IsDefault { get; set; } = false;
+
 }
 
 

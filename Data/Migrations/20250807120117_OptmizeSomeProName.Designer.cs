@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RMS.Web.Data;
 
@@ -11,9 +12,11 @@ using RMS.Web.Data;
 namespace RMS.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250807120117_OptmizeSomeProName")]
+    partial class OptmizeSomeProName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -155,6 +158,33 @@ namespace RMS.Web.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("RMS.Web.Core.Models.Allergy", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Allergy");
+                });
+
             modelBuilder.Entity("RMS.Web.Core.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -212,7 +242,7 @@ namespace RMS.Web.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
@@ -245,6 +275,10 @@ namespace RMS.Web.Migrations
                         .IsUnique()
                         .HasFilter("[UserName] IS NOT NULL");
 
+                    b.HasIndex("FullName", "PhoneNumber")
+                        .IsUnique()
+                        .HasFilter("[PhoneNumber] IS NOT NULL");
+
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
@@ -259,7 +293,12 @@ namespace RMS.Web.Migrations
                     b.Property<int>("GovernorateId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NameEn")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -268,7 +307,10 @@ namespace RMS.Web.Migrations
 
                     b.HasIndex("GovernorateId");
 
-                    b.HasIndex("Name", "GovernorateId")
+                    b.HasIndex("NameAr", "GovernorateId")
+                        .IsUnique();
+
+                    b.HasIndex("NameEn", "GovernorateId")
                         .IsUnique();
 
                     b.ToTable("Areas");
@@ -282,7 +324,12 @@ namespace RMS.Web.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Address")
+                    b.Property<string>("AddressAr")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("AddressEn")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
@@ -293,13 +340,26 @@ namespace RMS.Web.Migrations
                     b.Property<string>("BranchImages")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("GovernrateId")
+                    b.Property<int>("GovernorateId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsBusy")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Name")
+                    b.Property<bool>("IsOpen")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("MaxAllowedOrdersInDay")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("MaxCashOnDeliveryAllowed")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("NameEn")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -311,7 +371,10 @@ namespace RMS.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("NameAr")
+                        .IsUnique();
+
+                    b.HasIndex("NameEn")
                         .IsUnique();
 
                     b.ToTable("Branches");
@@ -361,7 +424,11 @@ namespace RMS.Web.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
-                    b.Property<string>("ExceptionName")
+                    b.Property<string>("ExceptionNameAr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExceptionNameEn")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -393,11 +460,16 @@ namespace RMS.Web.Migrations
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
-                    b.Property<string>("ItemsLayout")
+                    b.Property<string>("ItemsCardsLayout")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NameEn")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -408,7 +480,10 @@ namespace RMS.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("NameAr")
+                        .IsUnique();
+
+                    b.HasIndex("NameEn")
                         .IsUnique();
 
                     b.ToTable("Categories");
@@ -479,7 +554,7 @@ namespace RMS.Web.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("NarastBranchId")
+                    b.Property<int>("NearestBranchId")
                         .HasColumnType("int");
 
                     b.Property<string>("Notes")
@@ -501,14 +576,22 @@ namespace RMS.Web.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NameEn")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("NameAr")
+                        .IsUnique();
+
+                    b.HasIndex("NameEn")
                         .IsUnique();
 
                     b.ToTable("Governorates");
@@ -529,9 +612,6 @@ namespace RMS.Web.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<decimal?>("BasePrice")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("BottomColor")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -540,12 +620,15 @@ namespace RMS.Web.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal?>("Carbs")
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<decimal?>("CashbackPercent")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("CategoryId")
+                    b.Property<string>("CardLabelsAr")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CardLabelsEn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
                     b.Property<int?>("DeliveryTime")
@@ -559,23 +642,17 @@ namespace RMS.Web.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<decimal?>("DiscountPercent")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<string>("Ingredients")
+                    b.Property<string>("IngredientsAr")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsAvailable")
-                        .HasColumnType("bit");
+                    b.Property<string>("IngredientsEn")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("LikeCount")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MaxOrderQuantity")
                         .HasColumnType("int");
 
                     b.Property<string>("NameAr")
@@ -587,17 +664,10 @@ namespace RMS.Web.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal?>("Protein")
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<int?>("PurchaseCount")
-                        .HasColumnType("int");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("SortInCategory")
                         .HasColumnType("int");
-
-                    b.Property<string>("StatusFlags")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("ThumbnailUrl")
                         .HasMaxLength(255)
@@ -612,6 +682,8 @@ namespace RMS.Web.Migrations
                         .HasColumnType("nvarchar(255)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AllergyId");
 
                     b.HasIndex("CategoryId");
 
@@ -660,7 +732,10 @@ namespace RMS.Web.Migrations
                     b.Property<bool>("IsRequired")
                         .HasColumnType("bit");
 
-                    b.Property<int>("MaxSelection")
+                    b.Property<int>("MaxAllowedOptions")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinAllowedOptions")
                         .HasColumnType("int");
 
                     b.Property<int>("SortOrder")
@@ -670,6 +745,9 @@ namespace RMS.Web.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -690,6 +768,9 @@ namespace RMS.Web.Migrations
 
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
+
+                    b.Property<int>("MaxAllowedQuantity")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -817,9 +898,17 @@ namespace RMS.Web.Migrations
 
             modelBuilder.Entity("RMS.Web.Core.Models.Item", b =>
                 {
+                    b.HasOne("RMS.Web.Core.Models.Allergy", "Allergy")
+                        .WithMany("Items")
+                        .HasForeignKey("AllergyId");
+
                     b.HasOne("RMS.Web.Core.Models.Category", "Category")
                         .WithMany()
-                        .HasForeignKey("CategoryId");
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Allergy");
 
                     b.Navigation("Category");
                 });
@@ -852,6 +941,11 @@ namespace RMS.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("ToppingGroup");
+                });
+
+            modelBuilder.Entity("RMS.Web.Core.Models.Allergy", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("RMS.Web.Core.Models.Branch", b =>

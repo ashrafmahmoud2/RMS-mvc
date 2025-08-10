@@ -115,7 +115,7 @@ app.UseCookiePolicy(new CookiePolicyOptions
 
 app.Use(async (context, next) =>
 {
-    context.Response.Headers.Add("X-Frame-Options", "Deny");
+    //context.Response.Headers.Add("X-Frame-Options", "Deny");
 
     await next();
 });

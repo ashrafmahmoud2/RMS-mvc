@@ -13,7 +13,7 @@ public class CustomerAddress
 
     public int GovernrateId { get; set; }
 
-    public int NarastBranchId { get; set; }
+    public int NearestBranchId { get; set; }
 
     public int AreaId { get; set; }
 
@@ -33,7 +33,6 @@ public class CustomerAddress
 
     public bool IsDefault { get; set; } = false;
 
-   
     public Customer Customer { get; set; } = null!;
 }
 

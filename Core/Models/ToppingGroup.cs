@@ -7,7 +7,10 @@ public class ToppingGroup
     public int Id { get; set; }
 
     [StringLength(100)]
-    public string Title { get; set; } = null!;
+    public string TitleEn { get; set; } = null!;
+
+    [StringLength(100)]
+    public string TitleAr { get; set; } = null!;
 
     public bool IsRequired { get; set; } = false;
 

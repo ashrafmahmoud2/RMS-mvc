@@ -1,0 +1,493 @@
+﻿
+SELECT 
+    I.NameAr AS ItemNameAr,
+    C.NameAr AS CategoryNameAr,
+    TG.TitleAr AS ToppingGroupNameAr,
+    TG.MaxAllowedOptions,
+    T.NameAr AS ToppingOptionNameAr,
+    T.Price
+FROM 
+    [dbo].[ItemToppingGroups] AS ITG
+INNER JOIN 
+    [dbo].[ToppingGroups] AS TG ON ITG.ToppingGroupId = TG.Id
+INNER JOIN 
+    [dbo].[ToppingOptions] AS T ON T.ToppingGroupId = TG.Id
+INNER JOIN 
+    [dbo].[Items] AS I ON I.Id = ITG.ItemId
+INNER JOIN 
+    [dbo].[Categories] AS C ON C.Id = I.CategoryId
+
+
+
+SET IDENTITY_INSERT [dbo].[Governorates] ON;
+
+INSERT INTO [dbo].[Governorates] ([Id], [NameEn], [NameAr]) VALUES 
+(1, 'Cairo', N'القاهرة'),
+(2, 'Giza', N'الجيزة'),
+(3, 'Alexandria', N'الإسكندرية'),
+(4, 'Qalyubia', N'القليوبية'),
+(5, 'Port Said', N'بورسعيد'),
+(6, 'Suez', N'السويس'),
+(7, 'Dakahlia', N'الدقهلية'),
+(8, 'Sharqia', N'الشرقية'),
+(9, 'Gharbia', N'الغربية'),
+(10, 'Monufia', N'المنوفية'),
+(11, 'Beheira', N'البحيرة'),
+(12, 'Kafr El Sheikh', N'كفر الشيخ'),
+(13, 'Damietta', N'دمياط'),
+(14, 'Ismailia', N'الإسماعيلية'),
+(15, 'Fayoum', N'الفيوم'),
+(16, 'Beni Suef', N'بني سويف'),
+(17, 'Minya', N'المنيا'),
+(18, 'Assiut', N'أسيوط'),
+(19, 'Sohag', N'سوهاج'),
+(20, 'Qena', N'قنا'),
+(21, 'Luxor', N'الأقصر'),
+(22, 'Aswan', N'أسوان'),
+(23, 'Red Sea', N'البحر الأحمر'),
+(24, 'New Valley', N'الوادي الجديد'),
+(25, 'Matrouh', N'مطروح'),
+(26, 'North Sinai', N'شمال سيناء'),
+(27, 'South Sinai', N'جنوب سيناء');
+
+SET IDENTITY_INSERT [dbo].[Governorates] OFF;
+
+
+
+
+--////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+SET IDENTITY_INSERT [dbo].[Areas] ON;
+
+INSERT INTO [dbo].[Areas] ([Id], [NameEn], [GovernorateId], [NameAr]) VALUES
+-- Cairo (1)
+(1, 'Downtown', 1, N'وسط البلد'),
+(2, 'Nasr City', 1, N'مدينة نصر'),
+(3, 'Maadi', 1, N'المعادي'),
+(4, 'Heliopolis', 1, N'مصر الجديدة'),
+(5, 'Shubra', 1, N'شبرا'),
+
+-- Giza (2)
+(6, 'Dokki', 2, N'الدقي'),
+(7, 'Mohandessin', 2, N'المهندسين'),
+(8, '6th of October', 2, N'السادس من أكتوبر'),
+(9, 'Faisal', 2, N'فيصل'),
+
+-- Alexandria (3)
+(10, 'Smouha', 3, N'سموحة'),
+(11, 'Sidi Gaber', 3, N'سيدي جابر'),
+(12, 'Mandara', 3, N'المنتزه'),
+
+-- Qalyubia (4)
+(13, 'Banha', 4, N'بنها'),
+(14, 'Qalyub', 4, N'قليوب'),
+(15, 'Shubra El Kheima', 4, N'شبرا الخيمة'),
+
+-- Port Said (5)
+(16, 'Port Fouad', 5, N'بورفؤاد'),
+(17, 'El Manakh', 5, N'المنـاخ'),
+(18, 'El Arab', 5, N'العرب'),
+
+-- Suez (6)
+(19, 'Arbaeen', 6, N'الأربعين'),
+(20, 'Ganayen', 6, N'الجناين'),
+(21, 'Faisal', 6, N'فيصل'),
+
+-- Dakahlia (7)
+(22, 'Mansoura', 7, N'المنصورة'),
+(23, 'Talkha', 7, N'طلخا'),
+(24, 'Mit Ghamr', 7, N'ميت غمر'),
+(25, 'Sherbin', 7, N'شربين'),
+
+-- Sharqia (8)
+(26, 'Zagazig', 8, N'الزقازيق'),
+(27, '10th of Ramadan', 8, N'العاشر من رمضان'),
+(28, 'Abu Hammad', 8, N'أبو حماد'),
+
+-- Gharbia (9)
+(29, 'Tanta', 9, N'طنطا'),
+(30, 'El Mahalla El Kubra', 9, N'المحلة الكبرى'),
+(31, 'Kafr El Zayat', 9, N'كفر الزيات'),
+
+-- Monufia (10)
+(32, 'Shebin El-Kom', 10, N'شبين الكوم'),
+(33, 'Menouf', 10, N'منوف'),
+(34, 'Ashmoun', 10, N'أشمون'),
+
+-- Beheira (11)
+(35, 'Damanhour', 11, N'دمنهور'),
+(36, 'Kafr El Dawwar', 11, N'كفر الدوار'),
+(37, 'Itay El Barud', 11, N'إيتاي البارود'),
+
+-- Kafr El Sheikh (12)
+(38, 'Kafr El Sheikh', 12, N'كفر الشيخ'),
+(39, 'Desouk', 12, N'دسوق'),
+(40, 'Baltim', 12, N'بلطيم'),
+
+-- Damietta (13)
+(41, 'Damietta', 13, N'دمياط'),
+(42, 'New Damietta', 13, N'دمياط الجديدة'),
+(43, 'Zarqa', 13, N'الزرقا'),
+
+-- Ismailia (14)
+(44, 'Ismailia', 14, N'الإسماعيلية'),
+(45, 'Tell El Kebir', 14, N'التل الكبير'),
+(46, 'Qantara West', 14, N'القنطرة غرب'),
+
+-- Fayoum (15)
+(47, 'Fayoum', 15, N'الفيوم'),
+(48, 'Ibshway', 15, N'إبشواي'),
+(49, 'Sinnuris', 15, N'سنورس'),
+
+-- Beni Suef (16)
+(50, 'Beni Suef', 16, N'بني سويف');
+
+SET IDENTITY_INSERT [dbo].[Areas] OFF;
+
+--/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+INSERT INTO [dbo].[AspNetUsers] (
+    [Id], [UserName], [NormalizedUserName], [Email], [NormalizedEmail],
+    [EmailConfirmed], [PasswordHash], [SecurityStamp], [ConcurrencyStamp],
+    [PhoneNumber], [PhoneNumberConfirmed], [TwoFactorEnabled], [LockoutEnd],
+    [LockoutEnabled], [AccessFailedCount], [CreatedById], [CreatedOn],
+    [FullName], [IsDeleted], [LastUpdatedById], [LastUpdatedOn]
+)
+VALUES
+('00000000-0000-0000-0000-000000000001', 'user1', 'USER1', 'user1@example.com', 'USER1@EXAMPLE.COM', 
+ 1, 'AQAAAAEAACcQAAAAEPs+PasswordHashExample==', NEWID(), NEWID(),
+ '01000000001', 1, 0, NULL, 1, 0, 'seed-admin', GETDATE(), N'Test User 1', 0, 'seed-admin', GETDATE()),
+
+('00000000-0000-0000-0000-000000000002', 'user2', 'USER2', 'user2@example.com', 'USER2@EXAMPLE.COM', 
+ 1, 'AQAAAAEAACcQAAAAEPs+PasswordHashExample==', NEWID(), NEWID(),
+ '01000000002', 1, 0, NULL, 1, 0, 'seed-admin', GETDATE(), N'Test User 2', 0, 'seed-admin', GETDATE()),
+
+('00000000-0000-0000-0000-000000000003', 'user3', 'USER3', 'user3@example.com', 'USER3@EXAMPLE.COM', 
+ 1, 'AQAAAAEAACcQAAAAEPs+PasswordHashExample==', NEWID(), NEWID(),
+ '01000000003', 1, 0, NULL, 1, 0, 'seed-admin', GETDATE(), N'Test User 3', 0, 'seed-admin', GETDATE()),
+
+('00000000-0000-0000-0000-000000000004', 'user4', 'USER4', 'user4@example.com', 'USER4@EXAMPLE.COM', 
+ 1, 'AQAAAAEAACcQAAAAEPs+PasswordHashExample==', NEWID(), NEWID(),
+ '01000000004', 1, 0, NULL, 1, 0, 'seed-admin', GETDATE(), N'Test User 4', 0, 'seed-admin', GETDATE()),
+
+('00000000-0000-0000-0000-000000000005', 'user5', 'USER5', 'user5@example.com', 'USER5@EXAMPLE.COM', 
+ 1, 'AQAAAAEAACcQAAAAEPs+PasswordHashExample==', NEWID(), NEWID(),
+ '01000000005', 1, 0, NULL, 1, 0, 'seed-admin', GETDATE(), N'Test User 5', 0, 'seed-admin', GETDATE()),
+
+('00000000-0000-0000-0000-000000000006', 'user6', 'USER6', 'user6@example.com', 'USER6@EXAMPLE.COM', 
+ 1, 'AQAAAAEAACcQAAAAEPs+PasswordHashExample==', NEWID(), NEWID(),
+ '01000000006', 1, 0, NULL, 1, 0, 'seed-admin', GETDATE(), N'Test User 6', 0, 'seed-admin', GETDATE()),
+
+('00000000-0000-0000-0000-000000000007', 'user7', 'USER7', 'user7@example.com', 'USER7@EXAMPLE.COM', 
+ 1, 'AQAAAAEAACcQAAAAEPs+PasswordHashExample==', NEWID(), NEWID(),
+ '01000000007', 1, 0, NULL, 1, 0, 'seed-admin', GETDATE(), N'Test User 7', 0, 'seed-admin', GETDATE()),
+
+('00000000-0000-0000-0000-000000000008', 'user8', 'USER8', 'user8@example.com', 'USER8@EXAMPLE.COM', 
+ 1, 'AQAAAAEAACcQAAAAEPs+PasswordHashExample==', NEWID(), NEWID(),
+ '01000000008', 1, 0, NULL, 1, 0, 'seed-admin', GETDATE(), N'Test User 8', 0, 'seed-admin', GETDATE()),
+
+('00000000-0000-0000-0000-000000000009', 'user9', 'USER9', 'user9@example.com', 'USER9@EXAMPLE.COM', 
+ 1, 'AQAAAAEAACcQAAAAEPs+PasswordHashExample==', NEWID(), NEWID(),
+ '01000000009', 1, 0, NULL, 1, 0, 'seed-admin', GETDATE(), N'Test User 9', 0, 'seed-admin', GETDATE()),
+
+('00000000-0000-0000-0000-000000000010', 'user10', 'USER10', 'user10@example.com', 'USER10@EXAMPLE.COM', 
+ 1, 'AQAAAAEAACcQAAAAEPs+PasswordHashExample==', NEWID(), NEWID(),
+ '01000000010', 1, 0, NULL, 1, 0, 'seed-admin', GETDATE(), N'Test User 10', 0, 'seed-admin', GETDATE());
+
+
+
+ --//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ SET IDENTITY_INSERT [dbo].[Customers] ON;
+
+INSERT INTO [dbo].[Customers] ([Id], [IsBlackListed], [DefaultAddressId], [UserId]) VALUES
+(1, 0, NULL, '00000000-0000-0000-0000-000000000001'),
+(2, 0, NULL, '00000000-0000-0000-0000-000000000002'),
+(3, 1, NULL, '00000000-0000-0000-0000-000000000003'),
+(4, 0, NULL, '00000000-0000-0000-0000-000000000004'),
+(5, 0, NULL, '00000000-0000-0000-0000-000000000005'),
+(6, 1, NULL, '00000000-0000-0000-0000-000000000006'),
+(7, 0, NULL, '00000000-0000-0000-0000-000000000007'),
+(8, 0, NULL, '00000000-0000-0000-0000-000000000008'),
+(9, 1, NULL, '00000000-0000-0000-0000-000000000009'),
+(10, 0, NULL, '00000000-0000-0000-0000-000000000010');
+
+SET IDENTITY_INSERT [dbo].[Customers] OFF;
+
+
+--//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+SET IDENTITY_INSERT [dbo].[CustomerAddresses] ON;
+
+INSERT INTO [dbo].[CustomerAddresses] (
+    [Id], [CustomerId], [Label], [GovernrateId], [NearestBranchId], [AreaId],
+    [Address], [BuildingDetails], [Floor], [FlatNumber], [Notes], [IsDefault]
+) VALUES
+(1, 1, N'Home', 1, 1, 1, N'12 Tahrir Street', N'Building A, Door 1', '1', '101', N'Close to metro station', 1),
+(2, 2, N'Office', 2, 2, 2, N'45 Zamalek Street', N'Building B, Door 2', '2', '202', N'Near Nile Tower', 1),
+(3, 3, N'Home', 3, 3, 3, N'78 Maadi Street', N'Villa 3', 'G', '1', N'Behind Carrefour', 1),
+(4, 4, N'Office', 4, 4, 4, N'32 October Street', N'Business Plaza, Floor 4', '4', '401', N'Next to Mall of Egypt', 1),
+(5, 5, N'Home', 5, 5, 5, N'5 Sidi Gaber Road', N'Tower C, Apt 5', '5', '503', N'Opposite Smouha Club', 1),
+(6, 6, N'Home', 1, 6, 6, N'99 Nasr City', N'Building E', '6', '601', N'Near El Serag Mall', 1),
+(7, 7, N'Home', 2, 7, 7, N'21 Dokki Street', N'Flat 7B', '7', '702', N'Back of Shooting Club', 1),
+(8, 8, N'Home', 3, 8, 8, N'11 Heliopolis Ave', N'Villa B', '1', '103', N'Beside Merryland Park', 1),
+(9, 9, N'Home', 4, 9, 9, N'61 Faisal Street', N'Tower 9, Door 2', '9', '904', N'Near Faisal Metro', 1),
+(10, 10, N'Home', 5, 10, 10, N'16 Mandara Rd', N'House 10', 'G', '10', N'Close to Sea View', 1);
+
+SET IDENTITY_INSERT [dbo].[CustomerAddresses] OFF;
+
+UPDATE [dbo].[Customers] SET DefaultAddressId = 1 WHERE Id = 1;
+UPDATE [dbo].[Customers] SET DefaultAddressId = 2 WHERE Id = 2;
+UPDATE [dbo].[Customers] SET DefaultAddressId = 3 WHERE Id = 3;
+UPDATE [dbo].[Customers] SET DefaultAddressId = 4 WHERE Id = 4;
+UPDATE [dbo].[Customers] SET DefaultAddressId = 5 WHERE Id = 5;
+UPDATE [dbo].[Customers] SET DefaultAddressId = 6 WHERE Id = 6;
+UPDATE [dbo].[Customers] SET DefaultAddressId = 7 WHERE Id = 7;
+UPDATE [dbo].[Customers] SET DefaultAddressId = 8 WHERE Id = 8;
+UPDATE [dbo].[Customers] SET DefaultAddressId = 9 WHERE Id = 9;
+UPDATE [dbo].[Customers] SET DefaultAddressId = 10 WHERE Id = 10;
+
+
+
+select *from Customers
+select *from CustomerAddresses
+--//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+USE [RMS]
+GO
+
+SET IDENTITY_INSERT [dbo].[Categories] ON
+GO
+
+INSERT INTO [dbo].[Categories] 
+    ([Id], [NameEn], [Icon], [PlaceholderItemImage], [IsAvailable], [CategorySort], [ItemsCardsLayout], [NameAr])
+VALUES
+    (1, N'Pizza',        N'pizza.png',        N'pizza-placeholder.png',        1, 1, N'two-card',        N'بيتزا'),
+    (2, N'Burgers',      N'burger.png',       N'burger-placeholder.png',       1, 2, N'square-card',     N'برجر'),
+    (3, N'Pasta',        N'pasta.png',        N'pasta-placeholder.png',        1, 3, N'stagnant-card',   N'باستا'),
+    (4, N'Salads',       N'salad.png',        N'salad-placeholder.png',        1, 4, N'two-card',        N'سلطات'),
+    (5, N'Soups',        N'soup.png',         N'soup-placeholder.png',         1, 5, N'square-card',     N'شوربة'),
+    (6, N'Desserts',     N'dessert.png',      N'dessert-placeholder.png',      1, 6, N'stagnant-card',   N'حلويات'),
+    (7, N'Seafood',      N'seafood.png',      N'seafood-placeholder.png',      1, 7, N'two-card',        N'مأكولات بحرية'),
+    (8, N'Grilled',      N'grilled.png',      N'grilled-placeholder.png',      1, 8, N'square-card',     N'مشويات'),
+    (9, N'Sandwiches',   N'sandwich.png',     N'sandwich-placeholder.png',     1, 9, N'two-card',        N'ساندويتشات'),
+    (10, N'Drinks',      N'drink.png',        N'drink-placeholder.png',        1, 10, N'stagnant-card',  N'مشروبات');
+
+GO
+SET IDENTITY_INSERT [dbo].[Categories] OFF
+GO
+
+select *from [Categories]
+
+
+
+--//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+SET IDENTITY_INSERT [dbo].[Allergy] ON;
+GO
+
+INSERT INTO [dbo].[Allergy] ([Id], [NameAr], [NameEn], [ImageUrl]) VALUES
+(1, N'يحتوي على القمح والغلوتين',        N'Contains wheat and gluten',          'images/allergy/wheat-gluten.png'),
+(2, N'يحتوي على البيض',                   N'Contains eggs',                      'images/allergy/eggs.png'),
+(3, N'يحتوي على الحليب',                  N'Contains milk',                      'images/allergy/milk.png'),
+(4, N'يحتوي على المكسرات',                N'Contains nuts',                      'images/allergy/nuts.png'),
+(5, N'يحتوي على فول الصويا',              N'Contains soybeans',                  'images/allergy/soybeans.png'),
+(6, N'يحتوي على الخردل أو السمسم',        N'Contains mustard or sesame seeds',  'images/allergy/mustard-sesame.png'),
+(7, N'قد يحتوي على أي من المواد السابقة', N'May contain any of the above',       'images/allergy/mixed.png');
+
+GO
+SET IDENTITY_INSERT [dbo].[Allergy] OFF;
+GO
+--//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+USE [RMS];
+GO
+
+SET IDENTITY_INSERT [dbo].[Items] ON;
+
+INSERT INTO [dbo].[Items] (
+    Id,
+    NameAr, NameEn, DescriptionAr, DescriptionEn, Calories, Protein, Carbs,
+    CardLabelsEn, AllergyId, CategoryId, LikeCount, DeliveryTime,
+    ImageUrl, ThumbnailUrl, BackgroundImageUrl, VideoUrl,
+    TopColor, BottomColor, SortInCategory, IngredientsAr, IngredientsEn, CardLabelsAr
+)
+VALUES
+(1, N'دجاج مشوي', N'Grilled Chicken', N'طبق دجاج مشوي لذيذ', N'Delicious grilled chicken dish', 250, 27.0, 3.0, 'Top Selling', 1, 1, 0, 20, NULL, NULL, NULL, NULL, NULL, NULL, 1, N'دجاج، بهارات', N'Chicken, Spices', N'الأكثر مبيعاً'),
+(2, N'برجر لحم', N'Beef Burger', N'برجر لحم بقري مع الجبن', N'Beef burger with cheese', 550, 30.0, 40.0, 'Second Top Selling', 1, 1, 0, 15, NULL, NULL, NULL, NULL, NULL, NULL, 2, N'لحم، خبز، جبن', N'Beef, Bread, Cheese', N'الأكثر مبيعاً'),
+(3, N'سلطة يونانية', N'Greek Salad', N'سلطة صحية بالخضار والجبن', N'Healthy salad with vegetables and cheese', 120, 4.0, 10.0, 'Trend', 1, 1, 0, 10, NULL, NULL, NULL, NULL, NULL, NULL, 3, N'خيار، طماطم، جبن فيتا', N'Cucumber, Tomato, Feta Cheese', N'تريند'),
+(4, N'بيتزا مارجريتا', N'Margherita Pizza', N'بيتزا مارجريتا الإيطالية الأصلية', N'Classic Italian Margherita pizza', 600, 20.0, 70.0, 'Top Rebuy', 1, 1, 0, 25, NULL, NULL, NULL, NULL, NULL, NULL, 4, N'جبن، صلصة طماطم، عجين', N'Cheese, Tomato Sauce, Dough', N'إعادة شراء'),
+(5, N'سوشي سلمون', N'Salmon Sushi', N'سوشي لذيذ مع سلمون طازج', N'Tasty sushi with fresh salmon', 200, 15.0, 30.0, 'New', 1, 1, 0, 15, NULL, NULL, NULL, NULL, NULL, NULL, 5, N'أرز، سلمون، صويا', N'Rice, Salmon, Soy Sauce', N'جديد'),
+(6, N'كباب لحم', N'Beef Kebab', N'كباب لحم مشوي على الفحم', N'Charcoal-grilled beef kebab', 400, 25.0, 5.0, '', 1, 1, 0, 20, NULL, NULL, NULL, NULL, NULL, NULL, 6, N'لحم، بهارات', N'Beef, Spices', NULL),
+(7, N'فلافل', N'Falafel', N'فلافل مقرمشة مع خبز البيتا', N'Crispy falafel with pita bread', 350, 10.0, 35.0, '', 1, 1, 0, 10, NULL, NULL, NULL, NULL, NULL, NULL, 7, N'حمص، بقدونس، توابل', N'Chickpeas, Parsley, Spices', NULL),
+(8, N'شاورما دجاج', N'Chicken Shawarma', N'شاورما دجاج بتوابل شرقية', N'Chicken shawarma with oriental spices', 500, 28.0, 45.0, '', 1, 1, 0, 15, NULL, NULL, NULL, NULL, NULL, NULL, 8, N'دجاج، ثوم، توابل', N'Chicken, Garlic, Spices', NULL),
+(9, N'كشري', N'Koshary', N'طبق كشري مصري تقليدي', N'Traditional Egyptian koshary dish', 600, 12.0, 80.0, '', 1, 1, 0, 15, NULL, NULL, NULL, NULL, NULL, NULL, 9, N'أرز، عدس، مكرونة', N'Rice, Lentils, Pasta', NULL),
+(10, N'برياني دجاج', N'Chicken Biryani', N'برياني دجاج هندي بالتوابل', N'Spicy Indian chicken biryani', 550, 23.0, 60.0, '', 1, 1, 0, 25, NULL, NULL, NULL, NULL, NULL, NULL, 10, N'أرز، دجاج، توابل هندية', N'Rice, Chicken, Indian Spices', NULL),
+(11, N'فتوش', N'Fattoush', N'سلطة شامية منعشة', N'Fresh Levantine salad', 130, 3.0, 10.0, '', 1, 1, 0, 10, NULL, NULL, NULL, NULL, NULL, NULL, 11, N'خس، طماطم، خبز مقلي', N'Lettuce, Tomato, Fried Bread', NULL),
+(12, N'كبدة اسكندراني', N'Alex Liver', N'كبدة اسكندراني حارة', N'Spicy Alexandrian liver', 400, 22.0, 12.0, '', 1, 1, 0, 12, NULL, NULL, NULL, NULL, NULL, NULL, 12, N'كبدة، فلفل، توابل', N'Liver, Peppers, Spices', NULL),
+(13, N'ملوخية', N'Molokhia', N'ملوخية خضراء بالثوم', N'Molokhia stew with garlic', 150, 6.0, 10.0, '', 1, 1, 0, 15, NULL, NULL, NULL, NULL, NULL, NULL, 13, N'ملوخية، ثوم، مرق', N'Molokhia, Garlic, Broth', NULL),
+(14, N'بامية', N'Okra Stew', N'بامية بلحم الضأن', N'Okra stew with lamb', 320, 18.0, 20.0, '', 1, 1, 0, 20, NULL, NULL, NULL, NULL, NULL, NULL, 14, N'بامية، لحم، طماطم', N'Okra, Lamb, Tomato', NULL),
+(15, N'حمص بالطحينة', N'Hummus', N'حمص ناعم مع طحينة', N'Smooth hummus with tahini', 180, 6.0, 15.0, '', 1, 1, 0, 8, NULL, NULL, NULL, NULL, NULL, NULL, 15, N'حمص، طحينة، زيت زيتون', N'Chickpeas, Tahini, Olive Oil', NULL),
+(16, N'ورق عنب', N'Vine Leaves', N'ورق عنب محشي بالأرز', N'Grape leaves stuffed with rice', 200, 4.0, 30.0, '', 1, 1, 0, 10, NULL, NULL, NULL, NULL, NULL, NULL, 16, N'ورق عنب، أرز، بقدونس', N'Vine Leaves, Rice, Parsley', NULL),
+(17, N'مسقعة', N'Moussaka', N'مسقعة بالباذنجان واللحم', N'Moussaka with eggplant and meat', 400, 15.0, 25.0, '', 1, 1, 0, 18, NULL, NULL, NULL, NULL, NULL, NULL, 17, N'باذنجان، لحم، صلصة طماطم', N'Eggplant, Meat, Tomato Sauce', NULL),
+(18, N'كنافة', N'Kunafa', N'كنافة بالقشطة', N'Kunafa with cream', 450, 8.0, 60.0, '', 1, 1, 0, 10, NULL, NULL, NULL, NULL, NULL, NULL, 18, N'شعيرية، قشطة، قطر', N'Noodles, Cream, Syrup', NULL),
+(19, N'بسبوسة', N'Basbousa', N'بسبوسة بجوز الهند', N'Basbousa with coconut', 400, 6.0, 55.0, '', 1, 1, 0, 10, NULL, NULL, NULL, NULL, NULL, NULL, 19, N'سميد، سكر، جوز الهند', N'Semolina, Sugar, Coconut', NULL),
+(20, N'مهلبية', N'Muhallabia', N'مهلبية بالحليب والنشا', N'Milk pudding with starch', 250, 5.0, 35.0, '', 1, 1, 0, 8, NULL, NULL, NULL, NULL, NULL, NULL, 20, N'حليب، نشا، فانيليا', N'Milk, Starch, Vanilla', NULL);
+
+SET IDENTITY_INSERT [dbo].[Items] OFF;
+
+--//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+SET IDENTITY_INSERT [dbo].[Branches] ON;
+
+INSERT INTO [dbo].[Branches] (
+    Id, NameEn, AreaId, GovernorateId, AddressEn, Phone, BranchImages,
+    IsOpen, IsBusy, MaxAllowedOrdersInDay, MaxCashOnDeliveryAllowed,
+    AddressAr, NameAr
+)
+VALUES
+-- Cairo
+(1, 'Downtown Food Hub', 1, 1, '12 Talaat Harb St., Downtown', '01000000001', NULL, 1, 0, 150, 500.00, N'١٢ شارع طلعت حرب، وسط البلد', N'مركز طعام وسط البلد'),
+(2, 'Nasr City Bites', 2, 1, '5 Abbas El Akkad, Nasr City', '01000000002', NULL, 1, 1, 120, 400.00, N'٥ شارع عباس العقاد، مدينة نصر', N'مأكولات مدينة نصر'),
+
+-- Giza
+(3, 'Dokki Dine', 6, 2, '15 Tahrir St., Dokki', '01000000003', NULL, 1, 0, 100, 350.00, N'١٥ شارع التحرير، الدقي', N'مطعم الدقي'),
+(4, 'Mohandessin Meals', 7, 2, '6 Gameat El Dowal St.', '01000000004', NULL, 1, 0, 130, 450.00, N'٦ شارع جامعة الدول، المهندسين', N'وجبات المهندسين'),
+
+-- Alexandria
+(5, 'Smouha Snacks', 10, 3, '45 Smouha Square', '01000000005', NULL, 1, 0, 110, 300.00, N'٤٥ ميدان سموحة', N'وجبات سموحة'),
+(6, 'Sidi Gaber Grill', 11, 3, 'Near Train Station, Sidi Gaber', '01000000006', NULL, 1, 1, 90, 250.00, N'قرب محطة القطار، سيدي جابر', N'مشويات سيدي جابر'),
+
+-- Qalyubia
+(7, 'Banha Bites', 13, 4, 'Main Road, Banha', '01000000007', NULL, 1, 0, 80, 200.00, N'الطريق الرئيسي، بنها', N'وجبات بنها'),
+
+-- Port Said
+(8, 'Port Fouad Foods', 16, 5, 'El Gomhoreya St., Port Fouad', '01000000008', NULL, 1, 1, 60, 180.00, N'شارع الجمهورية، بورفؤاد', N'أطعمة بورفؤاد'),
+
+-- Suez
+(9, 'Suez Eats', 19, 6, 'Arbaeen Area, Suez', '01000000009', NULL, 1, 0, 100, 300.00, N'منطقة الأربعين، السويس', N'مأكولات السويس'),
+
+-- Dakahlia
+(10, 'Mansoura Meals', 22, 7, 'Corniche St., Mansoura', '01000000010', NULL, 1, 0, 140, 400.00, N'شارع الكورنيش، المنصورة', N'وجبات المنصورة');
+
+SET IDENTITY_INSERT [dbo].[Branches] OFF;
+
+--//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+USE [RMS]
+GO
+
+-- Insert working hours for Branches 1 to 10
+INSERT INTO [dbo].[BranchWorkingHours] ([BranchId], [DayOfWeek], [OpeningTime], [ClosingTime])
+VALUES
+-- Branch 1
+(1, 0, '09:00:00', '21:00:00'),
+(1, 1, '09:00:00', '21:00:00'),
+(1, 2, '09:00:00', '21:00:00'),
+(1, 3, '09:00:00', '21:00:00'),
+(1, 4, '09:00:00', '21:00:00'),
+(1, 5, '09:00:00', '21:00:00'),
+(1, 6, '09:00:00', '21:00:00'),
+
+-- Branch 2
+(2, 0, '09:00:00', '21:00:00'),
+(2, 1, '09:00:00', '21:00:00'),
+(2, 2, '09:00:00', '21:00:00'),
+(2, 3, '09:00:00', '21:00:00'),
+(2, 4, '09:00:00', '21:00:00'),
+(2, 5, '09:00:00', '21:00:00'),
+(2, 6, '09:00:00', '21:00:00'),
+
+-- Branch 3
+(3, 0, '09:00:00', '21:00:00'),
+(3, 1, '09:00:00', '21:00:00'),
+(3, 2, '09:00:00', '21:00:00'),
+(3, 3, '09:00:00', '21:00:00'),
+(3, 4, '09:00:00', '21:00:00'),
+(3, 5, '09:00:00', '21:00:00'),
+(3, 6, '09:00:00', '21:00:00'),
+
+-- Branch 4
+(4, 0, '09:00:00', '21:00:00'),
+(4, 1, '09:00:00', '21:00:00'),
+(4, 2, '09:00:00', '21:00:00'),
+(4, 3, '09:00:00', '21:00:00'),
+(4, 4, '09:00:00', '21:00:00'),
+(4, 5, '09:00:00', '21:00:00'),
+(4, 6, '09:00:00', '21:00:00'),
+
+-- Branch 5
+(5, 0, '09:00:00', '21:00:00'),
+(5, 1, '09:00:00', '21:00:00'),
+(5, 2, '09:00:00', '21:00:00'),
+(5, 3, '09:00:00', '21:00:00'),
+(5, 4, '09:00:00', '21:00:00'),
+(5, 5, '09:00:00', '21:00:00'),
+(5, 6, '09:00:00', '21:00:00'),
+
+-- Branch 6
+(6, 0, '09:00:00', '21:00:00'),
+(6, 1, '09:00:00', '21:00:00'),
+(6, 2, '09:00:00', '21:00:00'),
+(6, 3, '09:00:00', '21:00:00'),
+(6, 4, '09:00:00', '21:00:00'),
+(6, 5, '09:00:00', '21:00:00'),
+(6, 6, '09:00:00', '21:00:00'),
+
+-- Branch 7
+(7, 0, '09:00:00', '21:00:00'),
+(7, 1, '09:00:00', '21:00:00'),
+(7, 2, '09:00:00', '21:00:00'),
+(7, 3, '09:00:00', '21:00:00'),
+(7, 4, '09:00:00', '21:00:00'),
+(7, 5, '09:00:00', '21:00:00'),
+(7, 6, '09:00:00', '21:00:00'),
+
+-- Branch 8
+(8, 0, '09:00:00', '21:00:00'),
+(8, 1, '09:00:00', '21:00:00'),
+(8, 2, '09:00:00', '21:00:00'),
+(8, 3, '09:00:00', '21:00:00'),
+(8, 4, '09:00:00', '21:00:00'),
+(8, 5, '09:00:00', '21:00:00'),
+(8, 6, '09:00:00', '21:00:00'),
+
+-- Branch 9
+(9, 0, '09:00:00', '21:00:00'),
+(9, 1, '09:00:00', '21:00:00'),
+(9, 2, '09:00:00', '21:00:00'),
+(9, 3, '09:00:00', '21:00:00'),
+(9, 4, '09:00:00', '21:00:00'),
+(9, 5, '09:00:00', '21:00:00'),
+(9, 6, '09:00:00', '21:00:00'),
+
+-- Branch 10
+(10, 0, '09:00:00', '21:00:00'),
+(10, 1, '09:00:00', '21:00:00'),
+(10, 2, '09:00:00', '21:00:00'),
+(10, 3, '09:00:00', '21:00:00'),
+(10, 4, '09:00:00', '21:00:00'),
+(10, 5, '09:00:00', '21:00:00'),
+(10, 6, '09:00:00', '21:00:00');
+
+--//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+USE [RMS]
+GO
+
+INSERT INTO [dbo].[BranchWorkingHourExceptions] (
+    [BranchId], [Date], [OpeningTime], [ClosingTime], [ExceptionNameEn], [ExceptionNameAr]
+)
+VALUES
+(1,  '2025-08-10', '10:00:00', '16:00:00', N'Holiday Hours',         N'ساعات العطلة'),
+(2,  '2025-08-15', '11:00:00', '17:00:00', N'Special Event',         N'حدث خاص'),
+(3,  '2025-08-20', '12:00:00', '18:00:00', N'Maintenance Schedule',  N'جدول صيانة'),
+(4,  '2025-08-25', '13:00:00', '19:00:00', N'Short Day',             N'يوم قصير'),
+(5,  '2025-08-30', '14:00:00', '20:00:00', N'Staff Training',        N'تدريب الموظفين'),
+(6,  '2025-09-01', '10:00:00', '15:00:00', N'Inventory Check',       N'جرد المخزون'),
+(7,  '2025-09-05', '09:00:00', '14:00:00', N'Public Holiday',        N'عطلة رسمية'),
+(8,  '2025-09-10', '08:00:00', '13:00:00', N'Ramadan Hours',         N'ساعات رمضان'),
+(9,  '2025-09-15', '11:30:00', '16:30:00', N'Limited Service',       N'خدمة محدودة'),
+(10, '2025-09-20', '12:00:00', '18:00:00', N'System Upgrade',        N'تحديث النظام');
+
+--//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+--//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

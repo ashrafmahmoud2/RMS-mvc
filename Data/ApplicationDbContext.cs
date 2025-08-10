@@ -25,12 +25,28 @@ public class ApplicationDbContext :/* IdentityDbContext*/  IdentityDbContext<App
     public DbSet<Customer> Customers { get; set; }
     public DbSet<CustomerAddress> CustomerAddresses { get; set; }
 
-    // Items & Toppings
+    // Items 
     public DbSet<Category> Categories { get; set; }
     public DbSet<Item> Items { get; set; }
+    public DbSet<BranchItem> BranchItems { get; set; }
+
+    //Toppings
     public DbSet<ItemToppingGroup> ItemToppingGroups { get; set; }
     public DbSet<ToppingGroup> ToppingGroups { get; set; }
     public DbSet<ToppingOption> ToppingOptions { get; set; }
+
+
+    // Orders
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderStatus> OrderStatuses { get; set; }
+
+    public DbSet<OrderItem> OrderItems { get; set; }
+
+    public DbSet<OrderItemTopping> OrderItemToppings { get; set; }
+    public DbSet<Payment> Payments { get; set; }
+
+
+
 
 
 
