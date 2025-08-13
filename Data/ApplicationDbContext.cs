@@ -60,6 +60,7 @@ public class ApplicationDbContext :/* IdentityDbContext*/  IdentityDbContext<App
 
 
 
+        //make the sort can't make duplicate in categories and toppings
 
         var cascadeFKs = builder.Model.GetEntityTypes()
             .SelectMany(t => t.GetForeignKeys())

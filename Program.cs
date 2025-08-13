@@ -113,12 +113,12 @@ app.UseCookiePolicy(new CookiePolicyOptions
     Secure = CookieSecurePolicy.Always
 });
 
-app.Use(async (context, next) =>
-{
-    //context.Response.Headers.Add("X-Frame-Options", "Deny");
+//app.Use(async (context, next) =>
+//{
+//    //context.Response.Headers.Add("X-Frame-Options", "Deny");
 
-    await next();
-});
+//    await next();
+//});
 
 app.UseRouting();
 

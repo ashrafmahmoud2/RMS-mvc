@@ -1,0 +1,69 @@
+﻿
+<div class="search ">
+    <div class="container">
+        <!-- <button class="search__button">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button> -->
+        <input type="text" class="search__input" placeholder="ما الذي تبحث عنه؟ ......">
+
+    </div>
+</div>
+
+<style>
+
+    /* Search Styles */
+    .search {
+        margin-top: 25px;
+        width: 100%;
+    }
+
+    .search__input {
+        /* font-family: 'Droid Arabic Kufi', Arial, sans-serif; */
+        /* Match the font for input text */
+        font-size: 25px;
+        color: #333;
+        /* Default text color */
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid #ccc;
+        border-radius: 15px;
+        outline: none;
+        background-color: #ffffff;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        /* Smooth border and shadow transition */
+    }
+
+        .search__input:focus {
+            border-color: #007bff;
+            /* Change border color on focus */
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            /* Add glow effect */
+        }
+
+        .search__input::placeholder {
+            color: #aaa;
+            /* Placeholder color */
+            transition: color 0.3s ease;
+            /* Smooth placeholder fade effect */
+            font-size: 15px;
+        }
+
+        .search__input:focus::placeholder {
+            color: #007bff;
+            /* Change placeholder color on focus */
+        }
+
+    .search__button i {
+        /* font-family: 'Scheherazade', Arial, sans-serif; */
+        color: white;
+        font-size: 16px;
+        transition: transform 0.3s ease;
+        /* Smooth hover scaling effect */
+    }
+
+    .search__button:hover i {
+        transform: scale(1.2);
+        /* Slightly enlarge button on hover */
+    }
+
+</style>

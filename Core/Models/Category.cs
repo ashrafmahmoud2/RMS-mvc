@@ -18,11 +18,16 @@ public class Category
     [StringLength(255)]
     public string? PlaceholderItemImage { get; set; }
 
+    public string? CategoryExploreBarImage { get; set; }
+
     public bool IsAvailable { get; set; } = true;
 
     public int? CategorySort { get; set; }
 
-    public string ItemsCardsLayout { get; set; }= null!;
+
+    public string ItemsCardsLayout { get; set; }= null!; /*CategoryItemsCardsLayout*/
+
+    public virtual ICollection<Item> Items { get; set; } = new List<Item>();
 }
 
 

@@ -409,7 +409,7 @@ namespace RMS.Web.Migrations
                     b.Property<int?>("MaxOrderQuantity")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Price")
+                    b.Property<decimal?>("PriceWithoutDiscount")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("SalesCount")
@@ -496,6 +496,9 @@ namespace RMS.Web.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CategoryExploreBarImage")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("CategorySort")
                         .HasColumnType("int");
@@ -776,7 +779,7 @@ namespace RMS.Web.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("BranchId")
+                    b.Property<int>("BranchId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("CashbackPercent")
@@ -882,6 +885,43 @@ namespace RMS.Web.Migrations
                     b.HasIndex("ToppingOptionId");
 
                     b.ToTable("OrderItemToppings");
+                });
+
+            modelBuilder.Entity("RMS.Web.Core.Models.OrderReview", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminResponse")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReviewText")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderReview");
                 });
 
             modelBuilder.Entity("RMS.Web.Core.Models.OrderStatus", b =>
@@ -1197,7 +1237,9 @@ namespace RMS.Web.Migrations
                 {
                     b.HasOne("RMS.Web.Core.Models.Branch", "Branch")
                         .WithMany()
-                        .HasForeignKey("BranchId");
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("RMS.Web.Core.Models.CustomerAddress", "CustomerAddress")
                         .WithMany()
@@ -1254,6 +1296,25 @@ namespace RMS.Web.Migrations
                     b.Navigation("OrderItem");
 
                     b.Navigation("ToppingOption");
+                });
+
+            modelBuilder.Entity("RMS.Web.Core.Models.OrderReview", b =>
+                {
+                    b.HasOne("RMS.Web.Core.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RMS.Web.Core.Models.Order", "Order")
+                        .WithMany("Reviews")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("RMS.Web.Core.Models.OrderStatus", b =>
@@ -1321,6 +1382,8 @@ namespace RMS.Web.Migrations
                     b.Navigation("OrderItems");
 
                     b.Navigation("Payments");
+
+                    b.Navigation("Reviews");
 
                     b.Navigation("StatusHistory");
                 });

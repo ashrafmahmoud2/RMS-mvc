@@ -1,8 +1,34 @@
-﻿@{
+﻿@using RMS.Web.Core.ViewModels.Home
+@model HomeViewModel
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<Partial name="_header" />
+<Partial name="_search" />
+
+
+@if (Model?.CategoriesExploreBar != null && Model.CategoriesExploreBar.Any())
+{
+    <div class="categories-section">
+        <Partial name="_CategoriesExploreBar" model="Model.CategoriesExploreBar" />
+
+    </div>
+}
+
+@*  <div class="banner-slider">
+    <div class="container">
+      <img src="~/images/burgers.png" />
+    </div>
+</div> *@
+
+
+@if (Model?.CategoriesItems != null && Model.CategoriesItems.Any())
+{
+    <div class="categories-section">
+        <Partial name="_ProductGrid" model="Model.CategoriesItems" />
+    </div>
+}
+ 
+

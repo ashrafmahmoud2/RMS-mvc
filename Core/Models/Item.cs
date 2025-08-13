@@ -63,6 +63,8 @@ public class Item
 
     public int? SortInCategory { get; set; }
 
+    public ICollection<BranchItem> BranchItems { get; set; } = new List<BranchItem>();
+
     public ICollection<ItemToppingGroup> ItemToppingGroups { get; set; } = new List<ItemToppingGroup>();
 
     //public ICollection<Allergy> Allergies { get; set; } = new List<Allergy>(); //you need to delete data then but again

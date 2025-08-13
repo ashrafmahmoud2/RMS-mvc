@@ -11,9 +11,11 @@ public class BranchItem
     public Item Item { get; set; } = null!;
 
     public decimal BasePrice { get; set; }
-    public decimal Price { get; set; }
 
     public decimal? DiscountPercent { get; set; }
+
+    public decimal? PriceWithoutDiscount { get; set; }
+
     public decimal? CashbackPercent { get; set; }
 
     public int SalesCount { get; set; } = 0;

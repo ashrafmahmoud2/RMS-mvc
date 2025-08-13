@@ -1,0 +1,162 @@
+﻿@using RMS.Web.Core.ViewModels.Home
+@model IEnumerable<CategoryExploreBarViewModel>
+
+
+<div class="categories-explore-bar ">
+    <ul class="category-image-list">
+
+        @foreach (var category in Model)
+        {
+            <li class="category-image-item">
+                <a href="#@category.NameEn" >
+                    <img src="@Url.Content(category.CategoryExploreBarImage)" alt="@category.NameAr" />
+                </a>
+
+                <span>@category.NameAr</span>
+            </li>
+        }     
+    </ul>
+</div>
+
+
+<style>
+    /* Categories Explore Bar */
+    .categories-explore-bar {
+        padding-right: 15px;
+        margin: 20px auto;
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    .category-image-list {
+        list-style: none;
+        display: flex;
+        gap: 15px;
+        overflow-x: auto;
+        padding: 0 3px 0 0;
+        margin: 0;
+        scrollbar-width: none;
+    }
+
+    .category-image-item {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        animation: bounceIn 0.5s ease-in-out forwards;
+    }
+
+        .category-image-item a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            margin-bottom: 5px;
+            text-decoration: none;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #fff url('https://res.cloudinary.com/dwzq2jxms/image/upload/v1754841367/Copilot_20250607_235033_kmgd2m.png') center/cover no-repeat;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            animation: bounceIn 0.5s ease-in-out forwards;
+        }
+
+            .category-image-item a:hover {
+                transform: translateY(-5px) scale(1.05);
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+            }
+
+        .category-image-item img {
+            max-width: 75px;
+            height: 60px;
+            object-fit: scale-down;
+            border-radius: 50%;
+            margin-bottom: 0;
+            animation: zoomIn 0.7s ease-in-out forwards;
+            transition: transform 0.3s ease-in-out;
+        }
+
+            .category-image-item img:hover {
+                transform: scale(1.1);
+            }
+
+        .category-image-item span {
+            font-family: 'Noto Sans Arabic', Arial, sans-serif;
+            font-size: 0.9em;
+            text-align: center;
+            font-weight: 500;
+            margin-top: 0;
+            background-color: transparent;
+            opacity: 0;
+            animation: fadeIn 0.8s ease-out forwards;
+            animation-delay: 0.3s;
+        }
+
+    /* Animations */
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes bounceIn {
+        from {
+            transform: scale(0.9);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes zoomIn {
+        from {
+            transform: scale(0.8);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    /* Responsive Layout */
+    @@media (min-width: 768px) {
+        .categories-explore-bar {
+            width: 750px;
+        }
+    }
+
+    @@media (min-width: 992px) {
+        .categories-explore-bar {
+            width: 970px;
+        }
+
+        .category-image-item a {
+            width: 120px;
+            height: 120px;
+        }
+    }
+
+    @@media (min-width: 1200px) {
+        .categories-explore-bar {
+            width: 1400px;
+        }
+
+        .category-image-item a {
+            width: 150px;
+            height: 150px;
+        }
+    }
+</style>
+
+
+
