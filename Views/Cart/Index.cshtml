@@ -1,0 +1,1118 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سلة التسوق المحسنة</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+
+     
+
+
+        /* Modal Container - Responsive */
+        .cart-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 95%;
+            max-width: 900px;
+            max-height: 90vh;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            z-index: 1001;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-overlay.active .cart-modal {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Cart Header */
+        .cart-header {
+            background: linear-gradient(135deg, #185499, #2565c7);
+            color: white;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .cart-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .cart-summary {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .cart-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 12px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+            .btn-ghost:hover {
+                background: rgba(255, 255, 255, 0.25);
+                transform: translateY(-1px);
+            }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+            .btn-danger:hover {
+                background: rgba(239, 68, 68, 0.3);
+            }
+
+        /* Cart Body */
+        .cart-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+            .cart-body::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .cart-body::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+
+            .cart-body::-webkit-scrollbar-thumb {
+                background: #c1c1c1;
+                border-radius: 3px;
+            }
+
+        .empty-cart {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+            .empty-cart i {
+                font-size: 64px;
+                margin-bottom: 16px;
+                opacity: 0.5;
+            }
+
+        /* Cart Items */
+        .cart-items {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .cart-item {
+            background: #fafbfc;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s ease;
+        }
+
+            .cart-item:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+                border-color: #185499;
+            }
+
+        .item-main {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .item-image {
+            flex-shrink: 0;
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+            .item-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .item-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .item-description {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .item-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .quantity-btn {
+            border: none;
+            background: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            color: #185499;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+        }
+
+            .quantity-btn:hover {
+                background: #f3f4f6;
+            }
+
+            .quantity-btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+        .quantity-input {
+            border: none;
+            background: none;
+            text-align: center;
+            width: 50px;
+            padding: 8px 4px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .item-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: #185499;
+            white-space: nowrap;
+        }
+
+        /* Collapse Toppings Section */
+        .collapse {
+            background: #fafafa;
+            border-radius: 20px;
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            padding: 5px;
+            margin-top: 10px;
+        }
+
+            .collapse .title {
+                padding-left: 6px;
+            }
+
+        .collapse-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            cursor: pointer;
+        }
+
+        .image-thumbnail {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            position: relative;
+        }
+
+            .image-thumbnail img,
+            .avatar-overflow {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                border: 2px solid #fff;
+                object-fit: cover;
+                background-color: #185499;
+                z-index: 1;
+                transition: transform 0.3s ease;
+            }
+
+        .overlap {
+            margin-left: -12px;
+            z-index: 2;
+        }
+
+        .avatar-overflow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #185499;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .collapse-header .title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .angles-button {
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+            .angles-button i {
+                color: #185499;
+            }
+
+            .angles-button.expanded i {
+                transform: rotate(180deg);
+            }
+
+        .collapse-content {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.5s ease, opacity 0.5s ease;
+        }
+
+            .collapse-content.open {
+                max-height: 500px;
+                opacity: 1;
+            }
+
+        .addons-list {
+            padding: 10px;
+            list-style: none;
+        }
+
+        .addons-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px 10px;
+            background: white;
+            border-radius: 12px;
+            gap: 12px;
+        }
+
+        .addons-list img {
+            width: 60px;
+            height: 60px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .addons-details {
+            flex: 1;
+        }
+
+        .addons-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: #1f2937;
+        }
+
+        .addon-price {
+            color: #185499;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .count {
+            color: #6b7280;
+            font-size: 12px;
+            background: #f3f4f6;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+
+        /* Cart Footer */
+        .cart-footer {
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 20px 24px;
+            flex-shrink: 0;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #185499, #2565c7);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 16px 24px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(24, 84, 153, 0.3);
+        }
+
+            .checkout-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(24, 84, 153, 0.4);
+            }
+
+        .checkout-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .total-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .checkout-text {
+            font-size: 18px;
+        }
+
+        .checkout-price {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* Desktop (PC) Responsive - 1200px+ */
+       @@media (min-width: 1200px) {
+            .cart-modal
+
+        {
+            max-width: 1000px;
+            max-height: 85vh;
+        }
+
+        .cart-items {
+            padding: 24px;
+            gap: 20px;
+        }
+
+        .cart-item {
+            padding: 24px;
+        }
+
+        .item-image {
+            width: 100px;
+            height: 100px;
+        }
+
+        .item-name {
+            font-size: 20px;
+        }
+
+        .item-description {
+            font-size: 15px;
+        }
+
+        }
+
+        /* Tablet Responsive - 768px to 1199px */
+       @@media (min-width: 768px) and (max-width: 1199px) {
+            .cart-modal
+
+        {
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+        }
+
+        .cart-header {
+            padding: 18px 20px;
+        }
+
+        .cart-title {
+            font-size: 22px;
+        }
+
+        .cart-items {
+            padding: 18px;
+            gap: 14px;
+        }
+
+        .cart-item {
+            padding: 18px;
+        }
+
+        .item-main {
+            gap: 14px;
+        }
+
+        .item-image {
+            width: 75px;
+            height: 75px;
+        }
+
+        .collapse-header .title {
+            font-size: 16px;
+        }
+
+        .image-thumbnail img,
+        .avatar-overflow {
+            width: 35px;
+            height: 35px;
+        }
+
+        }
+
+        /* Mobile Responsive - up to 767px */
+       @@media (max-width: 767px) {
+            body
+
+        {
+            padding: 0;
+        }
+
+        .demo-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+        }
+
+        .cart-modal {
+            width: 100%;
+            height: 100%;
+            max-height: 100vh;
+            border-radius: 0;
+            transform: translate(-50%, -50%) translateY(100%);
+            top: 50%;
+            left: 50%;
+        }
+
+        .modal-overlay.active .cart-modal {
+            transform: translate(-50%, -50%) translateY(0);
+        }
+
+        .cart-header {
+            padding: 16px 20px;
+        }
+
+        .cart-title {
+            font-size: 18px;
+        }
+
+        .cart-summary {
+            font-size: 14px;
+        }
+
+        .cart-items {
+            padding: 16px;
+            gap: 12px;
+        }
+
+        .cart-item {
+            padding: 16px;
+        }
+
+        .item-main {
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .item-image {
+            width: 60px;
+            height: 60px;
+        }
+
+        .item-name {
+            font-size: 16px;
+        }
+
+        .item-description {
+            font-size: 13px;
+            -webkit-line-clamp: 1;
+        }
+
+        .item-controls {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .quantity-control {
+            flex-shrink: 0;
+        }
+
+        .item-price {
+            font-size: 16px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .collapse-header {
+            padding: 10px 12px;
+        }
+
+            .collapse-header .title {
+                font-size: 14px;
+            }
+
+        .image-thumbnail img,
+        .avatar-overflow {
+            width: 28px;
+            height: 28px;
+        }
+
+        .avatar-overflow {
+            font-size: 12px;
+        }
+
+        .angles-button {
+            font-size: 13px;
+            gap: 4px;
+        }
+
+        .addons-item {
+            padding: 8px 10px;
+            gap: 12px;
+        }
+
+        .addons-list img {
+            width: 45px;
+            height: 45px;
+        }
+
+        .addons-name {
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .addon-price {
+            font-size: 12px;
+        }
+
+        .count {
+            font-size: 11px;
+            padding: 2px 6px;
+        }
+
+        .cart-footer {
+            padding: 16px 20px;
+        }
+
+        .checkout-btn {
+            padding: 14px 20px;
+            font-size: 16px;
+            flex-direction: column;
+            gap: 8px;
+            text-align: center;
+        }
+
+        .checkout-info {
+            order: 2;
+        }
+
+        .checkout-price {
+            order: 1;
+            font-size: 18px;
+        }
+
+        }
+
+        /* Very Small Mobile - up to 480px */
+       @@media (max-width: 480px) {
+            .cart-header
+
+        {
+            padding: 12px 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .cart-title {
+            font-size: 16px;
+        }
+
+        .cart-summary {
+            font-size: 12px;
+            order: 3;
+            width: 100%;
+            justify-content: center;
+            margin-top: 4px;
+        }
+
+        .cart-items {
+            padding: 12px;
+        }
+
+        .cart-item {
+            padding: 12px;
+        }
+
+        .item-main {
+            gap: 10px;
+        }
+
+        .item-image {
+            width: 50px;
+            height: 50px;
+        }
+
+        .item-name {
+            font-size: 15px;
+        }
+
+        .item-description {
+            font-size: 12px;
+        }
+
+        .item-controls {
+            gap: 8px;
+        }
+
+        .quantity-btn {
+            padding: 6px 10px;
+            font-size: 16px;
+            min-width: 36px;
+        }
+
+        .quantity-input {
+            width: 45px;
+            padding: 6px 2px;
+            font-size: 14px;
+        }
+
+        .item-price {
+            font-size: 15px;
+        }
+
+        .collapse-header {
+            padding: 8px 10px;
+        }
+
+            .collapse-header .title {
+                font-size: 13px;
+            }
+
+        .image-thumbnail img,
+        .avatar-overflow {
+            width: 26px;
+            height: 26px;
+        }
+
+        .avatar-overflow {
+            font-size: 11px;
+        }
+
+        .angles-button {
+            font-size: 12px;
+            gap: 3px;
+        }
+
+        .addons-item {
+            padding: 6px 8px;
+            gap: 8px;
+        }
+
+        .addons-list img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .addons-name {
+            font-size: 13px;
+        }
+
+        .addon-price {
+            font-size: 11px;
+        }
+
+        .count {
+            font-size: 10px;
+            padding: 2px 4px;
+        }
+
+        .cart-footer {
+            padding: 12px 16px;
+        }
+
+        .checkout-btn {
+            padding: 12px 16px;
+            font-size: 15px;
+        }
+
+        .checkout-price {
+            font-size: 16px;
+        }
+
+        .total-badge {
+            font-size: 12px;
+            padding: 4px 8px;
+        }
+
+        }
+
+        /* Animations */
+        @@keyframes fadeIn {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+
+        .cart-item {
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+            .cart-item:nth-child(even) {
+                animation-delay: 0.1s;
+            }
+    </style>
+</head>
+<body>
+
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="cartModal">
+        <div class="cart-modal">
+            <!-- Cart Header -->
+            <div class="cart-header">
+                <div class="cart-title">
+                    <i class="fas fa-shopping-cart"></i>
+                    سلة التسوق
+                </div>
+                <div class="cart-summary">
+                    <span class="total-items">3</span>
+                    <span>عناصر</span>
+                    <span>•</span>
+                    <span class="total-price">285.50</span>
+                    <span>جنيه</span>
+                </div>
+                <div class="cart-actions">
+                    <button class="btn btn-danger" onclick="clearCart()" title="تفريغ السلة">
+                        <i class="fas fa-trash-can"></i>
+                    </button>
+                    <button class="btn btn-ghost" onclick="window.history.back()" title="إغلاق">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cart Body -->
+            <div class="cart-body">
+                <div class="cart-items" id="cartItems">
+                    <!-- Cart Item 1 -->
+                    <div class="cart-item">
+                        <div class="item-main">
+                            <div class="item-image">
+                                <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=150&h=150&fit=crop&crop=center" alt="بيتزا مارجريتا">
+                            </div>
+                            <div class="item-details">
+                                <div class="item-name">بيتزا مارجريتا كبيرة</div>
+                                <div class="item-description">بيتزا إيطالية كلاسيكية بصوص الطماطم وجبنة الموتزاريلا الطازجة والريحان</div>
+                            </div>
+                        </div>
+                        <div class="item-controls">
+                            <div class="quantity-control">
+                                <button class="quantity-btn" onclick="decrementQuantity(1)">−</button>
+                                <input type="text" class="quantity-input" value="2" readonly>
+                                <button class="quantity-btn" onclick="incrementQuantity(1)">+</button>
+                            </div>
+                            <div class="item-price">120.00 جنيه</div>
+                        </div>
+
+                        <!-- Toppings Section with collapse design -->
+                        <section class="collapse">
+                            <header class="collapse-header" onclick="toggleCollapse(this)">
+                                <div class="image-thumbnail">
+                                    <h3 class="title">الإضافات:</h3>
+                                    <img src="https://images.unsplash.com/photo-1506354666786-959d6d497f1a?w=50&h=50&fit=crop&crop=center" alt="زيتون" />
+                                    <img class="overlap" src="https://images.unsplash.com/photo-1552151006-05c0b0e0fcd8?w=50&h=50&fit=crop&crop=center" alt="فطر" />
+                                    <div class="avatar-overflow overlap">+2</div>
+                                </div>
+                                <button class="angles-button">
+                                    إظهار <i class="fa-solid fa-angle-down"></i>
+                                </button>
+                            </header>
+
+                            <div class="collapse-content">
+                                <ul class="addons-list">
+                                    <li class="addons-item">
+                                        <img src="https://images.unsplash.com/photo-1506354666786-959d6d497f1a?w=80&h=80&fit=crop&crop=center" alt="زيتون">
+                                        <div class="addons-details">
+                                            <h4 class="addons-name">زيتون أسود</h4>
+                                            <div class="addon-price">15 جنيه</div>
+                                        </div>
+                                        <span class="count">× 1</span>
+                                    </li>
+                                    <li class="addons-item">
+                                        <img src="https://images.unsplash.com/photo-1552151006-05c0b0e0fcd8?w=80&h=80&fit=crop&crop=center" alt="فطر">
+                                        <div class="addons-details">
+                                            <h4 class="addons-name">فطر طازج</h4>
+                                            <div class="addon-price">20 جنيه</div>
+                                        </div>
+                                        <span class="count">× 1</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Cart Item 2 -->
+                    <div class="cart-item">
+                        <div class="item-main">
+                            <div class="item-image">
+                                <img src="https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=150&h=150&fit=crop&crop=center" alt="برجر">
+                            </div>
+                            <div class="item-details">
+                                <div class="item-name">برجر اللحم المشوي</div>
+                                <div class="item-description">برجر لحم طازج مشوي مع الخس والطماطم والبصل وصوص خاص</div>
+                            </div>
+                        </div>
+                        <div class="item-controls">
+                            <div class="quantity-control">
+                                <button class="quantity-btn" onclick="decrementQuantity(2)">−</button>
+                                <input type="text" class="quantity-input" value="1" readonly>
+                                <button class="quantity-btn" onclick="incrementQuantity(2)">+</button>
+                            </div>
+                            <div class="item-price">85.00 جنيه</div>
+                        </div>
+                    </div>
+
+                    <!-- Cart Item 3 -->
+                    <div class="cart-item">
+                        <div class="item-main">
+                            <div class="item-image">
+                                <img src="https://images.unsplash.com/photo-1551024601-bec78aea704b?w=150&h=150&fit=crop&crop=center" alt="سلطة">
+                            </div>
+                            <div class="item-details">
+                                <div class="item-name">سلطة قيصر</div>
+                                <div class="item-description">خضروات ورقية طازجة مع قطع الدجاج المشوي وصوص القيصر والجبن</div>
+                            </div>
+                        </div>
+                        <div class="item-controls">
+                            <div class="quantity-control">
+                                <button class="quantity-btn" onclick="decrementQuantity(3)">−</button>
+                                <input type="text" class="quantity-input" value="1" readonly>
+                                <button class="quantity-btn" onclick="incrementQuantity(3)">+</button>
+                            </div>
+                            <div class="item-price">65.50 جنيه</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty Cart State -->
+                <div class="empty-cart" id="emptyCart" style="display: none;">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h3>سلة التسوق فارغة</h3>
+                    <p>ابدأ بإضافة بعض المنتجات الرائعة!</p>
+                </div>
+            </div>
+
+            <!-- Cart Footer -->
+            <div class="cart-footer">
+                <button class="checkout-btn" onclick="proceedToCheckout()">
+                    <div class="checkout-info">
+                        <div class="total-badge">3 عناصر</div>
+                        <div class="checkout-text">متابعة للدفع</div>
+                    </div>
+                    <div class="checkout-price">
+                        <span>285.50 جنيه</span>
+                        <i class="fas fa-arrow-left"></i>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modal Control Functions
+
+                document.addEventListener('DOMContentLoaded', (event) => {
+          openCart();
+        });
+
+        function openCart() {
+            document.getElementById('cartModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCart() {
+            document.getElementById('cartModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Quantity Control Functions
+        function incrementQuantity(itemId) {
+            const input = event.target.parentElement.querySelector('.quantity-input');
+            let currentValue = parseInt(input.value);
+            input.value = currentValue + 1;
+            updateTotals();
+        }
+
+        function decrementQuantity(itemId) {
+            const input = event.target.parentElement.querySelector('.quantity-input');
+            let currentValue = parseInt(input.value);
+            if (currentValue > 1) {
+                input.value = currentValue - 1;
+                updateTotals();
+            }
+        }
+
+        // Collapse Toggle Function
+        function toggleCollapse(header) {
+            const content = header.nextElementSibling;
+            const angleButton = header.querySelector('.angles-button');
+            const buttonText = angleButton.childNodes[0];
+
+            content.classList.toggle('open');
+            angleButton.classList.toggle('expanded');
+
+            // Toggle text between "إظهار" and "إخفاء"
+            if (content.classList.contains('open')) {
+                buttonText.textContent = 'إخفاء ';
+            } else {
+                buttonText.textContent = 'إظهار ';
+            }
+        }
+
+        // Cart Management Functions
+        function clearCart() {
+            if (confirm('هل تريد بالتأكيد تفريغ السلة؟ سيتم حذف جميع العناصر والإضافات المختارة.')) {
+                document.getElementById('cartItems').innerHTML = '';
+                document.getElementById('emptyCart').style.display = 'block';
+                updateTotals(true);
+
+                setTimeout(() => {
+                    alert('✅ تم تفريغ السلة بنجاح!');
+                }, 300);
+            }
+        }
+
+        function updateTotals(isEmpty = false) {
+            if (isEmpty) {
+                document.querySelectorAll('.total-items').forEach(el => el.textContent = '0');
+                document.querySelectorAll('.total-price').forEach(el => el.textContent = '0.00');
+                document.querySelector('.total-badge').textContent = '0 عناصر';
+                document.querySelector('.checkout-price span').textContent = '0.00 جنيه';
+                return;
+            }
+
+            // Calculate totals based on current quantities
+            let totalItems = 0;
+            document.querySelectorAll('.quantity-input').forEach(input => {
+                totalItems += parseInt(input.value);
+            });
+
+            // Demo calculation - in real app, this would be more sophisticated
+            const totalPrice = 285.50;
+
+            document.querySelectorAll('.total-items').forEach(el => el.textContent = totalItems);
+            document.querySelectorAll('.total-price').forEach(el => el.textContent = totalPrice.toFixed(2));
+            document.querySelector('.total-badge').textContent = `${totalItems} عناصر`;
+            document.querySelector('.checkout-price span').textContent = `${totalPrice.toFixed(2)} جنيه`;
+        }
+
+        function proceedToCheckout() {
+            alert('سيتم توجيهك إلى صفحة الدفع...');
+            // In real app: window.location.href = 'checkout.html';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('cartModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCart();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeCart();
+            }
+        });
+
+        // Prevent modal body clicks from closing modal
+        document.querySelector('.cart-modal').addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    </script>
+</body>
+</html>

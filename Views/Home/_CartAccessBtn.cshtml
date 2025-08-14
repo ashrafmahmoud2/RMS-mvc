@@ -1,0 +1,116 @@
+﻿<a asp-Controller="Cart" asp-action="Index"  class="cart-access_btn container cart-access_btn--slideUpFooter">
+    <div class="cart-access-thumbnails">
+        <h3 class="title">السلة</h3>
+        <div class="thumbnails__preview" aria-label="صور المنتجات المختارة">
+            <img src="@Url.Content("~/images/Burgers.png")" alt="منتج 1" class="cart-access__image" loading="lazy" />
+            <img src="@Url.Content("~/images/Burgers.png")" alt="منتج 2" class="cart-access__image cart-access__image--overlap" loading="lazy" />
+            <div class="cart-access__overflow cart-access__image--overlap" aria-label="عدد إضافي">+4</div>
+        </div>
+    </div>
+    <div class="cart-access__total">
+        <span class="price">0</span>
+        <span class="currency">ج.م</span>
+    </div>
+</a>
+
+
+
+
+
+<style>
+    .cart-access_btn {
+        background: #185499;
+        box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 15px;
+        padding: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        bottom: 20px;
+        max-width: 1000px;
+        width: 90%;
+        max-height: 80px;
+        /*   left: 50%;
+                transform: translateX(-50%) translateY(100px);
+                opacity: 0;
+                pointer-events: none;
+                       transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+                will-change: transform;
+                z-index: 1000; */
+    }
+
+    .cart-access-thumbnails .title {
+        font-size: 24px;
+        font-weight: bold;
+        color: white;
+    }
+
+    .cart-access-thumbnails {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .cart-access-thumbnails img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+            object-fit: scale-down;
+            background-color: white;
+            transition: transform 0.3s ease;
+        }
+
+    .cart-access__overflow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: white;
+        color: black;
+        font-size: 20px;
+        font-weight: bold;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: 2px solid #ccc;
+        object-fit: scale-down;
+    }
+
+
+    .cart-access-thumbnails img:nth-child(n+1) {
+        margin-left: -12px;
+    }
+
+    .cart-access_btn--slideUpFooter {
+        animation: slideUpFooter 0.4s ease-out 0.4s both;
+    }
+
+    .thumbnails__preview {
+        display: flex;
+        align-items: center;
+    }
+
+    @@keyframes slideUpFooter {
+        0% {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+
+        100% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .cart-access__total {
+        font-size: 24px;
+        font-weight: bold;
+        color: white;
+        display: flex;
+        align-items: flex-end;
+        gap: 5px;
+    }
+
+</style>
+

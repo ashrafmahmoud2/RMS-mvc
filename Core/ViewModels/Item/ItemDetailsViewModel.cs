@@ -10,7 +10,7 @@ public class ItemDetailsViewModel
     public string? DescriptionAr { get; set; }
     public string? DescriptionEn { get; set; }
 
-    public decimal BasePrice { get; set; }
+    
     public int LikeCount { get; set; }
     public int? Calories { get; set; }
     public decimal? Protein { get; set; }
@@ -25,6 +25,11 @@ public class ItemDetailsViewModel
     public string? TopColor { get; set; }
     public string? BottomColor { get; set; }
 
+    public decimal BasePrice { get; set; }
+
+
+
+
     //Allergy table
     public int AllergyId { get; set; }
     public string? AllergyNameAr { get; set; }
@@ -32,8 +37,10 @@ public class ItemDetailsViewModel
     public string? AllergyImageUrl { get; set; }
 
 
-    // Toppings
     public ICollection<ItemToppingGroupViewModel> ItemToppingGroups { get; set; } = new List<ItemToppingGroupViewModel>();
+
+    //public ICollection<BranchItemViewModel> BranchItems { get; set; } = new List<BranchItemViewModel>();
+
 }
 
 public class ItemToppingGroupViewModel
@@ -61,7 +68,6 @@ public class ToppingOptionViewModel
     public int MaxAllowedQuantity { get; set; }
     public bool IsDefault { get; set; }
 }
-
 
 
 

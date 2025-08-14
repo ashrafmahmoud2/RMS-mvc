@@ -59,7 +59,7 @@ public class OrderItem
     public int Quantity { get; set; } = 1;
 
     [Column(TypeName = "decimal(10,2)")]
-    public decimal CurrentPrice { get; set; } // fixed typo "CuurentPrice"
+    public decimal PriceAtOrderTime { get; set; }
 
     [Column(TypeName = "decimal(5,2)")]
     public decimal CashbackPercent { get; set; }
