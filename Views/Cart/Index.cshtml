@@ -1003,71 +1003,126 @@
     </div>
 
     <script>
-        // Modal Control Functions
+        const CART_KEY = 'food_ecom_cart';
 
-                document.addEventListener('DOMContentLoaded', (event) => {
-          openCart();
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCart();
         });
 
-        function openCart() {
-            document.getElementById('cartModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
+        function getCart() {
+            try {
+                const cart = localStorage.getItem(CART_KEY);
+                return cart ? JSON.parse(cart) : [];
+            } catch (e) {
+                console.error('Error parsing cart from localStorage:', e);
+                return [];
+            }
         }
 
-        function closeCart() {
-            document.getElementById('cartModal').classList.remove('active');
-            document.body.style.overflow = '';
-        }
+        function renderCart() {
+            const cartItemsEl = document.getElementById('cartItems');
+            const emptyCartEl = document.getElementById('emptyCart');
+            const cart = getCart();
 
-        // Quantity Control Functions
-        function incrementQuantity(itemId) {
-            const input = event.target.parentElement.querySelector('.quantity-input');
-            let currentValue = parseInt(input.value);
-            input.value = currentValue + 1;
+            cartItemsEl.innerHTML = '';
+
+            if (!cart.length) {
+                emptyCartEl.style.display = 'block';
+                updateTotals(true);
+                return;
+            }
+
+            emptyCartEl.style.display = 'none';
+
+            cart.forEach((item, index) => {
+                const itemEl = document.createElement('div');
+                itemEl.classList.add('cart-item');
+
+                // Item main
+                const itemMain = document.createElement('div');
+                itemMain.classList.add('item-main');
+                itemMain.innerHTML = `
+                    <div class="item-image">
+                        <img src="${item.ThumbnailUrl || 'https://via.placeholder.com/150'}" alt="${item.ItemName || 'منتج'}">
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">${item.ItemName || 'منتج'}</div>
+                        <div class="item-description">${item.Description || ''}</div>
+                    </div>
+                `;
+                itemEl.appendChild(itemMain);
+
+                // Item controls
+                const itemControls = document.createElement('div');
+                itemControls.classList.add('item-controls');
+                itemControls.innerHTML = `
+                    <div class="quantity-control">
+                        <button class="quantity-btn" onclick="decrementQuantity(${index})">−</button>
+                        <input type="text" class="quantity-input" value="${item.Quantity}" readonly>
+                        <button class="quantity-btn" onclick="incrementQuantity(${index})">+</button>
+                    </div>
+                    <div class="item-price">${calculateItemPrice(item).toFixed(2)} جنيه</div>
+                `;
+                itemEl.appendChild(itemControls);
+
+                // Toppings section
+                if (item.SelectedToppingGroups && item.SelectedToppingGroups.length) {
+                    const toppingsSection = document.createElement('section');
+                    toppingsSection.classList.add('collapse');
+
+                    const header = document.createElement('header');
+                    header.classList.add('collapse-header');
+                    header.innerHTML = `<h3 class="title">الإضافات:</h3>`;
+                    header.addEventListener('click', () => toggleCollapse(header));
+                    toppingsSection.appendChild(header);
+
+                    const content = document.createElement('div');
+                    content.classList.add('collapse-content');
+                    const ul = document.createElement('ul');
+                    ul.classList.add('addons-list');
+
+                    item.SelectedToppingGroups.forEach(group => {
+                        group.SelectedToppingOptions.forEach(opt => {
+                            const li = document.createElement('li');
+                            li.classList.add('addons-item');
+                            li.innerHTML = `
+                                <div class="addons-details">
+                                    <h4 class="addons-name">${opt.Name || 'إضافة'}</h4>
+                                    <div class="addon-price">${opt.PriceAtOrderTime} جنيه</div>
+                                </div>
+                                <span class="count">× ${opt.Quantity}</span>
+                            `;
+                            ul.appendChild(li);
+                        });
+                    });
+
+                    content.appendChild(ul);
+                    toppingsSection.appendChild(content);
+                    itemEl.appendChild(toppingsSection);
+                }
+
+                cartItemsEl.appendChild(itemEl);
+            });
+
             updateTotals();
         }
 
-        function decrementQuantity(itemId) {
-            const input = event.target.parentElement.querySelector('.quantity-input');
-            let currentValue = parseInt(input.value);
-            if (currentValue > 1) {
-                input.value = currentValue - 1;
-                updateTotals();
+        function calculateItemPrice(item) {
+            let toppingsTotal = 0;
+            if (item.SelectedToppingGroups) {
+                item.SelectedToppingGroups.forEach(group => {
+                    group.SelectedToppingOptions.forEach(opt => {
+                        toppingsTotal += (opt.PriceAtOrderTime || 0) * (opt.Quantity || 1);
+                    });
+                });
             }
+            return (item.PriceAtOrderTime || 0 + toppingsTotal) * (item.Quantity || 1);
         }
 
-        // Collapse Toggle Function
-        function toggleCollapse(header) {
-            const content = header.nextElementSibling;
-            const angleButton = header.querySelector('.angles-button');
-            const buttonText = angleButton.childNodes[0];
-
-            content.classList.toggle('open');
-            angleButton.classList.toggle('expanded');
-
-            // Toggle text between "إظهار" and "إخفاء"
-            if (content.classList.contains('open')) {
-                buttonText.textContent = 'إخفاء ';
-            } else {
-                buttonText.textContent = 'إظهار ';
-            }
-        }
-
-        // Cart Management Functions
-        function clearCart() {
-            if (confirm('هل تريد بالتأكيد تفريغ السلة؟ سيتم حذف جميع العناصر والإضافات المختارة.')) {
-                document.getElementById('cartItems').innerHTML = '';
-                document.getElementById('emptyCart').style.display = 'block';
-                updateTotals(true);
-
-                setTimeout(() => {
-                    alert('✅ تم تفريغ السلة بنجاح!');
-                }, 300);
-            }
-        }
-
+        // Update totals based on cart
         function updateTotals(isEmpty = false) {
-            if (isEmpty) {
+            const cart = getCart();
+            if (isEmpty || !cart.length) {
                 document.querySelectorAll('.total-items').forEach(el => el.textContent = '0');
                 document.querySelectorAll('.total-price').forEach(el => el.textContent = '0.00');
                 document.querySelector('.total-badge').textContent = '0 عناصر';
@@ -1075,44 +1130,17 @@
                 return;
             }
 
-            // Calculate totals based on current quantities
-            let totalItems = 0;
-            document.querySelectorAll('.quantity-input').forEach(input => {
-                totalItems += parseInt(input.value);
+            let totalItems = 0, totalPrice = 0;
+            cart.forEach(item => {
+                totalItems += item.Quantity;
+                totalPrice += calculateItemPrice(item);
             });
-
-            // Demo calculation - in real app, this would be more sophisticated
-            const totalPrice = 285.50;
 
             document.querySelectorAll('.total-items').forEach(el => el.textContent = totalItems);
             document.querySelectorAll('.total-price').forEach(el => el.textContent = totalPrice.toFixed(2));
             document.querySelector('.total-badge').textContent = `${totalItems} عناصر`;
             document.querySelector('.checkout-price span').textContent = `${totalPrice.toFixed(2)} جنيه`;
         }
-
-        function proceedToCheckout() {
-            alert('سيتم توجيهك إلى صفحة الدفع...');
-            // In real app: window.location.href = 'checkout.html';
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('cartModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeCart();
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeCart();
-            }
-        });
-
-        // Prevent modal body clicks from closing modal
-        document.querySelector('.cart-modal').addEventListener('click', function(e) {
-            e.stopPropagation();
-        });
     </script>
 </body>
 </html>

@@ -1,26 +1,8 @@
-﻿<a asp-Controller="Cart" asp-action="Index"  class="cart-access_btn container cart-access_btn--slideUpFooter">
-    <div class="cart-access-thumbnails">
-        <h3 class="title">السلة</h3>
-        <div class="thumbnails__preview" aria-label="صور المنتجات المختارة">
-            <img src="@Url.Content("~/images/Burgers.png")" alt="منتج 1" class="cart-access__image" loading="lazy" />
-            <img src="@Url.Content("~/images/Burgers.png")" alt="منتج 2" class="cart-access__image cart-access__image--overlap" loading="lazy" />
-            <div class="cart-access__overflow cart-access__image--overlap" aria-label="عدد إضافي">+4</div>
-        </div>
-    </div>
-    <div class="cart-access__total">
-        <span class="price">0</span>
-        <span class="currency">ج.م</span>
-    </div>
-</a>
-
-
-
-
-
-<style>
+﻿<style>
+    /* Cart Access Button */
     .cart-access_btn {
         background: #185499;
-        box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
         border-radius: 15px;
         padding: 12px;
         display: flex;
@@ -28,22 +10,9 @@
         align-items: center;
         position: sticky;
         bottom: 20px;
-        max-width: 1000px;
         width: 90%;
+        max-width: 1000px;
         max-height: 80px;
-        /*   left: 50%;
-                transform: translateX(-50%) translateY(100px);
-                opacity: 0;
-                pointer-events: none;
-                       transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
-                will-change: transform;
-                z-index: 1000; */
-    }
-
-    .cart-access-thumbnails .title {
-        font-size: 24px;
-        font-weight: bold;
-        color: white;
     }
 
     .cart-access-thumbnails {
@@ -52,55 +21,40 @@
         gap: 8px;
     }
 
-        .cart-access-thumbnails img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: 2px solid #ccc;
-            object-fit: scale-down;
-            background-color: white;
-            transition: transform 0.3s ease;
+        .cart-access-thumbnails .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
         }
-
-    .cart-access__overflow {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: white;
-        color: black;
-        font-size: 20px;
-        font-weight: bold;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        border: 2px solid #ccc;
-        object-fit: scale-down;
-    }
-
-
-    .cart-access-thumbnails img:nth-child(n+1) {
-        margin-left: -12px;
-    }
-
-    .cart-access_btn--slideUpFooter {
-        animation: slideUpFooter 0.4s ease-out 0.4s both;
-    }
 
     .thumbnails__preview {
         display: flex;
         align-items: center;
     }
 
-    @@keyframes slideUpFooter {
-        0% {
-            transform: translateY(100%);
-            opacity: 0;
+        .thumbnails__preview img,
+        .cart-access__overflow {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+            object-fit: scale-down;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+            background-color: white;
+            transition: transform 0.3s ease;
+            margin-left: -12px; /* overlap */
         }
 
-        100% {
-            transform: translateY(0);
-            opacity: 1;
-        }
+    .cart-access__overflow {
+        color: black;
+    }
+
+    .cart-access_btn--slideUpFooter {
+        animation: slideUpFooter 0.4s ease-out 0.4s both;
     }
 
     .cart-access__total {
@@ -112,5 +66,100 @@
         gap: 5px;
     }
 
+    @@keyframes slideUpFooter {
+        0%
+
+    {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    }
 </style>
 
+<a asp-controller="Cart" asp-action="Index"
+   class="cart-access_btn container cart-access_btn--slideUpFooter"
+   id="cartAccessBtn" style="display:none;">
+    <div class="cart-access-thumbnails">
+        <h3 class="title">السلة</h3>
+        <div class="thumbnails__preview" id="cartThumbnails" aria-label="صور المنتجات المختارة">
+            <!-- Thumbnails injected dynamically -->
+        </div>
+    </div>
+    <div class="cart-access__total">
+        <span id="cartTotalPrice">0</span>
+        <span class="currency">ج.م</span>
+    </div>
+</a>
+
+<script>
+    const CART_KEY = 'food_ecom_cart';
+
+    const getCart = () => {
+        try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; }
+        catch { return []; }
+    };
+
+    const closeModal = () => {
+        const modal = document.querySelector('.my-modal');
+        if (!modal) return;
+        modal.style.animation = 'fadeOut 0.3s ease-in-out';
+        setTimeout(() => {
+            modal.remove();
+            document.body.style.overflow = '';
+        }, 300);
+    };
+
+    const updateCartAccessBtn = () => {
+        const cart = getCart();
+        const btn = document.getElementById('cartAccessBtn');
+        const thumbnailsContainer = document.getElementById('cartThumbnails');
+        const totalPriceEl = document.getElementById('cartTotalPrice');
+
+        if (!cart.length) return btn.style.display = 'none';
+
+        // Show button with animation
+        btn.style.display = 'flex';
+        btn.classList.remove('cart-access_btn--slideUpFooter'); // reset
+        void btn.offsetWidth; // force reflow
+        btn.classList.add('cart-access_btn--slideUpFooter');
+
+        // Calculate total
+        const totalPrice = cart.reduce((sum, item) => {
+            const toppings = item.SelectedToppingGroups?.reduce((gSum, g) =>
+                gSum + g.SelectedToppingOptions?.reduce((oSum, o) => oSum + o.PriceAtOrderTime * o.Quantity, 0), 0) || 0;
+            return sum + (item.PriceAtOrderTime + toppings) * item.Quantity;
+        }, 0);
+        totalPriceEl.textContent = totalPrice.toFixed(2);
+
+        // Render thumbnails
+        const maxVisible = 2;
+        thumbnailsContainer.innerHTML = '';
+        cart.slice(0, maxVisible).forEach((item, i) => {
+            const img = document.createElement('img');
+            img.src = item.ThumbnailUrl;
+            img.alt = `منتج ${i+1}`;
+            thumbnailsContainer.appendChild(img);
+        });
+        if (cart.length > maxVisible) {
+            const overflow = document.createElement('div');
+            overflow.className = 'cart-access__overflow';
+            overflow.textContent = `+${cart.length - maxVisible}`;
+            thumbnailsContainer.appendChild(overflow);
+        }
+    };
+
+    // On page load
+    window.addEventListener('DOMContentLoaded', () => {
+        closeModal();          // Close any modal
+        updateCartAccessBtn(); // Show cart button with slide animation
+    });
+
+    // Update when cart changes
+    window.addEventListener('cartUpdated', updateCartAccessBtn);
+</script>

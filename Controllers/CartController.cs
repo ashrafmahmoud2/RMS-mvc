@@ -12,8 +12,8 @@ public class CartController : Controller
 
 /*
 stop in make 
-1. add fake data in local strog to show in cart
-2. when make crud in item model save in local strog , and when open make him option selectd be checked and save quentity
+1. fix _CartAccessBtn.cshtml
+2. add item to cart wiht all crud
 3. add order
 
 

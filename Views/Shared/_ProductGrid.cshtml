@@ -1,9 +1,10 @@
 ﻿@using RMS.Web.Core.ViewModels.Home
+@using System.Globalization
 @model IEnumerable<CategoryWithItemsViewModel>
 
 
-<div class="products-grid">
 
+<div class="products-grid">
     <div class="container">
         @foreach (var category in Model)
         {
@@ -14,90 +15,360 @@
                     @category.CategoryNameAr
                     <span class="after"></span>
                 </h3>
-
-
-
-
-                <div class="product-list  @category.ItemsCardsLayout ">
-                     @foreach (var item in category.Items)
+                <div class="product-list @category.ItemsCardsLayout">
+                    @foreach (var item in category.Items)
                     {
-                        <a   asp-controller="Item" asp-action="Detail" asp-route-itemId="@item.ItemId"
-                        data-url="@Url.Action("Detail", "Item", new { itemId = item.ItemId })"
-                        class="js-render-modal product-card">
-
+                        <a asp-controller="Item" asp-action="Detail" asp-route-itemId="@item.ItemId"
+                           data-url="@Url.Action("Detail", "Item", new { itemId = item.ItemId })"
+                           class="js-render-modal product-card"
+                           data-id="@item.ItemId"
+                           data-price="@item.BasePrice.ToString(CultureInfo.InvariantCulture)">
+                            >
                             <div class="product-image">
                                 <img src="@Url.Content(item.ThumbnailUrl)" alt="@item.NameAr" loading="lazy" />
                             </div>
-
                             <div class="product-info">
                                 <h3 class="product-title">@item.NameAr</h3>
                                 <div class="price-row">
-                                    <span class="price">@item.BasePrice ج.م</span>
-                                    <button type="button" class="add-to-cart">
+
+                                    <span>@item.BasePrice ج.م</span>
+
+                                    <button type="button"
+                                            class="add-to-cart"
+                                            data-id="@item.ItemId"
+                                            data-price="@item.BasePrice"
+                                            data-thumbnail-url="@Url.Content(item.ThumbnailUrl)">
                                         <i class="fa-solid fa-plus"></i>
                                     </button>
+
                                 </div>
                             </div>
                         </a>
                     }
-
                 </div>
             </section>
         }
-
-     </div>
-
+    </div>
 </div>
 
 
 
-
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script>
-        $(document).on('click', '.js-render-modal', function (e) {
-        e.preventDefault();
-        const url = $(this).data('url');
+    // --- State Management ---
+    const state = {
+        itemId: null,
+        quantity: 1,
+        basePrice: 0,
+        selectedToppings: new Map(), // Map<groupId, Map<optionId, topping>>
+        groups: [],
+    };
 
-        $.get(url, function (html) {
-            // Remove any existing modal
-            $('.my-modal').remove();
+    // --- Utility Functions ---
+    const $ = (selector, parent = document) => parent.querySelector(selector);
+    const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
+    const CART_KEY = 'food_ecom_cart';
 
-            // Append new modal HTML to body
-            $('body').append(html);
+    function getCart() {
+        try {
+            const cart = localStorage.getItem(CART_KEY);
+            return cart ? JSON.parse(cart) : [];
+        } catch (e) {
+            console.error('Error parsing cart from localStorage:', e);
+            return [];
+        }
+    }
 
-            // Optional: prevent background scroll
-            $('body').css('overflow', 'hidden');
+    function saveCart(cart) {
+        localStorage.setItem(CART_KEY, JSON.stringify(cart));
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+    }
+
+    function showMessage(message) {
+        alert(message); // TODO: replace with toast/notification
+    }
+
+    // --- Price Calculation ---
+    function updateTotalPrice() {
+        let toppingsTotal = 0;
+        for (const group of state.selectedToppings.values()) {
+            for (const topping of group.values()) {
+                toppingsTotal += topping.PriceAtOrderTime * topping.Quantity;
+            }
+        }
+        const totalPrice = ((state.basePrice + toppingsTotal) * state.quantity).toFixed(2);
+        const priceElement = $('#totalPrice');
+        if (!priceElement) return;
+        const newHtml = `${totalPrice} <span class="currency">ج.م</span>`;
+        if (priceElement.innerHTML !== newHtml) {
+            priceElement.innerHTML = newHtml;
+            priceElement.classList.add('updated');
+            setTimeout(() => priceElement.classList.remove('updated'), 400);
+        }
+    }
+
+    // --- Counter -
+    function incrementCounter() {
+        state.quantity++;
+        const el = $('#counterValue');
+        if (el) el.textContent = state.quantity;
+        updateTotalPrice();
+    }
+
+    function decrementCounter() {
+        if (state.quantity > 1) {
+            state.quantity--;
+            const el = $('#counterValue');
+            if (el) el.textContent = state.quantity;
+            updateTotalPrice();
+        }
+    }
+
+    // --- Toppings ---
+    function handleRadioSelection(groupId, optionId, price) {
+        $$(`[data-group-id="${groupId}"]`).forEach(btn => btn.setAttribute('data-selected', 'false'));
+        state.selectedToppings.set(groupId, new Map());
+        const el = $(`[data-option-id="${optionId}"]`);
+        if (el) el.setAttribute('data-selected', 'true');
+        state.selectedToppings.get(groupId).set(optionId, {
+            ToppingOptionId: optionId,
+            Quantity: 1,
+            PriceAtOrderTime: price,
+            ImageUrl: getToppingImageUrl(optionId)
         });
-    });
+    }
 
-    // Close modal handler
-    $(document).on('click', '.my-modal .close', function () {
-        $('.my-modal').remove();
-        $('body').css('overflow', ''); // re-enable scrolling
-    });
+    function handleCheckboxSelection(groupId, optionId, price, isSelected, maxAllowed) {
+        const groupMap = state.selectedToppings.get(groupId);
+        if (isSelected) {
+            const el = $(`[data-option-id="${optionId}"]`);
+            if (el) el.setAttribute('data-selected', 'false');
+            groupMap.delete(optionId);
+        } else if (groupMap.size < maxAllowed) {
+            const el = $(`[data-option-id="${optionId}"]`);
+            if (el) el.setAttribute('data-selected', 'true');
+            groupMap.set(optionId, {
+                ToppingOptionId: optionId,
+                Quantity: 1,
+                PriceAtOrderTime: price,
+                ImageUrl: getToppingImageUrl(optionId)
+            });
+        } else {
+            showMessage(`يمكنك اختيار ${maxAllowed} خيار كحد أقصى من هذه المجموعة`);
+        }
+    }
 
+    function toggleTopping(target) {
+        const optionId = parseInt(target.dataset.optionId);
+        const groupId = parseInt(target.dataset.groupId);
+        const maxAllowed = parseInt(target.dataset.maxAllowed);
+        const isSelected = target.getAttribute('data-selected') === 'true';
+        const price = parseFloat(target.dataset.optionPrice);
+        if (!state.selectedToppings.has(groupId)) state.selectedToppings.set(groupId, new Map());
+        if (maxAllowed === 1) handleRadioSelection(groupId, optionId, price);
+        else handleCheckboxSelection(groupId, optionId, price, isSelected, maxAllowed);
+        updateTotalPrice();
+    }
+
+    // --- Validation ---
+    function validateSelections() {
+        for (const group of state.groups) {
+            const selectedCount = state.selectedToppings.has(group.Id) ? state.selectedToppings.get(group.Id).size : 0;
+            if (selectedCount < group.MinAllowedOptions) {
+                showMessage(`يجب اختيار ${group.MinAllowedOptions} على الأقل من ${group.TitleAr}`);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // --- Cart ---
+    function addToCart() {
+        if (!validateSelections()) return;
+
+        const cart = getCart();
+
+        const selectedToppingGroups = [...state.selectedToppings.entries()].map(([groupId, toppingsMap]) => ({
+            ToppingGroupId: parseInt(groupId),
+            SelectedToppingOptions: [...toppingsMap.values()].map(option => ({
+                ...option,
+                ImageUrl: option.ImageUrl || getToppingImageUrl(option.ToppingOptionId)
+            })),
+        }));
+
+        const existingIndex = cart.findIndex(item => item.ItemId === state.itemId);
+        const thumbnailUrl = getItemThumbnailUrl(state.itemId);
+
+        const cartItem = {
+            ItemId: state.itemId,
+            Quantity: state.quantity,
+            ThumbnailUrl: thumbnailUrl,
+            PriceAtOrderTime: state.basePrice,
+            CashbackPercent: null,
+            DiscountPercent: null,
+            SelectedToppingGroups: selectedToppingGroups
+        };
+
+        if (existingIndex !== -1) cart[existingIndex] = cartItem;
+        else cart.push(cartItem);
+
+        saveCart(cart);
+        updateCartAccessBtn();
+        closeModal();
+    }
+
+    function getItemThumbnailUrl(itemId) {
+        const el = document.querySelector(`.js-render-modal[data-id="${itemId}"] img`);
+        return el ? el.src : '';
+    }
+
+    function getToppingImageUrl(optionId) {
+        const el = document.querySelector(`.topping-item[data-option-id="${optionId}"]`);
+        return el ? el.dataset.imageUrl || '' : '';
+    }
+
+    // --- Modal ---
+    function closeModal() {
+        const modal = $('.my-modal');
+        if (modal) {
+            modal.style.animation = 'fadeOut 0.3s ease-in-out';
+            setTimeout(() => {
+                modal.remove();
+                document.body.style.overflow = '';
+            }, 300);
+        }
+    }
+
+    function initializeModal(data, itemId, basePrice) {
+        state.itemId = parseInt(itemId);
+        state.basePrice = parseFloat(basePrice) || 0;
+        state.groups = data.ItemToppingGroups;
+        state.quantity = 1;
+        state.selectedToppings = new Map();
+
+        if (!state.basePrice) {
+            const priceEl = $('#totalPrice');
+            if (priceEl) state.basePrice = parseFloat(priceEl.textContent.replace(/[^\d.]/g, '')) || 0;
+        }
+
+        const cart = getCart();
+        const existingItem = cart.find(item => item.ItemId === state.itemId);
+       
+        // if (existingItem) {
+        //     state.quantity = existingItem.Quantity;
+        //     const el = $('#counterValue');
+        //     if (el) el.textContent = state.quantity;
+        //     existingItem.SelectedToppingGroups.forEach(group => {
+        //         const groupMap = new Map();
+        //         group.SelectedToppingOptions.forEach(option => groupMap.set(option.ToppingOptionId, option));
+        //         state.selectedToppings.set(group.ToppingGroupId, groupMap);
+        //     });
+        // }
+
+        // $$('.topping-item').forEach(button => {
+        //     const optionId = parseInt(button.dataset.optionId);
+        //     const groupId = parseInt(button.dataset.groupId);
+        //     const isSelected = state.selectedToppings.has(groupId) && state.selectedToppings.get(groupId).has(optionId);
+        //     button.setAttribute('data-selected', isSelected ? 'true' : 'false');
+        // });
+
+        updateTotalPrice();
+    }
+
+    // --- Cart Access Button ---
+    function updateCartAccessBtn() {
+        const cart = getCart();
+        const btn = document.getElementById('cartAccessBtn');
+        const thumbnailsContainer = document.getElementById('cartThumbnails');
+        const totalPriceEl = document.getElementById('cartTotalPrice');
+
+        if (!btn) return;
+
+        if (cart.length === 0) {
+            btn.style.display = 'none';
+            btn.classList.remove('bounce'); // remove bounce if no items
+            return;
+        }
+
+        // Show button
+        btn.style.display = 'flex';
+
+        // Bounce animation
+        btn.classList.remove('bounce');
+        void btn.offsetWidth; // force reflow
+        btn.classList.add('bounce');
+
+        // Calculate total price
+        let totalPrice = 0;
+        cart.forEach(item => {
+            let toppingsTotal = 0;
+            item.SelectedToppingGroups?.forEach(group =>
+                group.SelectedToppingOptions?.forEach(opt =>
+                    toppingsTotal += opt.PriceAtOrderTime * opt.Quantity
+                )
+            );
+            totalPrice += (item.PriceAtOrderTime + toppingsTotal) * item.Quantity;
+        });
+        if (totalPriceEl) totalPriceEl.textContent = totalPrice.toFixed(2);
+
+        // Render thumbnails
+        if (thumbnailsContainer) {
+            thumbnailsContainer.innerHTML = '';
+            const maxVisible = 2;
+            const itemsToShow = cart.slice(0, maxVisible);
+
+            itemsToShow.forEach((item, index) => {
+                const img = document.createElement('img');
+                img.src = item.ThumbnailUrl;
+                img.alt = `منتج ${index + 1}`;
+                if (index > 0) img.classList.add('overlap');
+                thumbnailsContainer.appendChild(img);
+            });
+
+            if (cart.length > maxVisible) {
+                const overflow = document.createElement('div');
+                overflow.className = 'cart-access__overflow overlap';
+                overflow.textContent = `+${cart.length - maxVisible}`;
+                thumbnailsContainer.appendChild(overflow);
+            }
+        }
+    }
+
+    // Initial call
+    updateCartAccessBtn();
+    window.addEventListener('cartUpdated', updateCartAccessBtn);
+
+
+    // --- Event Delegation ---
+    document.addEventListener('click', e => {
+        const target = e.target.closest('.js-render-modal, .my-modal .close, .counter-btn, .checkout-btn, .topping-item');
+        if (!target) return;
+
+        if (target.matches('.js-render-modal')) {
+            e.preventDefault();
+            const itemId = target.dataset.id;
+            const basePrice = target.dataset.price;
+
+            fetch(target.dataset.url)
+                .then(r => r.text())
+                .then(html => {
+                    const existing = $('.my-modal'); if (existing) existing.remove();
+                    document.body.insertAdjacentHTML('beforeend', html);
+                    document.body.style.overflow = 'hidden';
+                    const dataEl = $('#modal-data');
+                    if (dataEl) {
+                        const data = JSON.parse(dataEl.textContent);
+                        initializeModal(data, itemId, basePrice);
+                    }
+                })
+                .catch(err => console.error('Failed to load modal:', err));
+
+        } else if (target.matches('.my-modal .close')) closeModal();
+        else if (target.matches('.counter-btn.decrement')) decrementCounter();
+        else if (target.matches('.counter-btn.increment')) incrementCounter();
+        else if (target.matches('.checkout-btn')) addToCart();
+        else if (target.matches('.topping-item')) toggleTopping(target);
+    });
 </script>
-@* <script>
-
-    $(document).on("click", ".js-render-modal", function (e) {
-         e.preventDefault();
-         var url = $(this).data('url');
-
-         alart("arrive");
-    
-         $.get(url, function (html) {
-
-             $('.modal').remove(); // Remove old modal if exists
-             $('body').append(html); // Append new modal
-             $('#itemDetailModal').fadeIn(200); // Show it with fade effect
-             $('body').css('overflow', 'hidden'); // Prevent background scroll
-         });
-     });
-
-
-
-</script> *@
-
 
 <style>
     .products-grid {
@@ -120,7 +391,6 @@
             color: #415e7e;
             margin: 20px 0;
             text-align: start;
-         
         }
 
     /* General product-card */
@@ -389,11 +659,5 @@
         }
 
 </style>
-
-
-
-
-
-
 
 

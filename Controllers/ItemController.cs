@@ -32,7 +32,7 @@ public class ItemController : Controller
                 .ThenInclude(itg => itg.ToppingGroup)
                     .ThenInclude(tg => tg.ToppingOptions)
             .Include(i => i.Allergy)
-            .Include(i => i.BranchItems.Where(bi => bi.BranchId == branchId))
+            .Include(i => i.BranchItems)
              .ThenInclude(bi => bi.Branch)
             .FirstOrDefault();
 
@@ -49,8 +49,6 @@ public class ItemController : Controller
 
 
 }
-
-
 
 
 

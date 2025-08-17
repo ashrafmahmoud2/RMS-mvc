@@ -1,4 +1,5 @@
-﻿@model ItemDetailsViewModel
+﻿@using Newtonsoft.Json
+@model ItemDetailsViewModel
 
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -8,6 +9,7 @@
     <title>Food Item Modal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <style>
+        /* CSS is unchanged as it's already well-written */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -20,7 +22,9 @@
             -ms-overflow-style: none;
         }
 
-        body::-webkit-scrollbar { display: none; }
+            body::-webkit-scrollbar {
+                display: none;
+            }
 
         :root {
             --primary-blue: #137dfd;
@@ -74,15 +78,15 @@
             overflow: hidden;
         }
 
-        .modal-header img {
-            width: 90%;
-            max-width: 280px;
-            height: auto;
-            max-height: 80%;
-            object-fit: contain;
-            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
-            animation: slideInZoom 1s ease-out;
-        }
+            .modal-header img {
+                width: 90%;
+                max-width: 280px;
+                height: auto;
+                max-height: 80%;
+                object-fit: contain;
+                filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
+                animation: slideInZoom 1s ease-out;
+            }
 
         .close {
             position: absolute;
@@ -104,11 +108,11 @@
             z-index: 10;
         }
 
-        .close:hover {
-            background: linear-gradient(135deg, rgba(255, 0, 0, 1) 0%, rgba(200, 0, 0, 1) 100%);
-            transform: scale(1.15) rotate(90deg);
-            color: var(--white);
-        }
+            .close:hover {
+                background: linear-gradient(135deg, rgba(255, 0, 0, 1) 0%, rgba(200, 0, 0, 1) 100%);
+                transform: scale(1.15) rotate(90deg);
+                color: var(--white);
+            }
 
         /* Body */
         .modal-body {
@@ -126,19 +130,19 @@
             animation: slideInUp 0.8s ease-out 0.3s both;
         }
 
-        .product-details .title {
-            font-size: 28px;
-            font-weight: bold;
-            color: var(--text-dark);
-            flex: 1;
-        }
+            .product-details .title {
+                font-size: 28px;
+                font-weight: bold;
+                color: var(--text-dark);
+                flex: 1;
+            }
 
-        .product-details .price {
-            color: var(--secondary-blue);
-            font-size: 25px;
-            font-weight: bold;
-            white-space: nowrap;
-        }
+            .product-details .price {
+                color: var(--secondary-blue);
+                font-size: 25px;
+                font-weight: bold;
+                white-space: nowrap;
+            }
 
         .description {
             line-height: 1.6;
@@ -154,9 +158,9 @@
             animation: slideInUp 0.8s ease-out calc(0.7s + var(--delay, 0s)) both;
         }
 
-        .topping:nth-child(n+3) {
-            --delay: calc((var(--index, 0)) * 0.1s);
-        }
+            .topping:nth-child(n+3) {
+                --delay: calc((var(--index, 0)) * 0.1s);
+            }
 
         .topping-header {
             display: flex;
@@ -167,23 +171,23 @@
             gap: 10px;
         }
 
-        .topping-header .title {
-            font-size: 22px;
-            font-weight: bold;
-            color: var(--text-dark);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+            .topping-header .title {
+                font-size: 22px;
+                font-weight: bold;
+                color: var(--text-dark);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
 
-        .topping-header span {
-            font-size: clamp(12px, 2.5vw, 15px);
-            background: #afdbfa;
-            color: var(--text-dark);
-            padding: 4px 8px;
-            border-radius: 8px;
-            white-space: nowrap;
-        }
+            .topping-header span {
+                font-size: clamp(12px, 2.5vw, 15px);
+                background: #afdbfa;
+                color: var(--text-dark);
+                padding: 4px 8px;
+                border-radius: 8px;
+                white-space: nowrap;
+            }
 
         /* Topping Options */
         .topping-options {
@@ -208,15 +212,15 @@
             animation: staggeredSlideIn 0.6s ease-out calc(0.9s + var(--item-delay, 0s)) both;
         }
 
-        .topping-item:nth-child(n) {
-            --item-delay: calc(var(--index, 0) * 0.05s);
-        }
+            .topping-item:nth-child(n) {
+                --item-delay: calc(var(--index, 0) * 0.05s);
+            }
 
-        .topping-item:hover {
-            box-shadow: var(--shadow-medium) 0px 8px 35px;
-            transform: translateY(-4px) scale(1.02);
-            border-color: rgba(19, 125, 253, 0.3);
-        }
+            .topping-item:hover {
+                box-shadow: var(--shadow-medium) 0px 8px 35px;
+                transform: translateY(-4px) scale(1.02);
+                border-color: rgba(19, 125, 253, 0.3);
+            }
 
         .topping-image {
             width: 100%;
@@ -287,19 +291,19 @@
             border-color: var(--primary-blue-dark);
             transform: scale(1.02);
             box-shadow: rgba(19, 125, 253, 0.4) 0px 8px 25px, inset 0px 1px 0px rgba(255, 255, 255, 0.2);
-            animation: pulseGlow 2s infinite;
+           /*  animation: pulseGlow 2s infinite; */
         }
 
-        .topping-item[data-selected="true"] .topping-name,
-        .topping-item[data-selected="true"] .topping-price,
-        .topping-item[data-selected="true"] .selected-icon {
-            color: var(--white);
-        }
+            .topping-item[data-selected="true"] .topping-name,
+            .topping-item[data-selected="true"] .topping-price,
+            .topping-item[data-selected="true"] .selected-icon {
+                color: var(--white);
+            }
 
-        .topping-item[data-selected="true"] .selected-icon {
-            transform: scale(1.2) rotate(360deg);
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-        }
+            .topping-item[data-selected="true"] .selected-icon {
+                transform: scale(1.2) rotate(360deg);
+                filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            }
 
         /* Footer */
         .modal-footer {
@@ -348,16 +352,16 @@
             overflow: hidden;
         }
 
-        .counter-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, var(--primary-blue-dark) 0%, #0540a3 100%);
-            transform: scale(1.1);
-            box-shadow: 0 4px 15px rgba(8, 101, 211, 0.4);
-        }
+            .counter-btn:hover:not(:disabled) {
+                background: linear-gradient(135deg, var(--primary-blue-dark) 0%, #0540a3 100%);
+                transform: scale(1.1);
+                box-shadow: 0 4px 15px rgba(8, 101, 211, 0.4);
+            }
 
-        .counter-btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
+            .counter-btn:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+            }
 
         #counterValue {
             min-width: 30px;
@@ -400,92 +404,105 @@
         }
 
         /* Animations */
-      @@keyframes slideInZoom {
+        @@keyframes slideInZoom {
             0% {
                 transform: translateX(-100%) scale(0.8);
                 opacity: 0;
             }
+
             100% {
                 transform: translateX(0) scale(1);
                 opacity: 1;
             }
         }
 
-      @@keyframes slideInUp {
+        @@keyframes slideInUp {
             0% {
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             100% {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-      @@keyframes staggeredSlideIn {
+        @@keyframes staggeredSlideIn {
             0% {
                 opacity: 0;
                 transform: translateY(20px) scale(0.9);
             }
+
             100% {
                 opacity: 1;
                 transform: translateY(0) scale(1);
             }
         }
 
-      @@keyframes floatingBounce {
+        @@keyframes floatingBounce {
             0% {
                 opacity: 0;
                 transform: translateY(-10px) scale(0.8) rotate(-5deg);
             }
+
             50% {
                 opacity: 0.8;
                 transform: translateY(5px) scale(1.05) rotate(2deg);
             }
+
             100% {
                 opacity: 1;
                 transform: translateY(0) scale(1) rotate(0deg);
             }
         }
 
-      @@keyframes slideUpFooter {
+        @@keyframes slideUpFooter {
             0% {
                 transform: translateY(100%);
                 opacity: 0;
             }
+
             100% {
                 transform: translateY(0);
                 opacity: 1;
             }
         }
 
-      @@keyframes pulseGlow {
+        @@keyframes pulseGlow {
             0%, 100% {
                 box-shadow: rgba(19, 125, 253, 0.4) 0px 8px 25px, inset 0px 1px 0px rgba(255, 255, 255, 0.2);
             }
+
             50% {
                 box-shadow: rgba(19, 125, 253, 0.6) 0px 12px 35px, inset 0px 1px 0px rgba(255, 255, 255, 0.3);
             }
         }
 
-      @@keyframes fadeInUp {
+        @@keyframes fadeInUp {
             0% {
                 transform: translateY(10px);
                 opacity: 0;
             }
+
             100% {
                 transform: translateY(0);
                 opacity: 1;
             }
         }
 
-      @@keyframes fadeOut {
-            0% { opacity: 1; }
-            100% { opacity: 0; }
+        @@keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
         }
 
         /* Responsive Design */
-      @@media (min-width: 768px) {
+        @@media (min-width: 768px) {
             .modal-header {
                 height: 45vh;
                 max-height: 400px;
@@ -493,9 +510,9 @@
                 border-bottom-right-radius: 60px;
             }
 
-            .modal-header img {
-                max-width: 350px;
-            }
+                .modal-header img {
+                    max-width: 350px;
+                }
 
             .close {
                 font-size: 24px;
@@ -548,7 +565,7 @@
             }
         }
 
-      @@media (min-width: 1024px) {
+        @@media (min-width: 1024px) {
             .my-modal {
                 background: rgba(0, 0, 0, 0.5);
                 display: flex;
@@ -574,9 +591,9 @@
                 border-radius: 20px 20px 60px 60px;
             }
 
-            .modal-header img {
-                max-width: 400px;
-            }
+                .modal-header img {
+                    max-width: 400px;
+                }
 
             .modal-body {
                 overflow-y: auto;
@@ -592,18 +609,19 @@
             }
         }
 
-      @@keyframes modalZoomIn {
+        @@keyframes modalZoomIn {
             0% {
                 transform: scale(0.8);
                 opacity: 0;
             }
+
             100% {
                 transform: scale(1);
                 opacity: 1;
             }
         }
 
-      @@media (min-width: 1200px) {
+        @@media (min-width: 1200px) {
             .modal-content {
                 max-width: 1000px;
             }
@@ -613,7 +631,7 @@
             }
         }
 
-      @@media (max-width: 480px) {
+        @@media (max-width: 480px) {
             .modal-header {
                 height: 35vh;
                 border-bottom-left-radius: 30px;
@@ -666,7 +684,7 @@
     <div class="my-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" aria-label="close" onclick="closeModal()">
+                <button type="button" class="close" aria-label="close">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
                 <img src="@Url.Content(Model.ThumbnailUrl)" alt="@Model.NameAr" />
@@ -679,7 +697,7 @@
                 </div>
 
                 <p class="description">@Model.DescriptionAr</p>
-                
+
                 <section class="topping">
                     @foreach (var group in Model.ItemToppingGroups)
                     {
@@ -704,11 +722,14 @@
                                         data-selected="false"
                                         data-group-id="@group.Id"
                                         data-option-id="@option.Id"
+                                        data-option-price="@option.Price"
                                         data-max-allowed="@group.MaxAllowedOptions"
-                                        onclick="toggleTopping(@option.Id, @group.Id, @group.MaxAllowedOptions)">
+                                        data-min-allowed="@group.MinAllowedOptions"
+                                        data-image-url="@Url.Content(option.ImageUrl ?? Model.ThumbnailUrl)">
                                     <picture class="topping-image">
                                         <img class="topping-img" src="@Url.Content(option.ImageUrl ?? Model.ThumbnailUrl)" alt="@option.NameAr" />
                                     </picture>
+
                                     <h2 class="topping-name">@option.NameAr</h2>
                                     <span class="topping-price">
                                         <span class="amount">@option.Price</span>
@@ -735,11 +756,11 @@
             <div class="modal-footer">
                 <div class="footer-content">
                     <div class="counter-container">
-                        <button type="button" class="counter-btn decrement" aria-label="Decrease quantity" onclick="decrementCounter()">−</button>
+                        <button type="button" class="counter-btn decrement" aria-label="Decrease quantity">−</button>
                         <span id="counterValue">1</span>
-                        <button type="button" class="counter-btn increment" aria-label="Increase quantity" onclick="incrementCounter()">+</button>
+                        <button type="button" class="counter-btn increment" aria-label="Increase quantity">+</button>
                     </div>
-                    <button type="button" class="checkout-btn" onclick="addToCart()">
+                    <button type="button" class="checkout-btn">
                         <span class="button-text">
                             <span>إضافة</span>
                             <span class="price" id="totalPrice">@Model.BasePrice <span class="currency">جنيه</span></span>
@@ -748,145 +769,10 @@
                 </div>
             </div>
         </div>
+        <script id="modal-data" type="application/json">
+            @Html.Raw(JsonConvert.SerializeObject(Model))
+        </script>
     </div>
 
-    <script>
-        // State Management
-        const state = {
-            quantity: 1,
-            basePrice: @Model.BasePrice,
-            selectedToppings: {}, // { groupId: { optionId: price } }
-            groups: @Html.Raw(Json.Serialize(Model.ItemToppingGroups.Select(g => new { 
-                Id = g.Id, 
-                MinAllowedOptions = g.MinAllowedOptions, 
-                MaxAllowedOptions = g.MaxAllowedOptions, 
-                TitleAr = g.TitleAr 
-            })))
-        };
-
-        // Utility Functions
-        const $ = (selector) => document.querySelector(selector);
-        const $$ = (selector) => document.querySelectorAll(selector);
-
-        // Topping Selection Logic
-        function toggleTopping(optionId, groupId, maxAllowed) {
-            const button = $(`[data-option-id="${optionId}"]`);
-            const isSelected = button.getAttribute('data-selected') === 'true';
-            const price = parseFloat(button.querySelector('.amount').textContent);
-
-            // Initialize group if needed
-            if (!state.selectedToppings[groupId]) {
-                state.selectedToppings[groupId] = {};
-            }
-
-            if (maxAllowed === 1) {
-                handleRadioSelection(groupId, optionId, price, isSelected);
-            } else {
-                handleCheckboxSelection(groupId, optionId, price, isSelected, maxAllowed);
-            }
-
-            updateTotalPrice();
-        }
-
-        function handleRadioSelection(groupId, optionId, price, isCurrentlySelected) {
-            // Clear all selections in group
-            $$(`[data-group-id="${groupId}"]`).forEach(btn => {
-                btn.setAttribute('data-selected', 'false');
-            });
-            
-            state.selectedToppings[groupId] = {};
-
-            // Select if not currently selected
-            if (!isCurrentlySelected) {
-                $(`[data-option-id="${optionId}"]`).setAttribute('data-selected', 'true');
-                state.selectedToppings[groupId][optionId] = price;
-            }
-        }
-
-        function handleCheckboxSelection(groupId, optionId, price, isCurrentlySelected, maxAllowed) {
-            const selectedCount = Object.keys(state.selectedToppings[groupId]).length;
-            const button = $(`[data-option-id="${optionId}"]`);
-
-            if (isCurrentlySelected) {
-                button.setAttribute('data-selected', 'false');
-                delete state.selectedToppings[groupId][optionId];
-            } else if (selectedCount < maxAllowed) {
-                button.setAttribute('data-selected', 'true');
-                state.selectedToppings[groupId][optionId] = price;
-            } else {
-                showMessage(`يمكنك اختيار ${maxAllowed} خيار كحد أقصى من هذه المجموعة`);
-            }
-        }
-
-        // Price Calculation
-        function updateTotalPrice() {
-            const toppingsTotal = Object.values(state.selectedToppings)
-                .flatMap(group => Object.values(group))
-                .reduce((sum, price) => sum + price, 0);
-
-            const totalPrice = (state.basePrice + toppingsTotal) * state.quantity;
-            const priceElement = $('#totalPrice');
-            
-            priceElement.innerHTML = `${totalPrice} <span class="currency">جنيه</span>`;
-            priceElement.classList.add('updated');
-            
-            setTimeout(() => priceElement.classList.remove('updated'), 400);
-        }
-
-        // Counter Functions
-        function incrementCounter() {
-            state.quantity++;
-            $('#counterValue').textContent = state.quantity;
-            updateTotalPrice();
-        }
-
-        function decrementCounter() {
-            if (state.quantity > 1) {
-                state.quantity--;
-                $('#counterValue').textContent = state.quantity;
-                updateTotalPrice();
-            }
-        }
-
-        // Validation & Actions
-        function validateSelections() {
-            for (const group of state.groups) {
-                const selectedCount = state.selectedToppings[group.Id] 
-                    ? Object.keys(state.selectedToppings[group.Id]).length 
-                    : 0;
-                
-                if (selectedCount < group.MinAllowedOptions) {
-                    showMessage(`يجب اختيار ${group.MinAllowedOptions} على الأقل من ${group.TitleAr}`);
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        function addToCart() {
-            if (!validateSelections()) return;
-
-            const totalPrice = $('#totalPrice').textContent;
-            showMessage(`تم إضافة ${state.quantity} من المنتج إلى السلة بقيمة ${totalPrice}`);
-            closeModal();
-        }
-
-        function closeModal() {
-            const modal = $('.my-modal');
-            modal.style.animation = 'fadeOut 0.3s ease-in-out';
-            setTimeout(() => modal.style.display = 'none', 300);
-        }
-
-        function showMessage(message) {
-            alert(message); // Can be replaced with toast notification
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            updateTotalPrice();
-        });
-    </script>
 </body>
 </html>
-
-
