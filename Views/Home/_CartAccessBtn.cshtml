@@ -97,12 +97,15 @@
     </div>
 </a>
 
-<script>
+@* <script>
     const CART_KEY = 'food_ecom_cart';
 
     const getCart = () => {
-        try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; }
-        catch { return []; }
+        try {
+            return JSON.parse(localStorage.getItem(CART_KEY)) || [];
+        } catch {
+            return [];
+        }
     };
 
     const closeModal = () => {
@@ -116,12 +119,29 @@
     };
 
     const updateCartAccessBtn = () => {
-        const cart = getCart();
+        let cart = getCart();
         const btn = document.getElementById('cartAccessBtn');
         const thumbnailsContainer = document.getElementById('cartThumbnails');
         const totalPriceEl = document.getElementById('cartTotalPrice');
 
-        if (!cart.length) return btn.style.display = 'none';
+        if (!btn || !thumbnailsContainer || !totalPriceEl) return;
+
+        if (!cart.length) {
+            btn.style.display = 'none';
+            return;
+        }
+
+        // 🔥 merge duplicates by Id before calculating totals
+        const mergedCart = [];
+        cart.forEach(item => {
+            const existing = mergedCart.find(i => i.Id === item.Id);
+            if (existing) {
+                existing.Quantity += item.Quantity || 1;
+            } else {
+                mergedCart.push({ ...item });
+            }
+        });
+        cart = mergedCart;
 
         // Show button with animation
         btn.style.display = 'flex';
@@ -131,10 +151,16 @@
 
         // Calculate total
         const totalPrice = cart.reduce((sum, item) => {
-            const toppings = item.SelectedToppingGroups?.reduce((gSum, g) =>
-                gSum + g.SelectedToppingOptions?.reduce((oSum, o) => oSum + o.PriceAtOrderTime * o.Quantity, 0), 0) || 0;
-            return sum + (item.PriceAtOrderTime + toppings) * item.Quantity;
+            const toppings = (item.SelectedToppingGroups || []).reduce(
+                (gSum, g) => gSum + (g.SelectedToppingOptions || []).reduce(
+                    (oSum, o) => oSum + (o.PriceAtOrderTime || 0) * (o.Quantity || 1),
+                    0
+                ),
+                0
+            );
+            return sum + (item.PriceAtOrderTime + toppings) * (item.Quantity || 1);
         }, 0);
+
         totalPriceEl.textContent = totalPrice.toFixed(2);
 
         // Render thumbnails
@@ -156,10 +182,11 @@
 
     // On page load
     window.addEventListener('DOMContentLoaded', () => {
-        closeModal();          // Close any modal
+        closeModal();          // Close any modal if exists
         updateCartAccessBtn(); // Show cart button with slide animation
     });
 
     // Update when cart changes
     window.addEventListener('cartUpdated', updateCartAccessBtn);
 </script>
+ *@

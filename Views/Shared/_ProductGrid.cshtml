@@ -52,322 +52,375 @@
 </div>
 
 
-
 <script>
-    // --- State Management ---
-    const state = {
-        itemId: null,
-        quantity: 1,
-        basePrice: 0,
-        selectedToppings: new Map(), // Map<groupId, Map<optionId, topping>>
-        groups: [],
+    (() => {
+        // =========================
+        // 🔹 State Management
+        // =========================
+        const state = {
+            itemId: null,
+            quantity: 1,
+            basePrice: 0,
+            selectedToppings: new Map(), // Map<groupId, Map<optionId, topping>>
+            groups: [],
+        };
+
+        // =========================
+        // 🔹 Utility Functions
+        // =========================
+        const $ = (selector, parent = document) => parent.querySelector(selector);
+        const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
+        const CART_KEY = "food_ecom_cart";
+
+        const getCart = () => {
+            try {
+                return JSON.parse(localStorage.getItem(CART_KEY)) || [];
+            } catch {
+                return [];
+            }
+        };
+
+        const saveCart = (cart) => {
+            localStorage.setItem(CART_KEY, JSON.stringify(cart));
+            window.dispatchEvent(new CustomEvent("cartUpdated"));
+        };
+
+        const showMessage = (msg) => alert(msg); // TODO: replace with toast
+
+        // Helpers for item & topping data
+        const getItemTitle = id =>
+            $(`.js-render-modal[data-id="${id}"] .product-title`)?.textContent.trim() || "";
+
+        const getItemDescription = id =>
+            $(`.js-render-modal[data-id="${id}"] .description`)?.textContent.trim() || "";
+
+        const getItemThumbnailUrl = id =>
+            $(`.js-render-modal[data-id="${id}"] img`)?.src || "";
+
+        const getToppingImageUrl = id =>
+            $(`.topping-item[data-option-id="${id}"]`)?.dataset.imageUrl || "";
+
+        const getToppingName = id =>
+            $(`.topping-item[data-option-id="${id}"] .topping-name`)?.textContent.trim() || "";
+
+        // =========================
+        // 🔹 Price Calculation
+        // =========================
+       // =========================
+    const updateTotalPrice = () => {
+        // Sum of all toppings (price × topping quantity)
+        const toppingsTotal = [...state.selectedToppings.values()]
+            .flatMap(group => [...group.values()])
+            .reduce((sum, t) => sum + (t.PriceAtOrderTime * t.Quantity), 0);
+
+        // ✅ Correct: (base × qty) + (toppings × qty)
+        const totalPrice = ((state.basePrice * state.quantity) + (toppingsTotal * state.quantity)).toFixed(2);
+
+        const el = $("#totalPrice");
+        if (!el) return;
+
+        const html = `${totalPrice} <span class="currency">ج.م</span>`;
+        if (el.innerHTML !== html) {
+            el.innerHTML = html;
+            el.classList.add("updated");
+            setTimeout(() => el.classList.remove("updated"), 400);
+        }
     };
 
-    // --- Utility Functions ---
-    const $ = (selector, parent = document) => parent.querySelector(selector);
-    const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
-    const CART_KEY = 'food_ecom_cart';
 
-    function getCart() {
-        try {
-            const cart = localStorage.getItem(CART_KEY);
-            return cart ? JSON.parse(cart) : [];
-        } catch (e) {
-            console.error('Error parsing cart from localStorage:', e);
-            return [];
-        }
-    }
-
-    function saveCart(cart) {
-        localStorage.setItem(CART_KEY, JSON.stringify(cart));
-        window.dispatchEvent(new CustomEvent('cartUpdated'));
-    }
-
-    function showMessage(message) {
-        alert(message); // TODO: replace with toast/notification
-    }
-
-    // --- Price Calculation ---
-    function updateTotalPrice() {
-        let toppingsTotal = 0;
-        for (const group of state.selectedToppings.values()) {
-            for (const topping of group.values()) {
-                toppingsTotal += topping.PriceAtOrderTime * topping.Quantity;
-            }
-        }
-        const totalPrice = ((state.basePrice + toppingsTotal) * state.quantity).toFixed(2);
-        const priceElement = $('#totalPrice');
-        if (!priceElement) return;
-        const newHtml = `${totalPrice} <span class="currency">ج.م</span>`;
-        if (priceElement.innerHTML !== newHtml) {
-            priceElement.innerHTML = newHtml;
-            priceElement.classList.add('updated');
-            setTimeout(() => priceElement.classList.remove('updated'), 400);
-        }
-    }
-
-    // --- Counter -
-    function incrementCounter() {
-        state.quantity++;
-        const el = $('#counterValue');
-        if (el) el.textContent = state.quantity;
-        updateTotalPrice();
-    }
-
-    function decrementCounter() {
-        if (state.quantity > 1) {
-            state.quantity--;
-            const el = $('#counterValue');
+        // =========================
+        // 🔹 Counter
+        // =========================
+        const updateCounter = () => {
+            const el = $("#counterValue");
             if (el) el.textContent = state.quantity;
-            updateTotalPrice();
-        }
-    }
+        };
 
-    // --- Toppings ---
-    function handleRadioSelection(groupId, optionId, price) {
-        $$(`[data-group-id="${groupId}"]`).forEach(btn => btn.setAttribute('data-selected', 'false'));
-        state.selectedToppings.set(groupId, new Map());
-        const el = $(`[data-option-id="${optionId}"]`);
-        if (el) el.setAttribute('data-selected', 'true');
-        state.selectedToppings.get(groupId).set(optionId, {
-            ToppingOptionId: optionId,
-            Quantity: 1,
-            PriceAtOrderTime: price,
-            ImageUrl: getToppingImageUrl(optionId)
-        });
-    }
+        const incrementCounter = () => { state.quantity++; updateCounter(); updateTotalPrice(); };
+        const decrementCounter = () => {
+            if (state.quantity > 1) {
+                state.quantity--;
+                updateCounter();
+                updateTotalPrice();
+            }
+        };
 
-    function handleCheckboxSelection(groupId, optionId, price, isSelected, maxAllowed) {
-        const groupMap = state.selectedToppings.get(groupId);
-        if (isSelected) {
+        // =========================
+        // 🔹 Toppings
+        // =========================
+        const selectRadio = (groupId, optionId, price) => {
+            $$(`[data-group-id="${groupId}"]`).forEach(btn => btn.dataset.selected = "false");
+            state.selectedToppings.set(groupId, new Map());
             const el = $(`[data-option-id="${optionId}"]`);
-            if (el) el.setAttribute('data-selected', 'false');
-            groupMap.delete(optionId);
-        } else if (groupMap.size < maxAllowed) {
-            const el = $(`[data-option-id="${optionId}"]`);
-            if (el) el.setAttribute('data-selected', 'true');
-            groupMap.set(optionId, {
+            if (el) el.dataset.selected = "true";
+            state.selectedToppings.get(groupId).set(optionId, {
                 ToppingOptionId: optionId,
                 Quantity: 1,
                 PriceAtOrderTime: price,
-                ImageUrl: getToppingImageUrl(optionId)
+                ImageUrl: getToppingImageUrl(optionId),
+                Name: getToppingName(optionId)
             });
-        } else {
-            showMessage(`يمكنك اختيار ${maxAllowed} خيار كحد أقصى من هذه المجموعة`);
-        }
-    }
+        };
 
-    function toggleTopping(target) {
-        const optionId = parseInt(target.dataset.optionId);
-        const groupId = parseInt(target.dataset.groupId);
-        const maxAllowed = parseInt(target.dataset.maxAllowed);
-        const isSelected = target.getAttribute('data-selected') === 'true';
-        const price = parseFloat(target.dataset.optionPrice);
-        if (!state.selectedToppings.has(groupId)) state.selectedToppings.set(groupId, new Map());
-        if (maxAllowed === 1) handleRadioSelection(groupId, optionId, price);
-        else handleCheckboxSelection(groupId, optionId, price, isSelected, maxAllowed);
-        updateTotalPrice();
-    }
+        const toggleCheckbox = (groupId, optionId, price, isSelected, maxAllowed) => {
+            const groupMap = state.selectedToppings.get(groupId);
+            const el = $(`[data-option-id="${optionId}"]`);
 
-    // --- Validation ---
-    function validateSelections() {
-        for (const group of state.groups) {
-            const selectedCount = state.selectedToppings.has(group.Id) ? state.selectedToppings.get(group.Id).size : 0;
-            if (selectedCount < group.MinAllowedOptions) {
-                showMessage(`يجب اختيار ${group.MinAllowedOptions} على الأقل من ${group.TitleAr}`);
-                return false;
+            if (isSelected) {
+                el && (el.dataset.selected = "false");
+                groupMap.delete(optionId);
+            } else if (groupMap.size < maxAllowed) {
+                el && (el.dataset.selected = "true");
+                groupMap.set(optionId, {
+                    ToppingOptionId: optionId,
+                    Quantity: 1,
+                    PriceAtOrderTime: price,
+                    ImageUrl: getToppingImageUrl(optionId),
+                    Name: getToppingName(optionId)
+                });
+            } else {
+                showMessage(`يمكنك اختيار ${maxAllowed} خيار كحد أقصى من هذه المجموعة`);
             }
-        }
-        return true;
-    }
+        };
 
-    // --- Cart ---
-    function addToCart() {
+        const toggleTopping = (target) => {
+            const optionId = +target.dataset.optionId;
+            const groupId = +target.dataset.groupId;
+            const maxAllowed = +target.dataset.maxAllowed;
+            const price = +target.dataset.optionPrice;
+            const isSelected = target.dataset.selected === "true";
+
+            if (!state.selectedToppings.has(groupId)) state.selectedToppings.set(groupId, new Map());
+            maxAllowed === 1 ? selectRadio(groupId, optionId, price)
+                             : toggleCheckbox(groupId, optionId, price, isSelected, maxAllowed);
+
+            updateTotalPrice();
+        };
+
+        // =========================
+        // 🔹 Validation
+        // =========================
+        const validateSelections = () => {
+            for (const g of state.groups) {
+                const selectedCount = state.selectedToppings.get(g.Id)?.size || 0;
+                if (selectedCount < g.MinAllowedOptions) {
+                    showMessage(`يجب اختيار ${g.MinAllowedOptions} على الأقل من ${g.TitleAr}`);
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        // =========================
+        // 🔹 Cart
+        // =========================
+     const addToCart = () => {
         if (!validateSelections()) return;
 
         const cart = getCart();
 
-        const selectedToppingGroups = [...state.selectedToppings.entries()].map(([groupId, toppingsMap]) => ({
-            ToppingGroupId: parseInt(groupId),
-            SelectedToppingOptions: [...toppingsMap.values()].map(option => ({
-                ...option,
-                ImageUrl: option.ImageUrl || getToppingImageUrl(option.ToppingOptionId)
-            })),
-        }));
+        const groups = [...state.selectedToppings.entries()].map(([gid, opts]) => {
+            const group = state.groups.find(g => g.Id === gid);
+            return {
+                ToppingGroupId: gid,
+                Title: group?.TitleAr || group?.TitleEn || "",
+                SelectedToppingOptions: [...opts.values()]
+            };
+        });
 
-        const existingIndex = cart.findIndex(item => item.ItemId === state.itemId);
-        const thumbnailUrl = getItemThumbnailUrl(state.itemId);
-
-        const cartItem = {
+        const newItem = {
             ItemId: state.itemId,
+            Title: getItemTitle(state.itemId),
+            Description: getItemDescription(state.itemId),
             Quantity: state.quantity,
-            ThumbnailUrl: thumbnailUrl,
+            ThumbnailUrl: getItemThumbnailUrl(state.itemId),
             PriceAtOrderTime: state.basePrice,
             CashbackPercent: null,
             DiscountPercent: null,
-            SelectedToppingGroups: selectedToppingGroups
+            SelectedToppingGroups: groups
         };
 
-        if (existingIndex !== -1) cart[existingIndex] = cartItem;
-        else cart.push(cartItem);
+        // 🔎 دور على عنصر مشابه (نفس المنتج + نفس التوبينج)
+        const idx = cart.findIndex(i =>
+            i.ItemId === newItem.ItemId &&
+            JSON.stringify(i.SelectedToppingGroups || []) === JSON.stringify(newItem.SelectedToppingGroups || [])
+        );
+
+        if (idx !== -1) {
+            // ✅ موجود → زود الكمية
+            cart[idx].Quantity += newItem.Quantity;
+        } else {
+            // ➕ جديد → أضفه
+            cart.push(newItem);
+        }
 
         saveCart(cart);
-        updateCartAccessBtn();
+        window.dispatchEvent(new Event("cartUpdated")); // تحديث الزر و المجموع
         closeModal();
-    }
+    };
 
-    function getItemThumbnailUrl(itemId) {
-        const el = document.querySelector(`.js-render-modal[data-id="${itemId}"] img`);
-        return el ? el.src : '';
-    }
 
-    function getToppingImageUrl(optionId) {
-        const el = document.querySelector(`.topping-item[data-option-id="${optionId}"]`);
-        return el ? el.dataset.imageUrl || '' : '';
-    }
 
-    // --- Modal ---
-    function closeModal() {
-        const modal = $('.my-modal');
-        if (modal) {
-            modal.style.animation = 'fadeOut 0.3s ease-in-out';
-            setTimeout(() => {
-                modal.remove();
-                document.body.style.overflow = '';
-            }, 300);
-        }
-    }
+        // =========================
+        // 🔹 Modal
+        // =========================
+        const closeModal = () => {
+            const modal = $(".my-modal");
+            if (!modal) return;
+           modal.style.animation = 'fadeOut 0.3s ease-in-out';
+        setTimeout(() => {
+            modal.remove();
+            document.body.style.overflow = '';
 
-    function initializeModal(data, itemId, basePrice) {
-        state.itemId = parseInt(itemId);
-        state.basePrice = parseFloat(basePrice) || 0;
-        state.groups = data.ItemToppingGroups;
-        state.quantity = 1;
-        state.selectedToppings = new Map();
+            // ✅ بعد ما يتقفل المودال خلي الزر يعمل الأنميشن
+            const btn = document.getElementById('cartAccessBtn');
+            if (btn) {
+                btn.classList.remove('cart-access_btn--slideUpFooter');
+                void btn.offsetWidth; // force reflow
+                btn.classList.add('cart-access_btn--slideUpFooter');
+            }
+        }, 300);
+    };
 
-        if (!state.basePrice) {
-            const priceEl = $('#totalPrice');
-            if (priceEl) state.basePrice = parseFloat(priceEl.textContent.replace(/[^\d.]/g, '')) || 0;
-        }
-
-        const cart = getCart();
-        const existingItem = cart.find(item => item.ItemId === state.itemId);
-       
-        // if (existingItem) {
-        //     state.quantity = existingItem.Quantity;
-        //     const el = $('#counterValue');
-        //     if (el) el.textContent = state.quantity;
-        //     existingItem.SelectedToppingGroups.forEach(group => {
-        //         const groupMap = new Map();
-        //         group.SelectedToppingOptions.forEach(option => groupMap.set(option.ToppingOptionId, option));
-        //         state.selectedToppings.set(group.ToppingGroupId, groupMap);
-        //     });
-        // }
-
-        // $$('.topping-item').forEach(button => {
-        //     const optionId = parseInt(button.dataset.optionId);
-        //     const groupId = parseInt(button.dataset.groupId);
-        //     const isSelected = state.selectedToppings.has(groupId) && state.selectedToppings.get(groupId).has(optionId);
-        //     button.setAttribute('data-selected', isSelected ? 'true' : 'false');
-        // });
-
-        updateTotalPrice();
-    }
-
-    // --- Cart Access Button ---
-    function updateCartAccessBtn() {
-        const cart = getCart();
-        const btn = document.getElementById('cartAccessBtn');
-        const thumbnailsContainer = document.getElementById('cartThumbnails');
-        const totalPriceEl = document.getElementById('cartTotalPrice');
-
-        if (!btn) return;
-
-        if (cart.length === 0) {
-            btn.style.display = 'none';
-            btn.classList.remove('bounce'); // remove bounce if no items
-            return;
-        }
-
-        // Show button
-        btn.style.display = 'flex';
-
-        // Bounce animation
-        btn.classList.remove('bounce');
-        void btn.offsetWidth; // force reflow
-        btn.classList.add('bounce');
-
-        // Calculate total price
-        let totalPrice = 0;
-        cart.forEach(item => {
-            let toppingsTotal = 0;
-            item.SelectedToppingGroups?.forEach(group =>
-                group.SelectedToppingOptions?.forEach(opt =>
-                    toppingsTotal += opt.PriceAtOrderTime * opt.Quantity
-                )
-            );
-            totalPrice += (item.PriceAtOrderTime + toppingsTotal) * item.Quantity;
-        });
-        if (totalPriceEl) totalPriceEl.textContent = totalPrice.toFixed(2);
-
-        // Render thumbnails
-        if (thumbnailsContainer) {
-            thumbnailsContainer.innerHTML = '';
-            const maxVisible = 2;
-            const itemsToShow = cart.slice(0, maxVisible);
-
-            itemsToShow.forEach((item, index) => {
-                const img = document.createElement('img');
-                img.src = item.ThumbnailUrl;
-                img.alt = `منتج ${index + 1}`;
-                if (index > 0) img.classList.add('overlap');
-                thumbnailsContainer.appendChild(img);
+        const initializeModal = (data, itemId, basePrice) => {
+            Object.assign(state, {
+                itemId: +itemId,
+                basePrice: +basePrice || 0,
+                groups: data.ItemToppingGroups,
+                quantity: 1,
+                selectedToppings: new Map()
             });
 
-            if (cart.length > maxVisible) {
-                const overflow = document.createElement('div');
-                overflow.className = 'cart-access__overflow overlap';
-                overflow.textContent = `+${cart.length - maxVisible}`;
-                thumbnailsContainer.appendChild(overflow);
+            if (!state.basePrice) {
+                const el = $("#totalPrice");
+                if (el) state.basePrice = parseFloat(el.textContent.replace(/[^\d.]/g, "")) || 0;
             }
+
+            updateCounter();
+            updateTotalPrice();
+        };
+
+               // =========================
+        // 🔹 Cart Access Button
+        // =========================
+        const updateCartAccessBtn = () => {
+            const cart = getCart();
+            const btn = $("#cartAccessBtn");
+            if (!btn) return;
+
+            const thumbs = $("#cartThumbnails");
+            const totalEl = $("#cartTotalPrice");
+
+            // --- Clear previous state ---
+            if (thumbs) thumbs.innerHTML = "";
+            if (totalEl) totalEl.textContent = "0.00";
+
+            if (!cart.length) {
+                btn.style.display = "none";
+                btn.classList.remove("cart-access_btn--slideUpFooter");
+                return;
+            }
+
+            // --- Show button with animation ---
+            btn.style.display = "flex";
+            btn.classList.remove("cart-access_btn--slideUpFooter");
+            void btn.offsetWidth; // trigger reflow
+            btn.classList.add("cart-access_btn--slideUpFooter");
+
+            // --- Calculate total price ---
+            const totalPrice = cart.reduce((sum, item) => {
+                const toppings = item.SelectedToppingGroups?.flatMap(g => g.SelectedToppingOptions) || [];
+                const toppingsTotal = toppings.reduce((s, o) => s + (o.PriceAtOrderTime * o.Quantity), 0);
+                return sum + ((item.PriceAtOrderTime + toppingsTotal) * item.Quantity);
+            }, 0);
+
+            totalEl && (totalEl.textContent = totalPrice.toFixed(2));
+
+            // --- Render thumbnails with quantity badge ---
+            if (thumbs) {
+                const maxVisible = 2;
+                cart.slice(0, maxVisible).forEach((item, i) => {
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "thumb-wrapper";
+                    if (i) wrapper.classList.add("overlap");
+
+                    const img = document.createElement("img");
+                    img.src = item.ThumbnailUrl;
+                    img.alt = item.Title || `منتج ${i + 1}`;
+                    wrapper.appendChild(img);
+
+                    // if (item.Quantity > 1) {
+                    //     const badge = document.createElement("span");
+                    //     badge.className = "thumb-qty";
+                    //     badge.textContent = `×${item.Quantity}`;
+                    //     wrapper.appendChild(badge);
+                    // }
+
+                    thumbs.appendChild(wrapper);
+                });
+
+                if (cart.length > maxVisible) {
+                    const div = document.createElement("div");
+                    div.className = "cart-access__overflow overlap";
+                    div.textContent = `+${cart.length - maxVisible}`;
+                    thumbs.appendChild(div);
+                }
+            }
+        };
+
+        // --- Init once ---
+        updateCartAccessBtn();
+        window.addEventListener("cartUpdated", updateCartAccessBtn);
+
+            // --- Check cart on page load ---
+    window.addEventListener('DOMContentLoaded', () => {
+        const cart = JSON.parse(localStorage.getItem('food_ecom_cart') || '[]');
+        const btn = document.getElementById('cartAccessBtn');
+        if (!btn) return;
+
+        if (cart.length) {
+            // اجعل الزر مرئي وابدأ الأنيميشن
+            btn.style.display = 'flex';
+            btn.classList.remove('cart-access_btn--slideUpFooter');
+            void btn.offsetWidth; // force reflow
+            btn.classList.add('cart-access_btn--slideUpFooter');
+
+            // تحديث المجموع والصور
+            updateCartAccessBtn();
         }
-    }
-
-    // Initial call
-    updateCartAccessBtn();
-    window.addEventListener('cartUpdated', updateCartAccessBtn);
-
-
-    // --- Event Delegation ---
-    document.addEventListener('click', e => {
-        const target = e.target.closest('.js-render-modal, .my-modal .close, .counter-btn, .checkout-btn, .topping-item');
-        if (!target) return;
-
-        if (target.matches('.js-render-modal')) {
-            e.preventDefault();
-            const itemId = target.dataset.id;
-            const basePrice = target.dataset.price;
-
-            fetch(target.dataset.url)
-                .then(r => r.text())
-                .then(html => {
-                    const existing = $('.my-modal'); if (existing) existing.remove();
-                    document.body.insertAdjacentHTML('beforeend', html);
-                    document.body.style.overflow = 'hidden';
-                    const dataEl = $('#modal-data');
-                    if (dataEl) {
-                        const data = JSON.parse(dataEl.textContent);
-                        initializeModal(data, itemId, basePrice);
-                    }
-                })
-                .catch(err => console.error('Failed to load modal:', err));
-
-        } else if (target.matches('.my-modal .close')) closeModal();
-        else if (target.matches('.counter-btn.decrement')) decrementCounter();
-        else if (target.matches('.counter-btn.increment')) incrementCounter();
-        else if (target.matches('.checkout-btn')) addToCart();
-        else if (target.matches('.topping-item')) toggleTopping(target);
     });
+
+
+
+        // =========================
+        // 🔹 Event Delegation
+        // =========================
+        document.addEventListener("click", e => {
+            const target = e.target.closest(
+                ".js-render-modal, .my-modal .close, .counter-btn, .checkout-btn, .topping-item"
+            );
+            if (!target) return;
+
+            if (target.matches(".js-render-modal")) {
+                e.preventDefault();
+                fetch(target.dataset.url)
+                    .then(r => r.text())
+                    .then(html => {
+                        $(".my-modal")?.remove();
+                        document.body.insertAdjacentHTML("beforeend", html);
+                        document.body.style.overflow = "hidden";
+                        const dataEl = $("#modal-data");
+                        if (dataEl) initializeModal(JSON.parse(dataEl.textContent), target.dataset.id, target.dataset.price);
+                    })
+                    .catch(err => console.error("Failed to load modal:", err));
+            }
+            else if (target.matches(".my-modal .close")) closeModal();
+            else if (target.matches(".counter-btn.decrement")) decrementCounter();
+            else if (target.matches(".counter-btn.increment")) incrementCounter();
+            else if (target.matches(".checkout-btn")) addToCart();
+            else if (target.matches(".topping-item")) toggleTopping(target);
+        });
+    })();
 </script>
 
 <style>
