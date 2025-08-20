@@ -10,9 +10,12 @@ public class Branch
     public string NameEn { get; set; } = null!;
     public string NameAr { get; set; } = null!;
 
+
     public int AreaId { get; set; }
+    public Area? Area { get; set; }
 
     public int GovernorateId { get; set; }
+    public Governorate? Governorate { get; set; }
 
     [StringLength(255)]
     public string AddressEn { get; set; } = null!;

@@ -656,17 +656,17 @@
     </main>
 
     <div class="checkout-container">
-        <button class="checkout-btn" >
+        <a asp-action="Checkout" class="checkout-btn">
             <div class="checkout-left">
                 <span class="checkout-badge total-items">0</span>
-                <a asp-action="Checkout" class="checkout-text">اذهب للدفع</a>
+                <span class="checkout-text">اذهب للدفع</span>
             </div>
             <div class="checkout-price">
                 <span class="total-price">0.00</span>
                 <span>جنيه</span>
                 <i class="fa-solid fa-arrow-left"></i>
             </div>
-        </button>
+        </a>
     </div>
 
     <script>
