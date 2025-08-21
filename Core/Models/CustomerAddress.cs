@@ -8,12 +8,12 @@ public class CustomerAddress
 
     public int CustomerId { get; set; } 
 
-    [StringLength(50)]
-    public string? Label { get; set; }
+    //[StringLength(50)]
+    //public string? Label { get; set; }
 
     public int GovernrateId { get; set; }
 
-    public int NearestBranchId { get; set; }
+    public int BranchId { get; set; }
 
     public int AreaId { get; set; }
 

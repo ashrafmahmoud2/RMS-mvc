@@ -1,0 +1,160 @@
+﻿@using RMS.Web.Core.ViewModels.Home
+@using System.Globalization
+@model ItemViewModel
+<a asp-controller="Item" asp-action="Detail" asp-route-itemId="@Model.ItemId"
+   data-url="@Url.Action("Detail", "Item", new { itemId = Model.ItemId })"
+   class="js-render-modal product-card"
+   data-id="@Model.ItemId"
+   data-price="@Model.BasePrice.ToString(CultureInfo.InvariantCulture)">
+
+    <div class="product-image">
+        <img src="@Url.Content(@Model.ThumbnailUrl)" alt="@Model.NameAr" loading="lazy" />
+    </div>
+    <div class="product-info">
+        <h3 class="product-title">@Model.NameAr</h3>
+        <div class="price-row">
+
+            <span>@Model.BasePrice ج.م</span>
+
+            <button type="button"
+                    class="add-to-cart"
+                    data-id="@Model.ItemId"
+                    data-price="@Model.BasePrice"
+                    data-thumbnail-url="@Url.Content(@Model.ThumbnailUrl)">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+
+        </div>
+    </div>
+</a>
+
+
+<style>
+  
+    .product-card {
+        color: #333;
+        background-color: transparent;
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    @@media (min-width: 1000px) {
+        .product-card {
+            max-width: 500px;
+            min-width: 350px;
+            width: 100%;
+            /* Ensures responsiveness within limits */
+        }
+
+        .product-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            /* auto-fit keeps items more balanced */
+            gap: 16px;
+            /* Slightly increased for better spacing */
+            justify-content: center;
+            /* Centers the grid for better alignment */
+        }
+    }
+
+
+
+
+    .product-card .product-image {
+        aspect-ratio: 16/10;
+        border-radius: 20px;
+        background-color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        width: 100%;
+        height: auto;
+    
+    }
+
+    .product-card img {
+        /* background-color: #fff; */
+        display: block;
+        object-fit: scale-down;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 20px;
+    }
+
+
+    .product-info {
+        padding: 15px;
+        text-align: start;
+        width: 100%;
+    }
+
+    .product-card .product-info h3 {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 1;
+        /* font-family: 'Noto Sans Arabic', Arial, sans-serif; */
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+        padding-bottom: 2px;
+    }
+
+    .product-card .product-info .description {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 2;
+        font-family: 'Reem Kufi', Arial, sans-serif;
+        font-size: 18px;
+        line-height: 1.5;
+        color: #777;
+        padding: 8px 0;
+    }
+
+
+    .product-card .price-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+    .product-card .price {
+        /* font-family: 'Tajawal', Arial, sans-serif; */
+        font-size: 20px;
+        font-weight: bold;
+        color: #125079;
+    }
+
+    .product-card .add-to-cart {
+        padding: 8px 15px;
+        cursor: pointer;
+        background-color: #185499;
+        color: white;
+        border-radius: 50%;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+    }
+
+
+    .Square-Item-Layout .product-image {
+        background-image: url(https://res.cloudinary.com/dwzq2jxms/image/upload/v1754841367/Copilot_20250607_235033_kmgd2m.png);
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: center;
+    }
+
+
+</style>

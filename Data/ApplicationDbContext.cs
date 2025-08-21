@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using RMS.Web.Core.Models;
 using System.Xml.Serialization;
 namespace RMS.Web.Data;
 
@@ -37,14 +38,12 @@ public class ApplicationDbContext :/* IdentityDbContext*/  IdentityDbContext<App
 
 
     // Orders
-    public DbSet<Order> Orders { get; set; }
-    public DbSet<OrderStatus> OrderStatuses { get; set; }
-
-    public DbSet<OrderItem> OrderItems { get; set; }
-
-    public DbSet<OrderItemTopping> OrderItemToppings { get; set; }
-    public DbSet<Payment> Payments { get; set; }
-
+    public DbSet<Order> Orders { get; set; } = null!;
+    public DbSet<OrderStatus> OrderStatuses { get; set; } = null!;
+    public DbSet<OrderItem> OrderItems { get; set; } = null!;
+    public DbSet<SelectedToppingGroup> SelectedToppingGroups { get; set; } = null!;
+    public DbSet<SelectedToppingOption> SelectedToppingOptions { get; set; } = null!;
+    public DbSet<Payment> Payments { get; set; } = null!;
 
 
 

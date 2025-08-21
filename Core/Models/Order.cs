@@ -8,42 +8,31 @@ public class Order
     public int Id { get; set; }
 
     public int CustomerId { get; set; }
-    public Customer Customer { get; set; } = null!;
+    public virtual Customer Customer { get; set; } = null!;
 
     public int CustomerAddressId { get; set; }
-    public CustomerAddress CustomerAddress { get; set; } = null!;
+    public virtual CustomerAddress CustomerAddress { get; set; } = null!;
 
     public int BranchId { get; set; }
+    public virtual Branch? Branch { get; set; }
 
-    public Branch? Branch { get; set; }
-
-    public DateTime OrderedDate { get; set; }
-    public DateTime TimeFromOpenToBuy { get; set; }
-
-    [Column(TypeName = "decimal(10,2)")]
-    public decimal FeesTotal { get; set; }
-
-    [Column(TypeName = "decimal(10,2)")]
+    public decimal SubTotal { get; set; } // sum of item prices before fees/discounts
+    public decimal GrandTotal { get; set; } // after discounts + delivery
     public decimal DeliveryFees { get; set; }
-
-    [Column(TypeName = "decimal(10,2)")]
     public decimal DiscountAmount { get; set; }
-
-    [Column(TypeName = "decimal(10,2)")]
     public decimal CashbackUsedAmount { get; set; }
-
-    [Column(TypeName = "decimal(5,2)")]
     public decimal CashbackPercent { get; set; }
+
+    public DateTime OrderDate { get; set; } = DateTime.UtcNow;
+    public string OrderNumber { get; set; } = string.Empty; 
+
 
     public OrderStatusEnum LastStatus { get; set; }
 
-    public ICollection<OrderStatus> StatusHistory { get; set; } = new List<OrderStatus>();
-
-    public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-
-    public ICollection<Payment> Payments { get; set; } = new List<Payment>();
-
-    public ICollection<OrderReview> Reviews { get; set; } = new List<OrderReview>();
+    public virtual ICollection<OrderStatus> StatusHistory { get; set; } = new List<OrderStatus>();
+    public virtual ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
+    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+    public virtual ICollection<OrderReview> Reviews { get; set; } = new List<OrderReview>();
 }
 
 public class OrderItem
@@ -51,40 +40,59 @@ public class OrderItem
     public int Id { get; set; }
 
     public int OrderId { get; set; }
-    public Order Order { get; set; } = null!;
+    public virtual Order Order { get; set; } = null!;
 
     public int ItemId { get; set; }
-    public Item Item { get; set; } = null!;
+    public virtual Item Item { get; set; } = null!;
 
     public int Quantity { get; set; } = 1;
 
-    [Column(TypeName = "decimal(10,2)")]
     public decimal PriceAtOrderTime { get; set; }
-
-    [Column(TypeName = "decimal(5,2)")]
     public decimal CashbackPercent { get; set; }
 
-    public ICollection<OrderItemTopping> Toppings { get; set; } = new List<OrderItemTopping>();
+    public virtual ICollection<SelectedToppingGroup> ToppingGroups { get; set; } = new List<SelectedToppingGroup>();
 }
-
-public class OrderItemTopping
+public class SelectedToppingGroup
 {
-    public int Id { get; set; }
-
+    public int Id { get; set; }   // Primary Key
+    public int ToppingGroupId { get; set; }
+    public virtual ToppingGroup ToppingGroup { get; set; } = null!;
     public int OrderItemId { get; set; }
-    public OrderItem OrderItem { get; set; } = null!;
-
-    public int ToppingOptionId { get; set; }
-    public ToppingOption ToppingOption { get; set; } = null!;
-
-    [Column(TypeName = "decimal(10,2)")]
-    public decimal CurrentPrice { get; set; } // fixed typo
-
-    [Column(TypeName = "decimal(5,2)")]
-    public decimal CashbackPercent { get; set; }
-
-    public int Quantity { get; set; } = 1;
+    public virtual OrderItem OrderItem { get; set; } = null!;
+    public virtual ICollection<SelectedToppingOption> ToppingOptions { get; set; } = new List<SelectedToppingOption>();
 }
+
+public class SelectedToppingOption
+{
+    public int Id { get; set; }   // Primary Key
+    public int ToppingOptionId { get; set; }
+    public int Quantity { get; set; }
+    public decimal PriceAtOrderTime { get; set; }
+    public int ToppingGroupId { get; set; }
+    public virtual ToppingGroup ToppingGroup { get; set; } = null!;
+}
+
+
+
+
+//public class OrderItemTopping
+//{
+//    public int Id { get; set; }
+
+//    public int OrderItemId { get; set; }
+//    public OrderItem OrderItem { get; set; } = null!;
+
+//    public int ToppingOptionId { get; set; }
+//    public ToppingOption ToppingOption { get; set; } = null!;
+
+//    [Column(TypeName = "decimal(10,2)")]
+//    public decimal CurrentPrice { get; set; } // fixed typo
+
+//    [Column(TypeName = "decimal(5,2)")]
+//    public decimal CashbackPercent { get; set; }
+
+//    public int Quantity { get; set; } = 1;
+//}
 
 public class OrderStatus
 {

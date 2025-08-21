@@ -3,6 +3,294 @@
 @model IEnumerable<CategoryWithItemsViewModel>
 
 
+<style>
+    .products-grid {
+        display: grid;
+        gap: 20px;
+    }
+
+    .category {
+        border-bottom: 1px solid #eee;
+    }
+
+        .category:last-child {
+            border-bottom: none;
+        }
+
+        .category .title {
+            /* font-family: 'Noto Sans Arabic', Arial, sans-serif; */
+            font-size: 34px;
+            font-weight: bold;
+            color: #415e7e;
+            margin: 20px 0;
+            text-align: start;
+        }
+
+    /* General product-card */
+    .product-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 10px;
+    }
+
+    .product-card {
+        color: #333;
+        background-color: transparent;
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    @@media (min-width: 1000px) {
+        .product-card {
+            max-width: 500px;
+            min-width: 350px;
+            width: 100%;
+            /* Ensures responsiveness within limits */
+        }
+
+        .product-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            /* auto-fit keeps items more balanced */
+            gap: 16px;
+            /* Slightly increased for better spacing */
+            justify-content: center;
+            /* Centers the grid for better alignment */
+        }
+    }
+
+
+
+
+    .product-card .product-image {
+        aspect-ratio: 16/10;
+        border-radius: 20px;
+        background-color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        width: 100%;
+        height: auto;
+      /*   background-image: url(https://res.cloudinary.com/dwzq2jxms/image/upload/v1754841367/Copilot_20250607_235033_kmgd2m.png);
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: center; */
+    }
+
+    .product-card img {
+        /* background-color: #fff; */
+        display: block;
+        object-fit: scale-down;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 20px;
+    }
+
+
+    .product-info {
+        padding: 15px;
+        text-align: start;
+        width: 100%;
+    }
+
+    .product-card .product-info h3 {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 1;
+        /* font-family: 'Noto Sans Arabic', Arial, sans-serif; */
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+        padding-bottom: 2px;
+    }
+
+    .product-card .product-info .description {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 2;
+        font-family: 'Reem Kufi', Arial, sans-serif;
+        font-size: 18px;
+        line-height: 1.5;
+        color: #777;
+        padding: 8px 0;
+    }
+
+
+    .product-card .price-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+    .product-card .price {
+        /* font-family: 'Tajawal', Arial, sans-serif; */
+        font-size: 20px;
+        font-weight: bold;
+        color: #125079;
+    }
+
+    .product-card .add-to-cart {
+        padding: 8px 15px;
+        cursor: pointer;
+        background-color: #185499;
+        color: white;
+        border-radius: 50%;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+    }
+
+
+    @@media (max-width: 768px) {
+        .product-list.product-Layout-two-column {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .product-Layout-two-column .product-image {
+            min-height: 180px;
+        }
+
+        .product-Layout-two-column .product-card .product-info h3 {
+            -webkit-line-clamp: 2;
+            min-height: 50px;
+            font-size: 20px;
+        }
+
+        .product-Layout-two-column .add-to-cart {
+            display: none;
+        }
+    }
+
+
+/*     @@media (max-width: 500px) {
+        .Rectangle-Item-Layout {
+            grid-template-columns: repeat(1, 1fr);
+            gap: 15px;
+        }
+
+            .Rectangle-Item-Layout .product-card {
+                display: flex;
+                flex-direction: row-reverse;
+                justify-content: space-between;
+                max-height: 180px;
+                min-height: 160px;
+                background-color: #ffffff;
+            }
+
+            .Rectangle-Item-Layout .product-title {
+                padding-top: 3px;
+            }
+
+            .Rectangle-Item-Layout .description {
+                line-height: 1.4;
+            }
+
+
+
+            .Rectangle-Item-Layout .product-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: scale-down;
+            }
+
+            .Rectangle-Item-Layout .product-image {
+                max-width: 150px;
+                min-width: 150px;
+                height: 100%;
+            }
+
+            .Rectangle-Item-Layout .add-to-cart {
+                display: none;
+            }
+    } */
+
+
+
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes slideInZoom {
+        0% {
+            transform: translateX(-100%) scale(0.8);
+            opacity: 0;
+        }
+
+        100% {
+            transform: translateX(0) scale(1);
+            opacity: 1;
+        }
+    }
+
+    .product-card {
+        opacity: 0;
+        transform: translateY(50px);
+        animation: fadeInUp 1s ease-out forwards;
+    }
+
+        .product-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .product-card:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .product-card:nth-child(3) {
+            animation-delay: 0.5s;
+        }
+
+        .product-card:nth-child(4) {
+            animation-delay: 0.7s;
+        }
+
+        .product-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+            animation: slideInZoom 1s ease-in-out forwards;
+        }
+
+        .product-card:nth-child(1) img {
+            animation-delay: 0.1s;
+        }
+
+        .product-card:nth-child(2) img {
+            animation-delay: 0.3s;
+        }
+
+        .product-card:nth-child(3) img {
+            animation-delay: 0.5s;
+        }
+
+        .product-card:nth-child(4) img {
+            animation-delay: 0.7s;
+        }
+
+</style>
+
 
 <div class="products-grid">
     <div class="container">
@@ -16,36 +304,37 @@
                     <span class="after"></span>
                 </h3>
                 <div class="product-list @category.ItemsCardsLayout">
-                    @foreach (var item in category.Items)
+                    @if (category.Items != null)
                     {
-                        <a asp-controller="Item" asp-action="Detail" asp-route-itemId="@item.ItemId"
-                           data-url="@Url.Action("Detail", "Item", new { itemId = item.ItemId })"
-                           class="js-render-modal product-card"
-                           data-id="@item.ItemId"
-                           data-price="@item.BasePrice.ToString(CultureInfo.InvariantCulture)">
-                            >
-                            <div class="product-image">
-                                <img src="@Url.Content(item.ThumbnailUrl)" alt="@item.NameAr" loading="lazy" />
-                            </div>
-                            <div class="product-info">
-                                <h3 class="product-title">@item.NameAr</h3>
-                                <div class="price-row">
+                        foreach (var item in category.Items)
+                        {
+                            switch (category.ItemsCardsLayout)
+                            {
 
-                                    <span>@item.BasePrice ج.م</span>
+                                case "Rectangle-Item-Layout":
+                                    @Html.Partial("_RectangleItemLayout", item)
+                                    break;
 
-                                    <button type="button"
-                                            class="add-to-cart"
-                                            data-id="@item.ItemId"
-                                            data-price="@item.BasePrice"
-                                            data-thumbnail-url="@Url.Content(item.ThumbnailUrl)">
-                                        <i class="fa-solid fa-plus"></i>
-                                    </button>
+                                case "two-Square-Item-Layout":
+                                    @Html.Partial("_TwoSquareItemLayout", item)
+                                    break;
 
-                                </div>
-                            </div>
-                        </a>
+                                case "Square-Item-Layout":
+                                    @Html.Partial("_SquareItemLayout", item)
+                                    break;
+
+                              
+
+                               
+
+                                default:
+                                    <!-- Optionally handle unknown layout -->
+                                    break;
+                            }
+                        }
                     }
                 </div>
+
             </section>
         }
     </div>
@@ -423,294 +712,7 @@
     })();
 </script>
 
-<style>
-    .products-grid {
-        display: grid;
-        gap: 20px;
-    }
-
-    .category {
-        border-bottom: 1px solid #eee;
-    }
-
-        .category:last-child {
-            border-bottom: none;
-        }
-
-        .category .title {
-            /* font-family: 'Noto Sans Arabic', Arial, sans-serif; */
-            font-size: 34px;
-            font-weight: bold;
-            color: #415e7e;
-            margin: 20px 0;
-            text-align: start;
-        }
-
-    /* General product-card */
-    .product-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 10px;
-    }
-
-    .product-card {
-        color: #333;
-        background-color: transparent;
-        border: none;
-        border-radius: 20px;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    @@media (min-width: 1000px) {
-        .product-card {
-            max-width: 500px;
-            min-width: 350px;
-            width: 100%;
-            /* Ensures responsiveness within limits */
-        }
-
-        .product-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            /* auto-fit keeps items more balanced */
-            gap: 16px;
-            /* Slightly increased for better spacing */
-            justify-content: center;
-            /* Centers the grid for better alignment */
-        }
-    }
 
 
-
-
-    .product-card .product-image {
-        aspect-ratio: 16/10;
-        border-radius: 20px;
-        background-color: #fff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
-        width: 100%;
-        height: auto;
-        background-image: url(https://res.cloudinary.com/dwzq2jxms/image/upload/v1754841367/Copilot_20250607_235033_kmgd2m.png);
-        background-repeat: no-repeat;
-        background-size: cover;
-        background-position: center;
-    }
-
-    .product-card img {
-        /* background-color: #fff; */
-        display: block;
-        object-fit: scale-down;
-        max-width: 100%;
-        max-height: 100%;
-        border-radius: 20px;
-    }
-
-
-    .product-info {
-        padding: 15px;
-        text-align: start;
-        width: 100%;
-    }
-
-    .product-card .product-info h3 {
-        overflow: hidden;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        text-overflow: ellipsis;
-        -webkit-line-clamp: 1;
-        /* font-family: 'Noto Sans Arabic', Arial, sans-serif; */
-        font-size: 20px;
-        font-weight: bold;
-        color: #333;
-        padding-bottom: 2px;
-    }
-
-    .product-card .product-info .description {
-        overflow: hidden;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        text-overflow: ellipsis;
-        -webkit-line-clamp: 2;
-        font-family: 'Reem Kufi', Arial, sans-serif;
-        font-size: 18px;
-        line-height: 1.5;
-        color: #777;
-        padding: 8px 0;
-    }
-
-
-    .product-card .price-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 4px;
-    }
-
-    .product-card .price {
-        /* font-family: 'Tajawal', Arial, sans-serif; */
-        font-size: 20px;
-        font-weight: bold;
-        color: #125079;
-    }
-
-    .product-card .add-to-cart {
-        padding: 8px 15px;
-        cursor: pointer;
-        background-color: #185499;
-        color: white;
-        border-radius: 50%;
-        border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 36px;
-        height: 36px;
-    }
-
-
-    @@media (max-width: 768px) {
-        .product-list.product-Layout-two-column {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .product-Layout-two-column .product-image {
-            min-height: 180px;
-        }
-
-        .product-Layout-two-column .product-card .product-info h3 {
-            -webkit-line-clamp: 2;
-            min-height: 50px;
-            font-size: 20px;
-        }
-
-        .product-Layout-two-column .add-to-cart {
-            display: none;
-        }
-    }
-
-
-    @@media (max-width: 500px) {
-        .prodect-Layout-one-rectengle-column {
-            grid-template-columns: repeat(1, 1fr);
-            gap: 15px;
-        }
-
-            .prodect-Layout-one-rectengle-column .product-card {
-                display: flex;
-                flex-direction: row-reverse;
-                justify-content: space-between;
-                max-height: 180px;
-                min-height: 160px;
-                background-color: #ffffff;
-            }
-
-            .prodect-Layout-one-rectengle-column .product-title {
-                padding-top: 3px;
-                /* background-color: aquamarine */
-            }
-
-            .prodect-Layout-one-rectengle-column .description {
-                line-height: 1.4;
-                /* background-color: burlywood */
-            }
-
-
-
-            .prodect-Layout-one-rectengle-column .product-image img {
-                width: 100%;
-                height: 100%;
-                object-fit: scale-down;
-            }
-
-            .prodect-Layout-one-rectengle-column .product-image {
-                max-width: 150px;
-                min-width: 150px;
-                height: 100%;
-            }
-
-            .prodect-Layout-one-rectengle-column .add-to-cart {
-                display: none;
-            }
-    }
-
-
-
-
-    @@keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(50px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @@keyframes slideInZoom {
-        0% {
-            transform: translateX(-100%) scale(0.8);
-            opacity: 0;
-        }
-
-        100% {
-            transform: translateX(0) scale(1);
-            opacity: 1;
-        }
-    }
-
-    .product-card {
-        opacity: 0;
-        transform: translateY(50px);
-        animation: fadeInUp 1s ease-out forwards;
-    }
-
-        .product-card:nth-child(1) {
-            animation-delay: 0.1s;
-        }
-
-        .product-card:nth-child(2) {
-            animation-delay: 0.3s;
-        }
-
-        .product-card:nth-child(3) {
-            animation-delay: 0.5s;
-        }
-
-        .product-card:nth-child(4) {
-            animation-delay: 0.7s;
-        }
-
-        .product-card img {
-            width: 100%;
-            height: auto;
-            display: block;
-            animation: slideInZoom 1s ease-in-out forwards;
-        }
-
-        .product-card:nth-child(1) img {
-            animation-delay: 0.1s;
-        }
-
-        .product-card:nth-child(2) img {
-            animation-delay: 0.3s;
-        }
-
-        .product-card:nth-child(3) img {
-            animation-delay: 0.5s;
-        }
-
-        .product-card:nth-child(4) img {
-            animation-delay: 0.7s;
-        }
-
-</style>
 
 

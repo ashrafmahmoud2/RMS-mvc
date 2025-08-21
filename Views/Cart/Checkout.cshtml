@@ -1,6 +1,7 @@
 ﻿@using RMS.Web.Core.ViewModels.GovernateAreaBranch
 @model CheckoutViewModel
 
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -181,21 +182,18 @@
             animation: checkmark 0.6s ease-out;
         }
 
-    @@keyframes checkmark {
-            0%
+        @@keyframes checkmark {
+            0% {
+                transform: scale(0.8);
+            }
 
-        {
-            transform: scale(0.8);
-        }
+            50% {
+                transform: scale(1.2);
+            }
 
-        50% {
-            transform: scale(1.2);
-        }
-
-        100% {
-            transform: scale(1);
-        }
-
+            100% {
+                transform: scale(1);
+            }
         }
 
         .step-label {
@@ -358,21 +356,18 @@
                 animation: shake 0.4s ease-in-out;
             }
 
-    @@keyframes shake {
-            0%, 100%
+        @@keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
 
-        {
-            transform: translateX(0);
-        }
+            25% {
+                transform: translateX(-4px);
+            }
 
-        25% {
-            transform: translateX(-4px);
-        }
-
-        75% {
-            transform: translateX(4px);
-        }
-
+            75% {
+                transform: translateX(4px);
+            }
         }
 
         .form-textarea {
@@ -508,21 +503,18 @@
             animation: pulse 2s infinite;
         }
 
-    @@keyframes pulse {
-            0%
+        @@keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(24, 84, 153, 0.4);
+            }
 
-        {
-            box-shadow: 0 0 0 0 rgba(24, 84, 153, 0.4);
-        }
+            70% {
+                box-shadow: 0 0 0 20px rgba(24, 84, 153, 0);
+            }
 
-        70% {
-            box-shadow: 0 0 0 20px rgba(24, 84, 153, 0);
-        }
-
-        100% {
-            box-shadow: 0 0 0 0 rgba(24, 84, 153, 0);
-        }
-
+            100% {
+                box-shadow: 0 0 0 0 rgba(24, 84, 153, 0);
+            }
         }
 
         .otp-title {
@@ -778,17 +770,14 @@
             animation: spin 1s linear infinite;
         }
 
-    @@keyframes spin {
-            0%
+        @@keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
 
-        {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
-
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         /* Animations */
@@ -796,88 +785,79 @@
             animation: fadeIn 0.6s ease-out;
         }
 
-    @@keyframes fadeIn {
-            from
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
 
-        {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .slide-up {
             animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-    @@keyframes slideUp {
-            from
+        @@keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
 
-        {
-            opacity: 0;
-            transform: translateY(40px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Responsive Design */
         @@media (max-width: 768px) {
-            .main-container
+            .main-container {
+                padding: 16px;
+            }
 
-        {
-            padding: 16px;
-        }
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
 
-        .form-row {
-            grid-template-columns: 1fr;
-            gap: 16px;
-        }
+            .progress-steps {
+                gap: 8px;
+            }
 
-        .progress-steps {
-            gap: 8px;
-        }
+            .step-label {
+                font-size: 11px;
+            }
 
-        .step-label {
-            font-size: 11px;
-        }
+            .step-circle {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
+            }
 
-        .step-circle {
-            width: 40px;
-            height: 40px;
-            font-size: 14px;
-        }
+            .form-section {
+                padding: 20px;
+            }
 
-        .form-section {
-            padding: 20px;
-        }
+            .header-title {
+                font-size: 16px;
+            }
 
-        .header-title {
-            font-size: 16px;
-        }
+            .otp-modal {
+                padding: 24px;
+            }
 
-        .otp-modal {
-            padding: 24px;
-        }
+            .otp-inputs {
+                gap: 8px;
+            }
 
-        .otp-inputs {
-            gap: 8px;
-        }
-
-        .otp-input {
-            width: 40px;
-            height: 40px;
-        }
-
+            .otp-input {
+                width: 40px;
+                height: 40px;
+            }
         }
     </style>
 </head>
@@ -939,6 +919,8 @@
 
         <!-- عنوان التوصيل -->
         <form class="form-section fade-in" id="addressForm">
+            @Html.AntiForgeryToken()
+
             <div class="form-header">
                 <i class="fas fa-map-marker-alt"></i>
                 <span>عنوان التوصيل</span>
@@ -1167,6 +1149,10 @@
             const areaSelect = document.getElementById('area');
             const branchSelect = document.getElementById('branch');
             const phoneInput = document.getElementById('phone');
+
+                     const antiForgeryTokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        const antiForgeryToken = antiForgeryTokenInput?.value || "";
+
 
             // OTP State
             let otpState = {
@@ -1658,50 +1644,76 @@
                 }, 1000);
             }
 
-            async function completeOrder() {
-                const btnText = placeOrderBtn.querySelector('.btn-content span');
-                const originalText = btnText.textContent;
-                btnText.innerHTML = '<div class="loading-spinner"></div> جاري المعالجة...';
-                placeOrderBtn.disabled = true;
+                         // Replace the completeOrder function with this:
+        async function completeOrder() {
+            const btnText = placeOrderBtn.querySelector('.btn-content span');
+            const originalText = btnText.textContent;
+            btnText.innerHTML = '<div class="loading-spinner"></div> جاري المعالجة...';
+            placeOrderBtn.disabled = true;
 
-                try {
-                    const formData = new FormData(form);
-                    const orderData = {
-                        phone: formData.get('phone'),
-                        governorateId: parseInt(formData.get('governorate')),
-                        areaId: parseInt(formData.get('area')),
-                        branchId: parseInt(formData.get('branch')),
-                        street: formData.get('street'),
-                        buildingDetails: formData.get('buildingDetails'),
-                        floor: formData.get('floor') || null,
-                        flatNumber: formData.get('flatNumber') || null,
-                        notes: formData.get('notes') || null,
-                        paymentMethod: 'cod'
-                    };
+            try {
+                // Get form data from the actual form
+                const formData = new FormData();
 
-                    // Simulate API call
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                // Add anti-forgery token
+                formData.append('__RequestVerificationToken', antiForgeryToken);
 
-                    // Clear cart and redirect
-                    localStorage.removeItem(CART_KEY);
-                    localStorage.removeItem(OTP_ATTEMPTS_KEY);
+                // Add form fields
+                formData.append('phoneNumber', document.getElementById('phone').value);
+                formData.append('governrateId', document.getElementById('governorate').value);
+                formData.append('areaId', document.getElementById('area').value);
+                formData.append('branchId', document.getElementById('branch').value);
+                formData.append('address', document.getElementById('street').value);
+                formData.append('buildingDetails', document.getElementById('buildingDetails').value);
+                formData.append('floor', document.getElementById('floor').value || '');
+                formData.append('flatNumber', document.getElementById('flatNumber').value || '');
+                formData.append('notes', document.getElementById('notes').value || '');
 
-                    prompt('تم تأكيد طلبك بنجاح! سيتم التوصيل خلال 45-60 دقيقة', 'success');
+                // Calculate totals
+                const cart = JSON.parse(localStorage.getItem("food_ecom_cart")) || [];
+                let subtotal = 0;
+                cart.forEach(item => {
+                    const toppingsTotal = (item.SelectedToppingGroups || []).reduce((sum, group) =>
+                        sum + group.SelectedToppingOptions.reduce((optSum, opt) =>
+                            optSum + (opt.PriceAtOrderTime * opt.Quantity), 0), 0);
+                    subtotal += (item.PriceAtOrderTime + toppingsTotal) * item.Quantity;
+                });
 
-                  setTimeout(() => {
-    window.location.href = '/Home/Index';
-}, 2000);
+                const deliveryFees = 15;
+                const grandTotal = subtotal + deliveryFees;
 
+                formData.append('subTotal', subtotal);
+                formData.append('deliveryFees', deliveryFees);
+                formData.append('grandTotal', grandTotal);
+                formData.append('items', JSON.stringify(cart));
 
-                } catch (error) {
-                    console.error('Order placement error:', error);
-                    showToast('حدث خطأ في معالجة الطلب. حاول مرة أخرى', 'error');
-                } finally {
-                    btnText.textContent = originalText;
-                    placeOrderBtn.disabled = false;
+                const response = await fetch('/Order/CreateOrder', {
+                    method: 'POST',
+                    body: formData // Send as FormData instead of JSON
+                });
+
+                if (!response.ok) throw new Error("فشل في إرسال الطلب");
+
+                const result = await response.json();
+
+                if (result.success) {
+                    localStorage.removeItem("food_ecom_cart");
+                    showToast("تم تأكيد طلبك بنجاح! سيتم التوصيل خلال 45-60 دقيقة", "success");
+                    setTimeout(() => {
+                        window.location.href = '/Cart/OrderConfirmation/' + result.orderId;
+                    }, 2000);
+                } else {
+                    showToast(result.message || "فشل إنشاء الطلب", "error");
                 }
-            }
 
+            } catch (error) {
+                console.error("Order placement error:", error);
+                showToast("حدث خطأ في معالجة الطلب. حاول مرة أخرى", "error");
+            } finally {
+                btnText.textContent = originalText;
+                placeOrderBtn.disabled = false;
+            }
+        }
             function showToast(message, type = 'success') {
                 const toast = document.createElement('div');
                 toast.className = `toast ${type} show`;
