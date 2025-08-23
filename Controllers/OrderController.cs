@@ -4,7 +4,17 @@ using RMS.Web.Core.ViewModels.Order;
 public class OrderController : Controller
 {
 
-   private readonly ILogger<ItemController> _logger;
+    /*stop in CreateOrder to send data to the Db with add customer => Address =>  order 
+     chekcs you need 
+    1. customer chek by phone number if not exist add customer
+    2. get why to chek the duplicate address
+    3. chek if the branch is open or not
+    4. chek if area and governrate and brnach is exist
+    5. chek if the items wiht right price  is exist in the branch
+    6. chek if the items is exist in the branch
+ 
+    */
+    private readonly ILogger<ItemController> _logger;
 
     private readonly ApplicationDbContext _context;
 

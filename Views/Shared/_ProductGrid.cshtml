@@ -529,11 +529,21 @@
             SelectedToppingGroups: groups
         };
 
-        // 🔎 دور على عنصر مشابه (نفس المنتج + نفس التوبينج)
-        const idx = cart.findIndex(i =>
-            i.ItemId === newItem.ItemId &&
-            JSON.stringify(i.SelectedToppingGroups || []) === JSON.stringify(newItem.SelectedToppingGroups || [])
-        );
+         // 🔹 Helper: normalize topping groups for comparison
+    const normalizeGroups = (groups) =>
+        (groups || []).map(g => ({
+            ToppingGroupId: g.ToppingGroupId,
+            SelectedToppingOptions: (g.SelectedToppingOptions || [])
+                .map(o => ({ ToppingOptionId: o.ToppingOptionId }))
+                .sort((a, b) => a.ToppingOptionId - b.ToppingOptionId)
+        }))
+        .sort((a, b) => a.ToppingGroupId - b.ToppingGroupId);
+
+    const idx = cart.findIndex(i =>
+        i.ItemId === newItem.ItemId &&
+        JSON.stringify(normalizeGroups(i.SelectedToppingGroups)) === JSON.stringify(normalizeGroups(newItem.SelectedToppingGroups))
+    );
+
 
         if (idx !== -1) {
             // ✅ موجود → زود الكمية
