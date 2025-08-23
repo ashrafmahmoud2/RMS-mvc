@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RMS.Web.Core.Models;
 
-public class Order
+public class Order: BaseModel
 {
     public int Id { get; set; }
 
@@ -14,7 +14,7 @@ public class Order
     public virtual CustomerAddress CustomerAddress { get; set; } = null!;
 
     public int BranchId { get; set; }
-    public virtual Branch? Branch { get; set; }
+    public virtual Branch Branch { get; set; } = null!;
 
     public decimal SubTotal { get; set; } // sum of item prices before fees/discounts
     public decimal GrandTotal { get; set; } // after discounts + delivery
@@ -48,7 +48,7 @@ public class OrderItem
     public int Quantity { get; set; } = 1;
 
     public decimal PriceAtOrderTime { get; set; }
-    public decimal CashbackPercent { get; set; }
+    public decimal? CashbackPercent { get; set; }
 
     public virtual ICollection<SelectedToppingGroup> ToppingGroups { get; set; } = new List<SelectedToppingGroup>();
 }

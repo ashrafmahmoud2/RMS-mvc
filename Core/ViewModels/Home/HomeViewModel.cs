@@ -6,6 +6,9 @@ public class HomeViewModel
     public IEnumerable<CategoryExploreBarViewModel> CategoriesExploreBar { get; set; } = Enumerable.Empty<CategoryExploreBarViewModel>();
     public IEnumerable<CategoryWithItemsViewModel> CategoriesItems { get; set; } = Enumerable.Empty<CategoryWithItemsViewModel>();
     public IEnumerable<ItemViewModel> Items { get; set; } = Enumerable.Empty<ItemViewModel>();
+
+    public bool OrderConfirmed { get; set; }
+    public int? ConfirmedOrderId { get; set; }
 }
 
 public class CategoryWithItemsViewModel

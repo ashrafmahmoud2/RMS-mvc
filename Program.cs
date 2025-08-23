@@ -14,7 +14,6 @@ using RMS.Web.Seeds;
 using RMS.Web.Helpers;
 using ViewToHTML.Extensions;
 using WhatsAppCloudApi.Services;
-using RMS.Web.Tasks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,11 +24,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 //builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-//builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
-//    .AddEntityFrameworkStores<ApplicationDbContext>()
-//    .AddDefaultUI()
-//    .AddDefaultTokenProviders()
-//    .AddSignInManager<SignInManager<ApplicationUser>>();
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultUI()
+    .AddDefaultTokenProviders()
+    .AddSignInManager<SignInManager<ApplicationUser>>();
 
 //builder.Services.Configure<IdentityOptions>(options =>
 //{

@@ -25,7 +25,7 @@ public class CustomerAddress
     [StringLength(10)]
     public string? Floor { get; set; }
 
-    [StringLength(10)]
+    [StringLength(30)]
     public string? FlatNumber { get; set; }
 
     [StringLength(255)]

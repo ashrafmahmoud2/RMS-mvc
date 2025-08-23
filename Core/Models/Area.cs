@@ -15,7 +15,7 @@ public class Area /*: BaseModel*/
     public string NameAr { get; set; } = null!;
     public int GovernorateId { get; set; }
 
-    public Governorate? Governorate { get; set; }
+    public Governorate? Governorate { get; set; } = null!;
 
     public ICollection<Branch> Branches { get; set; } = new List<Branch>(); 
 }

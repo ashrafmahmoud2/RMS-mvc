@@ -5,7 +5,7 @@ namespace RMS.Web.Core.ViewModels.Order;
 public class CreateOrderViewModel
 {
     // Customer Details
-    public string FullName { get; set; } = null!;
+    public string? FullName { get; set; } = null!;
     public string PhoneNumber { get; set; } = null!;
 
     // Address Info

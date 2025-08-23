@@ -9,6 +9,7 @@ namespace RMS.Web.Controllers
     public class HomeController : Controller
     {
 
+
         private readonly ILogger<HomeController> _logger;
 
         private readonly ApplicationDbContext _context;
@@ -19,7 +20,7 @@ namespace RMS.Web.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(bool orderConfirmed = false, int? orderId = null)
         {
             var model = new HomeViewModel
             {
@@ -64,6 +65,10 @@ namespace RMS.Web.Controllers
                 }).ToList()
         })
         .ToList()
+        ,
+
+                OrderConfirmed = orderConfirmed,
+                ConfirmedOrderId = orderId
             };
 
 

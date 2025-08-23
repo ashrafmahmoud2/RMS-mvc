@@ -1125,6 +1125,9 @@
             const OTP_ATTEMPTS_KEY = "otp_attempts";
             const OTP_DAILY_ATTEMPTS_KEY = "otp_daily_attempts";
             const OTP_BLOCK_UNTIL_KEY = "otp_block_until";
+                    const VERIFIED_PHONE_KEY = "otp_verified_phone";
+        const FORM_DATA_KEY = "checkout_form_data";
+
 
             // DOM Elements
             const form = document.getElementById('addressForm');
@@ -1172,6 +1175,35 @@
             setupFormHandlers();
             setupOTPHandlers();
             checkOTPBlocked();
+                restoreFormData();
+
+                        function restoreFormData() {
+            const saved = JSON.parse(localStorage.getItem(FORM_DATA_KEY) || "{}");
+            if (saved.phone) phoneInput.value = saved.phone;
+            if (saved.governorate) governorateSelect.value = saved.governorate;
+            if (saved.area) areaSelect.value = saved.area;
+            if (saved.branch) branchSelect.value = saved.branch;
+            if (saved.street) document.getElementById("street").value = saved.street;
+            if (saved.buildingDetails) document.getElementById("buildingDetails").value = saved.buildingDetails;
+            if (saved.floor) document.getElementById("floor").value = saved.floor;
+            if (saved.flatNumber) document.getElementById("flatNumber").value = saved.flatNumber;
+            if (saved.notes) document.getElementById("notes").value = saved.notes;
+        }
+                form.addEventListener("input", () => {
+            const formData = {
+                phone: phoneInput.value,
+                governorate: governorateSelect.value,
+                area: areaSelect.value,
+                branch: branchSelect.value,
+                street: document.getElementById("street").value,
+                buildingDetails: document.getElementById("buildingDetails").value,
+                floor: document.getElementById("floor").value,
+                flatNumber: document.getElementById("flatNumber").value,
+                notes: document.getElementById("notes").value
+            };
+            localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formData));
+        });
+
 
             // 🔹 Load governorates, areas, branches
             function setupFormHandlers() {
@@ -1337,6 +1369,12 @@
 
                     if (!validateForm()) return;
 
+                        const savedVerifiedPhone = localStorage.getItem(VERIFIED_PHONE_KEY);
+        if (savedVerifiedPhone === phoneInput.value) {
+            await completeOrder();
+            return;
+        }
+
                     if (checkOTPBlocked()) {
                         showOTPModal();
                         return;
@@ -1450,6 +1488,7 @@
                         if (isValid) {
                             // Success - proceed with order
                             hideOTPModal();
+                                localStorage.setItem("otp_verified_phone", otpState.phone);
                             await completeOrder();
                         } else {
                             // Failed verification
@@ -1652,25 +1691,10 @@
             placeOrderBtn.disabled = true;
 
             try {
-                // Get form data from the actual form
-                const formData = new FormData();
-
-                // Add anti-forgery token
-                formData.append('__RequestVerificationToken', antiForgeryToken);
-
-                // Add form fields
-                formData.append('phoneNumber', document.getElementById('phone').value);
-                formData.append('governrateId', document.getElementById('governorate').value);
-                formData.append('areaId', document.getElementById('area').value);
-                formData.append('branchId', document.getElementById('branch').value);
-                formData.append('address', document.getElementById('street').value);
-                formData.append('buildingDetails', document.getElementById('buildingDetails').value);
-                formData.append('floor', document.getElementById('floor').value || '');
-                formData.append('flatNumber', document.getElementById('flatNumber').value || '');
-                formData.append('notes', document.getElementById('notes').value || '');
+                // Get cart from localStorage
+                const cart = JSON.parse(localStorage.getItem("food_ecom_cart")) || [];
 
                 // Calculate totals
-                const cart = JSON.parse(localStorage.getItem("food_ecom_cart")) || [];
                 let subtotal = 0;
                 cart.forEach(item => {
                     const toppingsTotal = (item.SelectedToppingGroups || []).reduce((sum, group) =>
@@ -1682,14 +1706,36 @@
                 const deliveryFees = 15;
                 const grandTotal = subtotal + deliveryFees;
 
-                formData.append('subTotal', subtotal);
-                formData.append('deliveryFees', deliveryFees);
-                formData.append('grandTotal', grandTotal);
-                formData.append('items', JSON.stringify(cart));
+                // Build payload as JSON
+                const payload = {
+                    phoneNumber: document.getElementById('phone').value,
+                    governrateId: +document.getElementById('governorate').value,
+                    areaId: +document.getElementById('area').value,
+                    branchId: +document.getElementById('branch').value,
+                    address: document.getElementById('street').value,
+                    buildingDetails: document.getElementById('buildingDetails').value,
+                    floor: document.getElementById('floor').value || '',
+                    flatNumber: document.getElementById('flatNumber').value || '',
+                    notes: document.getElementById('notes').value || '',
+                    subTotal: subtotal,
+                    deliveryFees: deliveryFees,
+                    grandTotal: grandTotal,
+                    items: cart, // ✅ send as array, not string
+                    payment: {
+                        amount: grandTotal,
+                        paymentMethod: 0, // CashOnDelivery
+                        paymentStatus: 0  // Pending
+                    }
+                };
 
+                // Send request
                 const response = await fetch('/Order/CreateOrder', {
                     method: 'POST',
-                    body: formData // Send as FormData instead of JSON
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': antiForgeryToken // ✅ CSRF token
+                    },
+                    body: JSON.stringify(payload)
                 });
 
                 if (!response.ok) throw new Error("فشل في إرسال الطلب");
@@ -1698,10 +1744,12 @@
 
                 if (result.success) {
                     localStorage.removeItem("food_ecom_cart");
+                     // localStorage.removeItem("checkout_form_data");
                     showToast("تم تأكيد طلبك بنجاح! سيتم التوصيل خلال 45-60 دقيقة", "success");
-                    setTimeout(() => {
-                        window.location.href = '/Cart/OrderConfirmation/' + result.orderId;
-                    }, 2000);
+                           setTimeout(() => {
+            window.location.href = '/Home/Index?orderConfirmed=true&orderId=' + result.orderId;
+        }, 2000);
+
                 } else {
                     showToast(result.message || "فشل إنشاء الطلب", "error");
                 }
@@ -1714,7 +1762,7 @@
                 placeOrderBtn.disabled = false;
             }
         }
-            function showToast(message, type = 'success') {
+                function showToast(message, type = 'success') {
                 const toast = document.createElement('div');
                 toast.className = `toast ${type} show`;
                 toast.innerHTML = `
