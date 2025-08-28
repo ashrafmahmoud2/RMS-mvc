@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using RMS.Web.Core.ViewModels.Home;
 using RMS.Web.Core.ViewModels.Item;
+using RMS.Web.Core.ViewModels.Order;
 
 namespace RMS.Web.Core.Mapping;
 
@@ -38,6 +39,22 @@ public class MappingProfile : Profile
 
         CreateMap<ToppingOption, ToppingOptionViewModel>();
 
+
+        CreateMap<Order, OrderDetailsViewModel>()
+           .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => src.LastStatus))
+           .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.OrderDate))
+           .ForMember(dest => dest.DeliveredAt, opt => opt.Ignore()) // You may calculate from StatusHistory if needed
+           .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.User.FullName))
+           .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.Customer.User.PhoneNumber))
+           .ForMember(dest => dest.CustomerAddress, opt => opt.MapFrom(src => src.CustomerAddress))
+           .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items))
+           .ForMember(dest => dest.SubTotal, opt => opt.MapFrom(src => src.SubTotal))
+           .ForMember(dest => dest.DeliveryFees, opt => opt.MapFrom(src => src.DeliveryFees))
+           .ForMember(dest => dest.DiscountAmount, opt => opt.MapFrom(src => src.DiscountAmount))
+           .ForMember(dest => dest.GrandTotal, opt => opt.MapFrom(src => src.GrandTotal))
+           .ForMember(dest => dest.Payment, opt => opt.MapFrom(src => src.Payments.FirstOrDefault())); // Latest payment
+
+        CreateMap<CustomerAddress, CustomerAddressViewModel>();
 
     }
 }

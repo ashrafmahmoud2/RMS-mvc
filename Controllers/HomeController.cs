@@ -8,8 +8,6 @@ namespace RMS.Web.Controllers
 {
     public class HomeController : Controller
     {
-
-
         private readonly ILogger<HomeController> _logger;
 
         private readonly ApplicationDbContext _context;
@@ -22,6 +20,7 @@ namespace RMS.Web.Controllers
 
         public IActionResult Index(bool orderConfirmed = false, int? orderId = null)
         {
+            var branchId = 1;
             var model = new HomeViewModel
             {
                 CategoriesExploreBar = _context.Categories
@@ -47,6 +46,7 @@ namespace RMS.Web.Controllers
             CategoryExploreBarImage = c.CategoryExploreBarImage,
             ItemsCardsLayout = c.ItemsCardsLayout,
             Items = c.Items
+             .Where(i => i.BranchItems.Any(bi => bi.BranchId == branchId))
                 .OrderBy(i => i.SortInCategory)
                 .Select(i => new ItemViewModel
                 {
@@ -56,7 +56,7 @@ namespace RMS.Web.Controllers
                     DescriptionAr = i.DescriptionAr,
                     DescriptionEn = i.DescriptionEn,
                     CardLabelsAr = i.CardLabelsAr,
-                    CardLabelsEn=i.CardLabelsEn,
+                    CardLabelsEn = i.CardLabelsEn,
                     DeliveryTime = i.DeliveryTime,
                     ThumbnailUrl = i.ThumbnailUrl,
                     IsAvailable = i.BranchItems.Any() && i.BranchItems.First().IsAvailable,
@@ -65,6 +65,8 @@ namespace RMS.Web.Controllers
                 }).ToList()
         })
         .ToList()
+
+
         ,
 
                 OrderConfirmed = orderConfirmed,

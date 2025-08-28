@@ -1,21 +1,39 @@
-﻿<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+﻿@model int
+
+@*
+#box contain 
+- status(diverd, cooked, arrive.....)
+- dlivery time
+- icon 
+- btn to go to order details
+
+
+#need to do
+get deivery time from db
+
+
+#order details
+- be like ribbite
+ *@
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
     .order-tracker {
         font-family: 'Cairo', sans-serif;
         direction: rtl;
         width: 100%;
-/*         max-width: 850px;
- */        margin: 0 auto;
+       margin: 30px auto;
     }
 
     .order-progress-widget {
         background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-        border-radius: 20px;
+       
         padding: 0;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1), 0 8px 24px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8);
         position: relative;
         overflow: hidden;
         border: 1px solid rgba(255, 255, 255, 0.7);
+        border-radius: 20px;
     }
 
     .gradient-header {
@@ -403,7 +421,7 @@
     }</style>
 <div class="container">
 <div class="order-tracker">
-    <div class="order-progress-widget status-preparing">
+        <a class="order-progress-widget status-preparing" asp-controller="Order" asp-action="OrderDetails" asp-route-id="@Model">
         <!-- Gradient Header -->
         <div class="gradient-header">
             <div class="header-content">
@@ -453,7 +471,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </a>
 </div>
 </div>
 <script>
@@ -533,3 +551,5 @@
 
     changeStatus(1);
 </script>
+
+

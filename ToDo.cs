@@ -23,4 +23,14 @@
 #Customer
 - Allow to just have one Defult Address in table CustomerAddress
 
+
+#cart
+- Add box contain totle price and delivery fees(get from db)
+
+
+#chekout
+- add max allowd number of order in same time
+- handel if add more then order like show 2 progress box , and add in kds 
+
+
 */

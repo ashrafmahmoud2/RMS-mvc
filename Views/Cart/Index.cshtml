@@ -397,7 +397,7 @@
         }
 
             .toppings-content.open {
-                max-height: 300px;
+                max-height: 1000px;
             }
 
         .toppings-list {
@@ -626,7 +626,7 @@
 <body>
     <header class="cart-header">
         <div class="header-container">
-            <button class="header-btn" onclick="window.location.href='index.html'" aria-label="العودة">
+            <button class="header-btn" onclick="window.history.back()" aria-label="العودة">
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
             <h1 class="header-title">سلة التسوق</h1>
@@ -656,7 +656,7 @@
     </main>
 
     <div class="checkout-container">
-        <a asp-action="Checkout" class="checkout-btn">
+        <a asp-action="Checkout" class="checkout-btn" id="checkoutBtn">
             <div class="checkout-left">
                 <span class="checkout-badge total-items">0</span>
                 <span class="checkout-text">اذهب للدفع</span>
@@ -739,19 +739,21 @@
                     totalItems += item.selectedCount;
                     totalPrice += item.totalPrice;
 
-                    const toppingsHTML = (item.toppings || []).map(topping => `
-                        <div class="topping-item">
-                            <img src="${topping.image}" alt="${topping.name}" class="topping-image">
-                            <div class="topping-details">
-                                <div class="topping-name">${topping.name}</div>
-                                <div class="topping-price">${topping.price} ${item.currency} × ${topping.count}</div>
-                            </div>
-                        </div>
-                    `).join('');
+                     const toppingsHTML = (item.toppings || []).map(topping => `
+            <div class="topping-item">
+                <img src="${topping.image}" alt="${topping.name}" class="topping-image">
+                <div class="topping-details">
+                    <div class="topping-name">${topping.name}</div>
+                    <div class="topping-price">${topping.price} ${item.currency} × ${topping.count}</div>
+                </div>
+            </div>
+        `).join('');
 
-                    const toppingsPreview = (item.toppings || []).slice(0, 3).map((t, i) =>
-                        `<img src="${t.image}" alt="${t.name}" class="topping-thumb">`
-                    ).join('');
+
+                       const toppingsPreview = (item.toppings || []).map(t =>
+            `<img src="${t.image}" alt="${t.name}" class="topping-thumb">`
+        ).join('');
+
 
                     const moreCount = (item.toppings?.length || 0) - 3;
 
@@ -902,6 +904,18 @@
                     renderCart();
                 }
             };
+
+                    // inside DOMContentLoaded
+        const checkoutBtn = document.getElementById("checkoutBtn");
+
+        checkoutBtn.addEventListener("click", () => {
+            if (cart.length === 0) {
+                alert("⚠️ سلة التسوق فارغة، لا يمكنك المتابعة للدفع.");
+                return;
+            }
+            // لو فيه عناصر روح على صفحة الدفع
+            window.location.href = "/Checkout";
+        });
 
             // Initialize
             initCart();

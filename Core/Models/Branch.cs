@@ -34,7 +34,17 @@ public class Branch
     
     public bool IsOpen { get; set; } = false;
 
-    public decimal DeliveryFee { get; set; } 
+    public decimal DeliveryFee { get; set; }
+
+    [Range(1, 240)] // e.g. 1 to 240 minutes
+    public int DeliveryTimeInMinutes { get; set; }
+
+    //[Range(1, 1440)] if you want to be the time will be from 40m to 60m
+    //public int MinDeliveryTimeInMinutes { get; set; }
+
+    //[Range(1, 1440)]
+    //public int? MaxDeliveryTimeInMinutes { get; set; }
+
 
     public int? MaxAllowedOrdersInDay { get; set; } //if order be over the limit the branch will make IsBusy = true
     public ICollection<BranchWorkingHour> BranchWorkingHours { get; set; } = new List<BranchWorkingHour>();

@@ -7,13 +7,11 @@
 
 <Partial name="_header" />
 
-@if (Model?.CategoriesItems != null && Model.CategoriesItems.Any())
-{
-    <div class="categories-section">
-        <Partial name="_ProductGrid" model="Model.CategoriesItems" />
-    </div>
-}
+
 <Partial name="_search" />
+
+
+
 
 
 @if (Model?.CategoriesExploreBar != null && Model.CategoriesExploreBar.Any())
@@ -28,6 +26,18 @@
 {
     <Partial name="_OrderProgressBox" model="Model.ConfirmedOrderId" />
 }
+
+@if (Model?.CategoriesItems != null && Model.CategoriesItems.Any())
+{
+    <div class="categories-section">
+        <Partial name="_ProductGrid" model="Model.CategoriesItems" />
+    </div>
+}
+
+
+
+
+
 
 @*  <div class="banner-slider">
     <div class="container">

@@ -1,15 +1,17 @@
-﻿using RMS.Web.Core.Enums;
+﻿using RMS.Web.Core.Consts;
+using RMS.Web.Core.Enums;
 using RMS.Web.Core.ViewModels.Order;
 
 public class OrderController : Controller
 {
-    // stop in 
-    //1. Add المنطقة, أقرب فرع in lcoalstroge
-  
-   
-       
-      
 
+   
+    /*stop in 
+     - STOP IN OrderDetails TO FIX MAPPING 
+     - make regestriation to show his orders(curent or past , and sub main bar like in order , taker , talbat, snoono)
+     - make the search
+     - 
+    */
 
     private readonly ILogger<ItemController> _logger;
 
@@ -32,7 +34,7 @@ public class OrderController : Controller
     public IActionResult OrderConfirmation(int? orderId)
     {
         if (!orderId.HasValue)
-            return RedirectToAction("Index", "Home"); 
+            return RedirectToAction("Index", "Home");
 
         var order = _context.Orders
             .Include(o => o.Items)
@@ -50,12 +52,11 @@ public class OrderController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderViewModel model)
     {
-
         if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+            return BadRequest(new { success = false, message = Errors.RequiredField });
 
         if (model.Items == null || !model.Items.Any())
-            return BadRequest("Order must contain at least one item.");
+            return BadRequest(new { success = false, message = Errors.OrderMustContainItems });
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -70,42 +71,43 @@ public class OrderController : Controller
             // 3. Validate branch
             var branch = await _context.Branches.FindAsync(model.BranchId);
             if (branch == null)
-                return BadRequest("Branch not found.");
-
-            //if (branch == null || !IsBranchOpen(branch))
-            //    return BadRequest("Branch is closed or invalid.");
-
+                return BadRequest(new { success = false, message = Errors.BranchNotFound });
 
             if (branch.IsBusy)
-                return BadRequest("Branch is currently busy, please try another branch.");
+                return BadRequest(new { success = false, message = Errors.BranchBusy });
 
             var todayOrdersCount = await _context.Orders
                 .CountAsync(o => o.BranchId == branch.Id && o.CreatedOn.Date == DateTime.UtcNow.Date);
 
             if (branch.MaxAllowedOrdersInDay.HasValue &&
                 todayOrdersCount >= branch.MaxAllowedOrdersInDay.Value)
-                return BadRequest("Branch has reached its daily order limit.");
+                return BadRequest(new { success = false, message = Errors.BranchDailyLimitReached });
 
             // 4. Validate governorate / area / branch mapping
             if (!await _context.Areas.AnyAsync(a => a.Id == model.AreaId && a.GovernorateId == model.GovernrateId))
-                return BadRequest("Invalid governorate/area combination.");
+                return BadRequest(new { success = false, message = Errors.InvalidAreaGovernorate });
 
             if (branch.AreaId != model.AreaId || branch.GovernorateId != model.GovernrateId)
-                return BadRequest("Branch does not belong to the selected area/governorate.");
+                return BadRequest(new { success = false, message = Errors.BranchAreaGovernorateMismatch });
 
             // 5. Validate items and toppings
             var orderItems = await ValidateOrderItemsAsync(model.Items, model.BranchId);
 
             // 6. Calculate totals
-            decimal subTotal = orderItems.Sum(i => i.PriceAtOrderTime * i.Quantity);
+            decimal subTotal = orderItems.Sum(i =>
+                (i.PriceAtOrderTime * i.Quantity) +
+                i.ToppingGroups.Sum(g =>
+                    g.ToppingOptions.Sum(o => o.PriceAtOrderTime * o.Quantity)
+                )
+            );
             decimal deliveryFee = branch.DeliveryFee;
             decimal grandTotal = subTotal + deliveryFee;
 
             if (grandTotal <= 0)
-                return BadRequest("Invalid order total.");
+                return BadRequest(new { success = false, message = Errors.OrderInvalidTotal });
 
             if (grandTotal > branch.MaxCashOnDeliveryAllowed)
-                return BadRequest($"Order exceeds branch COD limit ({branch.MaxCashOnDeliveryAllowed}).");
+                return BadRequest(new { success = false, message = Errors.OrderExceedsCODLimit });
 
             // 7. Create order
             var order = new Order
@@ -115,7 +117,7 @@ public class OrderController : Controller
                 BranchId = branch.Id,
                 SubTotal = subTotal,
                 DeliveryFees = deliveryFee,
-                DiscountAmount = 0, // TODO: apply discount logic if needed
+                DiscountAmount = 0,
                 CashbackUsedAmount = 0,
                 GrandTotal = grandTotal,
                 LastStatus = OrderStatusEnum.Pending,
@@ -133,8 +135,18 @@ public class OrderController : Controller
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
+
+            if (ex.Message.Contains("is not available in this branch") ||
+          ex.Message.Contains("out of stock") ||
+          ex.Message.Contains("Invalid topping group") ||
+          ex.Message.Contains("Topping option"))
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+
+
             _logger.LogError(ex, "Error while creating order");
-            return StatusCode(500, new { success = false, message = "An error occurred while creating the order" });
+            return StatusCode(500, new { success = false, message = Errors.UnexpectedError });
         }
     }
 
@@ -221,7 +233,7 @@ public class OrderController : Controller
         {
             var branchItem = branchItems.FirstOrDefault(bi => bi.ItemId == itemVm.ItemId);
             if (branchItem == null)
-                throw new Exception($"Item '{itemVm.ItemId}' is not available in this branch.");
+                throw new Exception($"Item '{itemVm.Title}' is not available in this branch.");
 
             if (!branchItem.IsAvailable || (branchItem.Stock.HasValue && branchItem.Stock.Value < itemVm.Quantity))
                 throw new Exception($"Item '{branchItem.Item.NameEn}' is out of stock or not enough quantity.");
@@ -302,7 +314,40 @@ public class OrderController : Controller
         return now.TimeOfDay >= workingHour.OpeningTime && now.TimeOfDay <= workingHour.ClosingTime;
     }
 
+
+    public IActionResult OrderDetails(int id)
+    {
+        if (id == 0)
+            return NotFound();
+
+        var order = _context.Orders
+            .Include(o => o.Customer)
+            .Include(o => o.CustomerAddress)
+            .Include(o => o.Items).ThenInclude(i => i.Item)
+            .Include(o => o.Items).ThenInclude(i => i.ToppingGroups).ThenInclude(g => g.ToppingOptions)
+            .Include(o => o.Payments)
+            .FirstOrDefault(o => o.Id == id);
+
+        if (order is null)
+            return NotFound();
+
+        var viewModel = _mapper.Map<OrderDetailsViewModel>(order);
+
+        return PartialView("_OrderDetails", viewModel);
+        /*
+         * 
+         - image or video as ad
+         - proggress bar contain status of the order
+         - dilvery time arrive
+         - divver name and phone number with call btn
+         - items 
+         - address
+         - pay way
+         - Details of the invoice
+         - btn call support , when click show popup have 3 btn (call branch , cascel order , order late)
+         */
+
+    }
+
 }
-
-
 

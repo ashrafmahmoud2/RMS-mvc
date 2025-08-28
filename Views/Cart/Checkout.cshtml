@@ -859,6 +859,26 @@
                 height: 40px;
             }
         }
+
+
+        /* Fade-out animation */
+        .page-exit {
+            animation: fadeOut 0.6s ease forwards;
+        }
+
+        @@keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+        }
+
+        }
     </style>
 </head>
 
@@ -909,7 +929,7 @@
             </div>
             <div class="summary-item">
                 <span>رسوم التوصيل</span>
-                <span class="delivery-fee">15.00 جنيه</span>
+                <span class="delivery-fee">@Model. جنيه</span>
             </div>
             <div class="summary-item">
                 <span>الإجمالي</span>
@@ -1177,18 +1197,50 @@
             checkOTPBlocked();
                 restoreFormData();
 
-                        function restoreFormData() {
+              async function restoreFormData() {
             const saved = JSON.parse(localStorage.getItem(FORM_DATA_KEY) || "{}");
+            if (!saved) return;
+
             if (saved.phone) phoneInput.value = saved.phone;
-            if (saved.governorate) governorateSelect.value = saved.governorate;
-            if (saved.area) areaSelect.value = saved.area;
-            if (saved.branch) branchSelect.value = saved.branch;
+
+            if (saved.governorate) {
+                governorateSelect.value = saved.governorate;
+
+                // 🔹 Load areas for this governorate
+                try {
+                    const areasRes = await fetch(`/Cart/GetAreas?governorateId=${saved.governorate}`);
+                    const areas = await areasRes.json();
+                    areaSelect.innerHTML = '<option value="">اختر المنطقة</option>';
+                    areas.forEach(a => areaSelect.add(new Option(a.nameAr, a.id)));
+
+                    if (saved.area) {
+                        areaSelect.value = saved.area;
+
+                        // 🔹 Load branches for this area
+                        const branchesRes = await fetch(`/Cart/GetBranches?areaId=${saved.area}`);
+                        const branches = await branchesRes.json();
+                        branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
+                        branches.forEach(b => branchSelect.add(new Option(b.nameAr, b.id)));
+
+                        if (saved.branch) {
+                            branchSelect.value = saved.branch;
+                        }
+                    }
+                } catch (err) {
+                    console.error("Error restoring area/branch:", err);
+                }
+            }
+
             if (saved.street) document.getElementById("street").value = saved.street;
             if (saved.buildingDetails) document.getElementById("buildingDetails").value = saved.buildingDetails;
             if (saved.floor) document.getElementById("floor").value = saved.floor;
             if (saved.flatNumber) document.getElementById("flatNumber").value = saved.flatNumber;
             if (saved.notes) document.getElementById("notes").value = saved.notes;
         }
+
+
+
+
                 form.addEventListener("input", () => {
             const formData = {
                 phone: phoneInput.value,
@@ -1687,14 +1739,21 @@
         async function completeOrder() {
             const btnText = placeOrderBtn.querySelector('.btn-content span');
             const originalText = btnText.textContent;
+
+            // Show loading state
             btnText.innerHTML = '<div class="loading-spinner"></div> جاري المعالجة...';
             placeOrderBtn.disabled = true;
 
             try {
-                // Get cart from localStorage
+                // ✅ Get cart from localStorage
                 const cart = JSON.parse(localStorage.getItem("food_ecom_cart")) || [];
 
-                // Calculate totals
+                if (cart.length === 0) {
+                    showAlert("سلة التسوق فارغة", "error");
+                    return;
+                }
+
+                // ✅ Calculate totals
                 let subtotal = 0;
                 cart.forEach(item => {
                     const toppingsTotal = (item.SelectedToppingGroups || []).reduce((sum, group) =>
@@ -1706,7 +1765,7 @@
                 const deliveryFees = 15;
                 const grandTotal = subtotal + deliveryFees;
 
-                // Build payload as JSON
+                // ✅ Build payload
                 const payload = {
                     phoneNumber: document.getElementById('phone').value,
                     governrateId: +document.getElementById('governorate').value,
@@ -1720,7 +1779,7 @@
                     subTotal: subtotal,
                     deliveryFees: deliveryFees,
                     grandTotal: grandTotal,
-                    items: cart, // ✅ send as array, not string
+                    items: cart, // ✅ already array
                     payment: {
                         amount: grandTotal,
                         paymentMethod: 0, // CashOnDelivery
@@ -1728,41 +1787,58 @@
                     }
                 };
 
-                // Send request
+                // ✅ Send request
                 const response = await fetch('/Order/CreateOrder', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'RequestVerificationToken': antiForgeryToken // ✅ CSRF token
+                        'RequestVerificationToken': antiForgeryToken // CSRF
                     },
                     body: JSON.stringify(payload)
                 });
-
-                if (!response.ok) throw new Error("فشل في إرسال الطلب");
 
                 const result = await response.json();
 
                 if (result.success) {
                     localStorage.removeItem("food_ecom_cart");
-                     // localStorage.removeItem("checkout_form_data");
-                    showToast("تم تأكيد طلبك بنجاح! سيتم التوصيل خلال 45-60 دقيقة", "success");
-                           setTimeout(() => {
-            window.location.href = '/Home/Index?orderConfirmed=true&orderId=' + result.orderId;
-        }, 2000);
 
+                    // ✅ Smooth transition before redirect
+                    document.body.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+                    document.body.style.opacity = "0";
+                    document.body.style.transform = "translateY(20px)";
+
+                    setTimeout(() => {
+                        window.location.href = '/Home/Index?orderConfirmed=true&orderId=' + result.orderId;
+                    }, 600);
                 } else {
-                    showToast(result.message || "فشل إنشاء الطلب", "error");
+                    // ❌ Show server error
+                    showAlert(result.message || "فشل إنشاء الطلب", "error");
                 }
 
             } catch (error) {
                 console.error("Order placement error:", error);
-                showToast("حدث خطأ في معالجة الطلب. حاول مرة أخرى", "error");
+                showAlert("حدث خطأ في معالجة الطلب. حاول مرة أخرى", "error");
             } finally {
+                // ✅ Reset button state
                 btnText.textContent = originalText;
                 placeOrderBtn.disabled = false;
             }
         }
-                function showToast(message, type = 'success') {
+
+        // 🔹 Reusable alert (toast / modal / fallback to alert)
+        function showAlert(message, type = "info") {
+            if (window.Swal) {
+                // SweetAlert2 if available
+                Swal.fire({
+                    icon: type,
+                    title: message,
+                    confirmButtonText: "موافق"
+                });
+            } else {
+                alert(message);
+            }
+        }
+                        function showToast(message, type = 'success') {
                 const toast = document.createElement('div');
                 toast.className = `toast ${type} show`;
                 toast.innerHTML = `

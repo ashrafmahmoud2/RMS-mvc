@@ -1,0 +1,28 @@
+﻿@using RMS.Web.Core.ViewModels.Order
+@model OrderDetailsViewModel
+
+<div class="order-details">
+    <h2>طلب رقم: @Model.OrderNumber</h2>
+@*      <p>الحالة: @Model.OrderStatus</p>
+<p>العميل: @Model.CustomerName (@Model.PhoneNumber)</p>
+    <p>العنوان: @Model.CustomerAddress.Address</p>
+
+    <h3>الأصناف</h3>
+    <ul>
+        @foreach (var item in Model.Items)
+        {
+            <li>@item.Title - الكمية: @item.Quantity - السعر: @item.PriceAtOrderTime</li>
+        }
+    </ul>
+
+    <h3>الملخص</h3>
+    <p>المجموع: @Model.SubTotal</p>
+    <p>التوصيل: @Model.DeliveryFees</p>
+    <p>الخصم: @Model.DiscountAmount</p>
+    <p><strong>الإجمالي: @Model.GrandTotal</strong></p>
+
+    <h3>الدفع</h3>
+    <p>الطريقة: @Model.Payment.PaymentMethod</p>
+    <p>الحالة: @Model.Payment.PaymentStatus</p>
+</div>
+ *@
