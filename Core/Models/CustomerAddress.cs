@@ -6,16 +6,19 @@ public class CustomerAddress
 {
     public int Id { get; set; }
 
-    public int CustomerId { get; set; } 
+    public int CustomerId { get; set; }
 
     //[StringLength(50)]
     //public string? Label { get; set; }
 
     public int GovernrateId { get; set; }
+    public Governorate Governrate { get; set; } = null!;   
 
     public int BranchId { get; set; }
+    public Branch Branch { get; set; } = null!;           
 
     public int AreaId { get; set; }
+    public Area Area { get; set; } = null!;
 
     [StringLength(255)]
     public string? Address { get; set; }

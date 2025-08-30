@@ -41,33 +41,3 @@ public class PaymentViewModel
     public DateTime PaymentDate { get; set; } = DateTime.UtcNow;
 }
 
-public class OrderItemViewModel
-{
-    public int ItemId { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public int Quantity { get; set; }
-    public string ThumbnailUrl { get; set; } = string.Empty;
-    public decimal PriceAtOrderTime { get; set; }
-    public decimal? CashbackPercent { get; set; }
-    public decimal? DiscountPercent { get; set; }
-
-    public List<SelectedToppingGroupViewModel> SelectedToppingGroups { get; set; } = new();
-}
-
-public class SelectedToppingGroupViewModel
-{
-    public int ToppingGroupId { get; set; }
-    public string Title { get; set; } = string.Empty;
-
-    public List<SelectedToppingOptionViewModel> SelectedToppingOptions { get; set; } = new();
-}
-
-public class SelectedToppingOptionViewModel
-{
-    public int ToppingOptionId { get; set; }
-    public int Quantity { get; set; }
-    public decimal PriceAtOrderTime { get; set; }
-    public string ImageUrl { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-}

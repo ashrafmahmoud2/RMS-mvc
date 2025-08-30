@@ -1,69 +1,0 @@
-﻿<!-- Modal -->
-<div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content rounded-3 shadow-lg" style="font-family:'Cairo',sans-serif;direction:rtl;">
-
-            <!-- Modal Header -->
-            <div class="modal-header bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
-                <h5 class="modal-title">تفاصيل الطلب</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-
-            <!-- Modal Body -->
-            <div class="modal-body">
-
-                <!-- Status & ETA -->
-                <div class="d-flex align-items-center mb-3">
-                    <span id="modalStatusIcon" style="font-size:2rem;">👨‍🍳</span>
-                    <div class="ms-3">
-                        <h6 id="modalStatusName" class="mb-1 fw-bold text-primary">جاري التحضير</h6>
-                        <small id="modalStatusTime" class="text-muted">باقي 15 - 20 دقيقة</small>
-                    </div>
-                </div>
-
-                <!-- Items Preview -->
-                <div class="mb-3">
-                    <label class="fw-bold mb-2">المنتجات</label>
-                    <div class="d-flex align-items-center gap-2 flex-wrap" id="modalItemsPreview">
-                        <!-- Example -->
-                        <img src="/images/item1.jpg" class="rounded" width="50" height="50">
-                        <img src="/images/item2.jpg" class="rounded" width="50" height="50">
-                        <img src="/images/item3.jpg" class="rounded" width="50" height="50">
-                        <img src="/images/item4.jpg" class="rounded" width="50" height="50">
-                        <div class="d-flex align-items-center justify-content-center bg-light rounded" style="width:50px;height:50px;font-weight:bold;">+4</div>
-                    </div>
-                </div>
-
-                <!-- Delivery Address -->
-                <div class="mb-3">
-                    <label class="fw-bold mb-2">العنوان</label>
-                    <div id="modalAddress" class="text-muted">المنصورة - شارع الجيش - بجوار الجامعة</div>
-                </div>
-
-                <!-- Payment Details -->
-                <div class="mb-3">
-                    <label class="fw-bold mb-2">تفاصيل الدفع</label>
-                    <ul class="list-unstyled small">
-                        <li>إجمالي المنتجات: <span id="subtotal">450 ج.م</span></li>
-                        <li>رسوم التوصيل: <span id="deliveryFee">30 ج.م</span></li>
-                        <li class="fw-bold">المجموع الكلي: <span id="total">480 ج.م</span></li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="modal-footer d-flex justify-content-between">
-                <button class="btn btn-outline-danger">إلغاء الطلب</button>
-                <button class="btn btn-outline-primary">📞 الاتصال بالفرع</button>
-                <button class="btn btn-outline-warning">🚨 الطلب متأخر</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    function openOrderModal() {
-        var modal = new bootstrap.Modal(document.getElementById('orderModal'));
-        modal.show();
-    }
-</script>

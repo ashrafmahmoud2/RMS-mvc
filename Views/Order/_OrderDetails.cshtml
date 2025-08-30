@@ -1,28 +1,231 @@
 ﻿@using RMS.Web.Core.ViewModels.Order
 @model OrderDetailsViewModel
 
-<div class="order-details">
-    <h2>طلب رقم: @Model.OrderNumber</h2>
-@*      <p>الحالة: @Model.OrderStatus</p>
-<p>العميل: @Model.CustomerName (@Model.PhoneNumber)</p>
-    <p>العنوان: @Model.CustomerAddress.Address</p>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-    <h3>الأصناف</h3>
-    <ul>
-        @foreach (var item in Model.Items)
-        {
-            <li>@item.Title - الكمية: @item.Quantity - السعر: @item.PriceAtOrderTime</li>
+<style>
+    .status-card {
+        transition: background 0.5s ease;
+    }
+
+    .status-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .status-icon {
+        font-size: 1.8rem;
+        animation: bounce 2s infinite;
+    }
+
+    @@keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
         }
-    </ul>
 
-    <h3>الملخص</h3>
-    <p>المجموع: @Model.SubTotal</p>
-    <p>التوصيل: @Model.DeliveryFees</p>
-    <p>الخصم: @Model.DiscountAmount</p>
-    <p><strong>الإجمالي: @Model.GrandTotal</strong></p>
+        50% {
+            transform: translateY(-6px);
+        }
+    }
 
-    <h3>الدفع</h3>
-    <p>الطريقة: @Model.Payment.PaymentMethod</p>
-    <p>الحالة: @Model.Payment.PaymentStatus</p>
+    @@media (max-width: 576px) {
+        .order-details {
+            font-size: 0.9rem;
+        }
+
+        .status-avatar {
+            width: 50px;
+            height: 50px;
+        }
+
+        .status-icon {
+            font-size: 1.4rem;
+        }
+    }
+
+    .section-title {
+        font-weight: 600;
+        margin-bottom: .75rem;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+
+    .list-group-item {
+        border: none;
+        border-bottom: 1px solid #f1f1f1;
+    }
+
+        .list-group-item:last-child {
+            border-bottom: none;
+        }
+</style>
+
+<div class="order-details container my-4">
+
+    <!-- Banner -->
+    <div class="mb-4">
+        <img src="/images/order-adv.jpg" alt="إعلان" class="img-fluid rounded shadow-sm w-100" />
+    </div>
+
+    <!-- Order Status -->
+    <div id="orderStatusCard" class="status-card p-3 rounded shadow-sm text-white mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="status-avatar">
+                <i class="fa-solid fa-utensils status-icon"></i>
+            </div>
+            <div>
+                <h5 class="mb-1">طلب رقم: @Model.OrderNumber</h5>
+                <div id="statusLabel" class="fw-semibold">جارٍ التحضير</div>
+                <small id="deliveryTime" class="opacity-75">الوصول خلال @Model.DeliveryTimeInMinutes دقيقة</small>
+            </div>
+        </div>
+        <div class="progress mt-3" style="height: 6px;">
+            <div id="statusProgress" class="progress-bar progress-bar-striped progress-bar-animated"></div>
+        </div>
+    </div>
+
+    <!-- Address -->
+    <div class="p-3 rounded bg-light border mb-4">
+        <h6 class="section-title"><i class="fa-solid fa-location-dot text-danger"></i> العنوان</h6>
+        <ul class="list-unstyled mb-0">
+            @if (!string.IsNullOrWhiteSpace(Model.CustomerAddress.GovernrateName))
+            {
+                <li>المحافظة: @Model.CustomerAddress.GovernrateName</li>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.CustomerAddress.AreaName))
+            {
+                <li>المنطقة: @Model.CustomerAddress.AreaName</li>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.CustomerAddress.Address))
+            {
+                <li>العنوان: @Model.CustomerAddress.Address</li>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.CustomerAddress.BuildingDetails))
+            {
+                <li>تفاصيل المبنى: @Model.CustomerAddress.BuildingDetails</li>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.CustomerAddress.Floor))
+            {
+                <li>الدور: @Model.CustomerAddress.Floor</li>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.CustomerAddress.FlatNumber))
+            {
+                <li>رقم الشقة: @Model.CustomerAddress.FlatNumber</li>
+            }
+        </ul>
+    </div>
+
+    <!-- Driver Info -->
+    <div class="p-3 rounded bg-white shadow-sm mb-4 d-flex align-items-center justify-content-between">
+        <div>
+            <h6 class="section-title mb-1"><i class="fa-solid fa-user-tie text-primary"></i> المندوب</h6>
+            <div>Ahmed</div>
+            <small class="text-muted">010542545454</small>
+        </div>
+        <a href="tel:010542545454" class="btn btn-success rounded-pill px-3">
+            <i class="fa-solid fa-phone"></i> اتصال
+        </a>
+    </div>
+
+    <!-- Items -->
+    <div class="mb-4">
+        <h5 class="section-title"><i class="fa-solid fa-burger text-warning"></i> الأصناف</h5>
+        <ul class="list-group">
+            @foreach (var item in Model.Items)
+            {
+                <li class="list-group-item bg-transparent">
+                    <div class="d-flex justify-content-between fw-semibold">
+                        <span>@item.Title (@item.Quantity)</span>
+                        <span>@item.PriceAtOrderTime ج.م</span>
+                    </div>
+
+                    @if (item.SelectedToppingGroups.Any())
+                    {
+                        <ul class="mt-2 small text-secondary ps-3">
+                            @foreach (var group in item.SelectedToppingGroups)
+                            {
+                                <li>
+                                    <strong>@group.Title:</strong>
+                                    <ul class="ps-3">
+                                        @foreach (var opt in group.SelectedToppingOptions)
+                                        {
+                                            <li>@opt.Name (@opt.Quantity) - @opt.PriceAtOrderTime ج.م</li>
+                                        }
+                                    </ul>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </li>
+            }
+        </ul>
+    </div>
+
+    <!-- Payment -->
+    <div class="p-3 rounded bg-light border mb-4">
+        <h6 class="section-title"><i class="fa-solid fa-credit-card text-success"></i> الدفع</h6>
+        <p>الطريقة: <strong>@Model.Payment.PaymentMethod</strong></p>
+        <p>الحالة: <span class="badge bg-info">@Model.Payment.PaymentStatus</span></p>
+    </div>
+
+    <!-- Invoice -->
+    <div class="p-3 rounded bg-white shadow-sm mb-4">
+        <h6 class="section-title"><i class="fa-solid fa-receipt text-primary"></i> الفاتورة</h6>
+        <ul class="list-unstyled mb-0">
+            <li>المجموع <span class="float-end">@Model.SubTotal ج.م</span></li>
+            <li>التوصيل <span class="float-end">@Model.DeliveryFees ج.م</span></li>
+            <li>الخصم <span class="float-end">@Model.DiscountAmount ج.م</span></li>
+            <li class="fw-bold border-top pt-2">الإجمالي <span class="float-end">@Model.GrandTotal ج.م</span></li>
+        </ul>
+    </div>
+
+    <!-- Support -->
+    <div class="text-center">
+        <button class="btn btn-danger rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#supportModal">
+            <i class="fa-solid fa-headset"></i> دعم الطلب
+        </button>
+    </div>
 </div>
- *@
+
+<!-- Support Modal -->
+<div class="modal fade" id="supportModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4">
+            <h5 class="mb-3">خيارات الدعم</h5>
+            <div class="d-grid gap-2">
+                <a href="tel:@Model.BranchPhone" class="btn btn-primary"><i class="fa-solid fa-store"></i> الاتصال بالفرع</a>
+                <button class="btn btn-warning"><i class="fa-solid fa-ban"></i> إلغاء الطلب</button>
+                <button class="btn btn-info"><i class="fa-solid fa-clock"></i> الطلب متأخر</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Order status mapping
+    const statusConfig = {
+        0: { text: "في الانتظار", color: "bg-warning", icon: "fa-hourglass-half", progress: 10 },
+        1: { text: "جاري التحضير", color: "bg-primary", icon: "fa-utensils", progress: 40 },
+        2: { text: "في الطريق", color: "bg-purple", icon: "fa-truck", progress: 70 },
+        3: { text: "تم التوصيل", color: "bg-success", icon: "fa-check-circle", progress: 100 },
+        4: { text: "تم الإلغاء", color: "bg-danger", icon: "fa-xmark", progress: 0 }
+    };
+
+    const statusId = 1; // Replace with actual status from Model
+    const cfg = statusConfig[statusId];
+    const card = document.getElementById("orderStatusCard");
+    const label = document.getElementById("statusLabel");
+    const icon = card.querySelector(".status-icon");
+    const bar = document.getElementById("statusProgress");
+
+    label.textContent = cfg.text;
+    icon.className = "fa-solid " + cfg.icon + " status-icon";
+    bar.style.width = cfg.progress + "%";
+    card.classList.add(cfg.color);
+</script>

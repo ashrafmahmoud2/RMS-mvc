@@ -34,24 +34,6 @@ public class Order: BaseModel
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
     public virtual ICollection<OrderReview> Reviews { get; set; } = new List<OrderReview>();
 }
-
-public class OrderItem
-{
-    public int Id { get; set; }
-
-    public int OrderId { get; set; }
-    public virtual Order Order { get; set; } = null!;
-
-    public int ItemId { get; set; }
-    public virtual Item Item { get; set; } = null!;
-
-    public int Quantity { get; set; } = 1;
-
-    public decimal PriceAtOrderTime { get; set; }
-    public decimal? CashbackPercent { get; set; }
-
-    public virtual ICollection<SelectedToppingGroup> ToppingGroups { get; set; } = new List<SelectedToppingGroup>();
-}
 public class SelectedToppingGroup
 {
     public int Id { get; set; }   // Primary Key
@@ -66,33 +48,13 @@ public class SelectedToppingOption
 {
     public int Id { get; set; }   // Primary Key
     public int ToppingOptionId { get; set; }
+    public virtual ToppingOption ToppingOption { get; set; } = null!;
     public int Quantity { get; set; }
     public decimal PriceAtOrderTime { get; set; }
     public int ToppingGroupId { get; set; }
     public virtual ToppingGroup ToppingGroup { get; set; } = null!;
 }
 
-
-
-
-//public class OrderItemTopping
-//{
-//    public int Id { get; set; }
-
-//    public int OrderItemId { get; set; }
-//    public OrderItem OrderItem { get; set; } = null!;
-
-//    public int ToppingOptionId { get; set; }
-//    public ToppingOption ToppingOption { get; set; } = null!;
-
-//    [Column(TypeName = "decimal(10,2)")]
-//    public decimal CurrentPrice { get; set; } // fixed typo
-
-//    [Column(TypeName = "decimal(5,2)")]
-//    public decimal CashbackPercent { get; set; }
-
-//    public int Quantity { get; set; } = 1;
-//}
 
 public class OrderStatus
 {
@@ -138,6 +100,7 @@ public class Payment
     public int OrderId { get; set; }
     public Order Order { get; set; } = null!;
 
+    //grandTotal
     [Column(TypeName = "decimal(10,2)")]
     public decimal Amount { get; set; }
 

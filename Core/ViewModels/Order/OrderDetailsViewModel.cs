@@ -4,32 +4,28 @@ namespace RMS.Web.Core.ViewModels.Order;
 
 public class OrderDetailsViewModel
 {
-    public int OrderId { get; set; }
-    public string OrderNumber { get; set; } = string.Empty;
+    public int Id { get; set; }
+    public string OrderNumber { get; set; }= null!;
 
-    //// Current status of the order
-    //public OrderStatus OrderStatus { get; set; }
-    //public DateTime CreatedAt { get; set; }
-    //public DateTime? DeliveredAt { get; set; }
+    // Address
+    public CustomerAddressViewModel CustomerAddress { get; set; } = new();
 
-    //// Customer info
-    //public string CustomerName { get; set; } = string.Empty;
-    //public string PhoneNumber { get; set; } = string.Empty;
+    // Items
+    public List<OrderItemViewModel> Items { get; set; } = new();
 
-    //// Address
-    //public CustomerAddressViewModel CustomerAddress { get; set; } = new();
+    // Totals
+    public decimal SubTotal { get; set; }
+    public decimal DeliveryFees { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public decimal GrandTotal { get; set; }
 
-    //// Items
-    //public List<OrderItemViewModel> Items { get; set; } = new();
+    //Bracnch 
+    public int DeliveryTimeInMinutes { get; set; }
+    public string BranchPhone { get; set; } = null!;
 
-    //// Totals
-    //public decimal SubTotal { get; set; }
-    //public decimal DeliveryFees { get; set; }
-    //public decimal DiscountAmount { get; set; }
-    //public decimal GrandTotal { get; set; }
 
-    //// Payment Info
-    //public PaymentSummaryViewModel Payment { get; set; } = new();
+    // Payment Info
+    public PaymentSummaryViewModel Payment { get; set; } = new();
 }
 
 public class PaymentSummaryViewModel
@@ -45,11 +41,45 @@ public class PaymentSummaryViewModel
 public class CustomerAddressViewModel
 {
     public int GovernrateId { get; set; }
+    public string GovernrateName { get; set; } = null!;
     public int AreaId { get; set; }
+    public string AreaName { get; set; } = null!;
     public int BranchId { get; set; }
-    public string Address { get; set; } = string.Empty;
-    public string BuildingDetails { get; set; } = string.Empty;
+    public string BranchName { get; set; } = null!;
+    public string Address { get; set; }= null!;
+    public string BuildingDetails { get; set; }= null!;
     public string? Floor { get; set; }
     public string? FlatNumber { get; set; }
     public string? Notes { get; set; }
+}
+
+
+public class OrderItemViewModel
+{
+    public int ItemId { get; set; }
+    public string Title { get; set; }= null!;
+    public string? Description { get; set; }
+    public int Quantity { get; set; }
+    public string ThumbnailUrl { get; set; }= null!;
+    public decimal PriceAtOrderTime { get; set; }
+    public decimal? CashbackPercent { get; set; }
+    public decimal? DiscountPercent { get; set; }
+
+    public List<SelectedToppingGroupViewModel> SelectedToppingGroups { get; set; } = new();
+}
+
+public class SelectedToppingGroupViewModel
+{
+    public int ToppingGroupId { get; set; }
+    public string Title { get; set; } 
+    public List<SelectedToppingOptionViewModel> SelectedToppingOptions { get; set; } = new();
+}
+
+public class SelectedToppingOptionViewModel
+{
+    public int ToppingOptionId { get; set; }
+    public int Quantity { get; set; }
+    public decimal PriceAtOrderTime { get; set; }
+    public string ImageUrl { get; set; }= null!;
+    public string Name { get; set; }= null!;
 }

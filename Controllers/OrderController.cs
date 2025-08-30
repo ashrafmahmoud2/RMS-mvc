@@ -2,16 +2,28 @@
 using RMS.Web.Core.Enums;
 using RMS.Web.Core.ViewModels.Order;
 
+
+
+/*stop in 
+ #ordar details
+ 1. باقي علي وصل طلبك (dlivery time - create order time)
+ 2. optmize image items ui , when open modal be like item in cart
+ 3. optmize address text
+ 4. make order detail status dynmik , when send id status parmter to be  ( arrive , start , out of dilvery)
+ 5. make 2 mode if using you kds and not using will just clac (dlivery time - create order time)
+
+
+
+
+ - make regestriation to show his orders(curent or past , and sub main bar like in order , taker , talbat, snoono)
+ - Implement search , using pakage in mvc project
+
+*/
+
 public class OrderController : Controller
 {
 
-   
-    /*stop in 
-     - STOP IN OrderDetails TO FIX MAPPING 
-     - make regestriation to show his orders(curent or past , and sub main bar like in order , taker , talbat, snoono)
-     - make the search
-     - 
-    */
+
 
     private readonly ILogger<ItemController> _logger;
 
@@ -127,6 +139,21 @@ public class OrderController : Controller
             };
 
             _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
+            // 8. Create payment row (linked to order)
+            var payment = new Payment
+            {
+                OrderId = order.Id,
+                Amount = model.Payment.Amount > 0 ? model.Payment.Amount : grandTotal, // fallback
+                PaymentMethod = model.Payment.PaymentMethod,
+                PaymentStatus = model.Payment.PaymentStatus,
+                TransactionId = model.Payment.TransactionId,
+                PaymentReference = model.Payment.PaymentReference,
+                PaymentDate = model.Payment.PaymentDate == default ? DateTime.Now : model.Payment.PaymentDate
+            };
+
+            _context.Payments.Add(payment);
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
@@ -316,24 +343,34 @@ public class OrderController : Controller
 
 
     public IActionResult OrderDetails(int id)
-    {
+   {
         if (id == 0)
             return NotFound();
 
         var order = _context.Orders
             .Include(o => o.Customer)
             .Include(o => o.CustomerAddress)
+                .ThenInclude(ca => ca.Governrate)
+            .Include(o => o.CustomerAddress)
+                .ThenInclude(ca => ca.Area)
+            .Include(o => o.CustomerAddress)
+                .ThenInclude(ca => ca.Branch)
             .Include(o => o.Items).ThenInclude(i => i.Item)
-            .Include(o => o.Items).ThenInclude(i => i.ToppingGroups).ThenInclude(g => g.ToppingOptions)
+            .Include(o => o.Items).ThenInclude(i => i.ToppingGroups)
+                .ThenInclude(g => g.ToppingOptions)
+                    .ThenInclude(to => to.ToppingOption)
             .Include(o => o.Payments)
+            .Include(o => o.Branch)
             .FirstOrDefault(o => o.Id == id);
+
+
 
         if (order is null)
             return NotFound();
 
         var viewModel = _mapper.Map<OrderDetailsViewModel>(order);
-
-        return PartialView("_OrderDetails", viewModel);
+        //return PartialView("_OrderDetails", viewModel);
+        return View(viewModel);
         /*
          * 
          - image or video as ad
@@ -341,7 +378,7 @@ public class OrderController : Controller
          - dilvery time arrive
          - divver name and phone number with call btn
          - items 
-         - address
+         
          - pay way
          - Details of the invoice
          - btn call support , when click show popup have 3 btn (call branch , cascel order , order late)

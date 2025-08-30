@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RMS.Web.Data;
 
@@ -11,9 +12,11 @@ using RMS.Web.Data;
 namespace RMS.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250830125151_AddSelectedToppingOptionRelation")]
+    partial class AddSelectedToppingOptionRelation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -616,13 +619,7 @@ namespace RMS.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AreaId");
-
-                    b.HasIndex("BranchId");
-
                     b.HasIndex("CustomerId");
-
-                    b.HasIndex("GovernrateId");
 
                     b.ToTable("CustomerAddresses");
                 });
@@ -1264,37 +1261,13 @@ namespace RMS.Web.Migrations
 
             modelBuilder.Entity("RMS.Web.Core.Models.CustomerAddress", b =>
                 {
-                    b.HasOne("RMS.Web.Core.Models.Area", "Area")
-                        .WithMany()
-                        .HasForeignKey("AreaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("RMS.Web.Core.Models.Branch", "Branch")
-                        .WithMany()
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("RMS.Web.Core.Models.Customer", "Customer")
                         .WithMany("Addresses")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("RMS.Web.Core.Models.Governorate", "Governrate")
-                        .WithMany()
-                        .HasForeignKey("GovernrateId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Area");
-
-                    b.Navigation("Branch");
-
                     b.Navigation("Customer");
-
-                    b.Navigation("Governrate");
                 });
 
             modelBuilder.Entity("RMS.Web.Core.Models.Item", b =>
