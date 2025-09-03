@@ -1,15 +1,20 @@
-﻿namespace RMS.Web.Core.ViewModels.Home;
+﻿using RMS.Web.Core.ViewModels.Order;
+
+namespace RMS.Web.Core.ViewModels.Home;
 
 public class HomeViewModel
 {
-    //make the item and category sort by the sort order
     public IEnumerable<CategoryExploreBarViewModel> CategoriesExploreBar { get; set; } = Enumerable.Empty<CategoryExploreBarViewModel>();
+
     public IEnumerable<CategoryWithItemsViewModel> CategoriesItems { get; set; } = Enumerable.Empty<CategoryWithItemsViewModel>();
+
     public IEnumerable<ItemViewModel> Items { get; set; } = Enumerable.Empty<ItemViewModel>();
 
+    public IEnumerable<OrderStatusBoxViewModel> CurrentOrders { get; set; } = Enumerable.Empty<OrderStatusBoxViewModel>();
+
     public bool OrderConfirmed { get; set; }
-    public int? ConfirmedOrderId { get; set; }
 }
+
 
 public class CategoryWithItemsViewModel
 {

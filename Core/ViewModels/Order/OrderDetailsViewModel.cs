@@ -83,3 +83,20 @@ public class SelectedToppingOptionViewModel
     public string ImageUrl { get; set; }= null!;
     public string Name { get; set; }= null!;
 }
+
+
+
+public class OrderStatusBoxViewModel
+{
+    public int Id { get; set; } 
+
+    public OrderStatusEnum LastStatus { get; set; }
+
+    public int LastStatusId => (int)LastStatus;
+
+    public DateTime OrderDate { get; set; }
+    public string OrderNumber { get; set; } = string.Empty;
+
+    public int DeliveryTimeInMinutes { get; set; }
+
+}

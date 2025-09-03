@@ -1,0 +1,714 @@
+﻿@using RMS.Web.Core.Enums
+@model OrderStatusBoxViewModel
+@{
+
+
+
+    // Enhanced logic for customer confirmation
+    string boxColor = null;
+    string boxIcon = null;
+    string boxText = null;
+    bool showConfirmationButtons = false;
+    bool showArriveTime = false;
+
+    DateTime expectedArrival = Model.OrderDate.AddMinutes(Model.DeliveryTimeInMinutes).ToLocalTime();
+    DateTime currentTime = DateTime.Now;
+    string expectedArrivalText = expectedArrival.ToString("h:mm", new System.Globalization.CultureInfo("en-US"));
+    expectedArrivalText += expectedArrival.Hour < 12 ? " صباحًا" : " مساءً";
+
+    // Check if current time has reached expected arrival time
+    bool isExpectedArrivalTime = currentTime >= expectedArrival &&
+                                 Model.LastStatus == OrderStatusEnum.DriverConfirmedDelivery;
+
+    switch (Model.LastStatus)
+    {
+        case OrderStatusEnum.Received:
+            boxColor = " linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #92400e 100%)";
+            boxIcon = "⏳"; // Hourglass
+            boxText = "تم استلام الطلب";
+            showArriveTime = true;
+            break;
+        case OrderStatusEnum.Preparing:
+            boxColor = "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%)";
+            boxIcon = "👨‍🍳"; // Chef
+            boxText = "جاري التحضير";
+            showArriveTime = true;
+
+            break;
+        case OrderStatusEnum.Delivering:
+            boxColor = "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%)";
+            boxIcon = "🚚"; // Delivery Truck
+            boxText = "في مرحلة التوصيل";
+            showArriveTime = true;
+
+
+            break;
+        case OrderStatusEnum.DriverConfirmedDelivery:
+            boxColor = "linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)";
+            boxIcon = "✅"; 
+            boxText = "تم التوصيل";
+            showConfirmationButtons = true;
+
+
+            // if (isExpectedArrivalTime)
+            // {
+            //     boxText = "يفترض أنه وصل الآن";
+            //     showConfirmationButtons = true;
+
+            // }
+            // else
+            // {
+            //     boxText = "تم التوصيل";
+            //                     showConfirmationButtons = true;
+
+            // }
+             break;
+        case OrderStatusEnum.CustomerConfirmedDelivery:
+            boxColor = "linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)";
+            boxIcon = "✅"; // Check Mark
+            boxText = "تم التسليم بنجاح";
+            break;
+        case OrderStatusEnum.CancelledFromCustomer:
+            boxColor = "linear-gradient(135deg, #f87171 0%, #ef4444 50%, #dc2626 100%)"; // Softer red → personal action
+            boxIcon = "🙅‍♂️"; // Person gesture (clearer than ❌)
+            boxText = "تم إلغاء الطلب من قبلك";
+            break;
+
+        case OrderStatusEnum.CancelledFromRestaurant:
+            boxColor = "linear-gradient(135deg, #fca5a5 0%, #ef4444 50%, #b91c1c 100%)"; // Stronger red → external action
+            boxIcon = "🏠"; // Restaurant/house symbol
+            boxText = "تم إلغاء الطلب من المطعم";
+            break;
+
+        default:
+            boxColor = "bg-gray-500";
+            boxIcon = "❓"; // Question Mark
+            boxText = "حالة غير معروفة";
+            showArriveTime = true;
+
+            break;
+    }
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    .order-tracker {
+        font-family: 'Cairo', sans-serif;
+        direction: rtl;
+        width: 100%;
+        margin: 30px auto;
+    }
+
+    .order-progress-widget {
+        background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+        padding: 0;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1), 0 8px 24px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        border-radius: 20px;
+        display: block;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+        .order-progress-widget:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.12), 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+    .gradient-header {
+        padding: 1.5rem 2rem;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s ease;
+    }
+
+        .gradient-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: headerShine 3s ease-in-out infinite;
+        }
+
+    .header-content {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .status-avatar {
+        width: 70px;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+
+        .status-avatar::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 23px;
+            padding: 3px;
+            background: linear-gradient(45deg, rgba(255,255,255,0.3), transparent, rgba(255,255,255,0.3));
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: xor;
+            animation: borderRotate 3s linear infinite;
+        }
+
+    .order-progress-widget:hover .status-avatar {
+        transform: scale(1.05);
+    }
+
+    .status-icon {
+        font-size: 2.5rem;
+        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        animation: iconFloat 4s ease-in-out infinite;
+    }
+
+    .status-info {
+        color: white;
+        flex: 1;
+    }
+
+    .status-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+        display:flex;
+        justify-content:space-between;
+    }
+
+    .status-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .status-time {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+
+    /* Top Buttons Container */
+    .top-buttons-container {
+        position: absolute;
+        top: 1.2rem;
+        left: 1.2rem;
+        z-index: 15;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    /* Details Button */
+    .btn-primary {
+/*         background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+ */        color: black;
+        border: none;
+/*         padding: 0.6rem 1.2rem;
+ */        border-radius: 12px;
+        font-weight: bold;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/*         box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25), 0 2px 8px rgba(59, 130, 246, 0.15);
+ */        text-decoration:dashed;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        backdrop-filter: blur(10px);
+/*         border: 1px solid rgba(255, 255, 255, 0.2);
+ */        white-space: nowrap;
+        letter-spacing: 0.02em;
+        margin-top: -23px;
+        margin-left: -11px;
+        text-decoration: underline;
+        text-underline-offset: 5px;
+    }
+
+        .btn-primary::before {
+/*             content: '📋';
+ */            font-size: 0.9em;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.02);
+           /*  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.35), 0 4px 15px rgba(59, 130, 246, 0.25);
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      */   }
+
+            .btn-primary:hover::before {
+                transform: scale(1.1) rotate(5deg);
+            }
+
+    /* Not Arrived Button */
+    .btn-not-arrived {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+        color: white !important;
+        border: none !important;
+        padding: 0.5rem 1rem !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        font-size: 0.75rem !important;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 3px 12px rgba(245, 158, 11, 0.25) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        position: relative;
+        overflow: hidden;
+        display: none;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+        .btn-not-arrived::before {
+            content: '❓';
+            font-size: 0.8em;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-not-arrived:hover {
+            transform: translateY(-2px) scale(1.02) !important;
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35) !important;
+        }
+
+    /* Customer Confirmation Buttons Container */
+    .confirmation-buttons-container {
+      /*   position: absolute;
+        bottom: 1.5rem;
+        right: 2rem;
+        left: 2rem;
+        z-index: 10; */
+       
+
+        flex-direction: row;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+        .confirmation-buttons-container.show {
+            display: flex;
+            flex-direction:row;
+            animation: slideUpConfirm 0.5s ease-out;
+            margin-top: 10px;
+            padding: 0 10px;
+        }
+
+    /* Confirmation Buttons Styling */
+    .btn-confirm-received {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        color: white !important;
+        border: none !important;
+        padding: 0.8rem 1.5rem !important;
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+        font-size: 0.9rem !important;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex: 1;
+        justify-content: center;
+    }
+
+        .btn-confirm-received:hover {
+            transform: translateY(-2px) scale(1.02) !important;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4) !important;
+            background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+        }
+
+    .btn-not-received {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        color: white !important;
+        border: none !important;
+        padding: 0.8rem 1.5rem !important;
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+        font-size: 0.9rem !important;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex: 1;
+        justify-content: center;
+    }
+
+        .btn-not-received:hover {
+            transform: translateY(-2px) scale(1.02) !important;
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4) !important;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+        }
+
+    /* Enhanced Modal Styles with New Class Names */
+    .order-status-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+    }
+
+    .order-status-modal-content {
+        background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+        margin: 15% auto;
+        padding: 0;
+        border: none;
+        width: 90%;
+        max-width: 420px;
+        border-radius: 24px;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15);
+        animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        font-family: 'Cairo', sans-serif;
+        direction: rtl;
+        overflow: hidden;
+    }
+
+    .order-status-modal-header {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        padding: 2rem 2rem 1.5rem;
+        text-align: center;
+        position: relative;
+    }
+
+        .order-status-modal-header::before {
+            content: '⚠️';
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .order-status-modal-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+    .order-status-modal-body {
+        padding: 2.5rem 2rem;
+        text-align: center;
+        color: #374151;
+    }
+
+        .order-status-modal-body p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+    .order-status-branch-info {
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        padding: 1.2rem;
+        border-radius: 16px;
+        margin: 1.5rem 0;
+        border: 1px solid rgba(229, 231, 235, 0.5);
+    }
+
+        .order-status-branch-info strong {
+            color: #1f2937;
+            font-size: 1.2rem;
+        }
+
+    .order-status-modal-footer {
+        padding: 1.5rem 2rem 2rem;
+        text-align: center;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .order-status-close-btn {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        color: white;
+        border: none;
+        padding: 0.8rem 2.5rem;
+        border-radius: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: 'Cairo', sans-serif;
+        font-size: 1rem;
+    }
+
+        .order-status-close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(107, 114, 128, 0.4);
+        }
+
+    /* Animations */
+    @@keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-50px) scale(0.9);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @@keyframes slideUpConfirm {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes headerShine {
+        0% {
+            transform: translateX(-100%);
+        }
+
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    @@keyframes borderRotate {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@keyframes iconFloat {
+        0%, 100% {
+            transform: translateY(0) rotate(0deg);
+        }
+
+        25% {
+            transform: translateY(-5px) rotate(2deg);
+        }
+
+        50% {
+            transform: translateY(0) rotate(0deg);
+        }
+
+        75% {
+            transform: translateY(-3px) rotate(-2deg);
+        }
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .confirmation-buttons-container {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .btn-confirm-received,
+        .btn-not-received {
+            padding: 0.7rem 1.2rem !important;
+            font-size: 0.85rem !important;
+        }
+
+        .order-status-modal-content {
+            margin: 10% auto;
+            width: 95%;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .confirmation-buttons-container {
+            bottom: 1rem;
+            right: 1rem;
+            left: 1rem;
+        }
+
+        .order-status-modal-content {
+            margin: 5% auto;
+        }
+    }</style>
+
+<div class="container">
+    <div class="order-tracker">
+        <div class="order-progress-widget status-preparing status-transition">
+
+
+            <!-- Gradient Header -->
+            <div class="gradient-header" style="background:@boxColor">
+                <div class="header-content">
+                    <div class="status-avatar">
+                        <span class="status-icon" id="statusIcon" role="img" aria-label="حالة الطلب">@boxIcon</span>
+                    </div>
+                    <div class="status-info">
+                        <div class="status-label">
+                            <span>حالة طلبك</span>
+                            <a class="btn-primary" id="detailsBtn"
+                               asp-controller="Order" asp-action="OrderDetails" asp-route-orderId="@Model.Id"
+                               aria-label="عرض تفاصيل الطلب">
+                                تفاصيل الطلب
+                            </a>
+                        </div>
+                        <div class="status-title" id="statusName">@boxText</div>
+                        <div class="status-time" id="statusTime">
+                            @if (showArriveTime)
+                            {
+                                @:يصلك حوالي @expectedArrivalText
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Confirmation Buttons -->
+
+         
+        </div>
+
+        <div style="@(showConfirmationButtons ? "" : "display:none;")" class="confirmation-buttons-container show">
+            <button class="btn-confirm-received"
+                    onclick="confirmDelivery(@Model.Id)"
+                    aria-label="تأكيد استلام الطلب">
+                ✅ وصلني
+            </button>
+            <button class="btn-not-received"
+                    onclick="showOrderStatusModal()"
+                    aria-label="الإبلاغ عن عدم استلام الطلب">
+                ❌ لم يصلني
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Modal with New Class Names -->
+<div id="orderStatusModal" class="order-status-modal" role="dialog" aria-labelledby="orderStatusModalTitle" aria-hidden="true">
+    <div class="order-status-modal-content">
+        <div class="order-status-modal-header">
+            <h3 id="orderStatusModalTitle">مشكلة في التوصيل</h3>
+        </div>
+        <div class="order-status-modal-body">
+            <p>أحياناً قد يحدث هذا، يرجى التواصل مع الفرع.</p>
+            <div class="order-status-branch-info">
+                <strong>رقم الفرع: <span id="orderStatusBranchNumber">0188888888</span></strong>
+            </div>
+        </div>
+        <div class="order-status-modal-footer">
+            <button class="order-status-close-btn" onclick="closeOrderStatusModal()" aria-label="إغلاق النافذة">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Customer confirmation function
+    function confirmDelivery(orderId) {
+        // Show loading state
+        const confirmBtn = document.querySelector('.btn-confirm-received');
+        const originalText = confirmBtn.innerHTML;
+        confirmBtn.innerHTML = '⏳ جاري التأكيد...';
+        confirmBtn.disabled = true;
+
+        // Send request to controller
+        window.location.href = '@Url.Action("ChangeStatus", "Order")?orderId=' + orderId + '&newStatus=' + 
+        @((int)OrderStatusEnum.CustomerConfirmedDelivery);
+    }
+
+    // Modal functions with new names
+    function showOrderStatusModal() {
+        const modal = document.getElementById('orderStatusModal');
+        modal.style.display = 'block';
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeOrderStatusModal() {
+        const modal = document.getElementById('orderStatusModal');
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = 'auto';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('orderStatusModal');
+        if (event.target == modal) {
+            closeOrderStatusModal();
+        }
+    }
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeOrderStatusModal();
+        }
+    });
+
+
+        const expectedArrival = new Date('@expectedArrival.ToString("yyyy-MM-ddTHH:mm:ss")');
+        const lastStatus = @((int)Model.LastStatus);
+        const notShowBtnsStatuses = [
+        @((int)OrderStatusEnum.CustomerConfirmedDelivery),
+        @((int)OrderStatusEnum.CancelledFromCustomer),
+        @((int)OrderStatusEnum.DriverConfirmedDelivery),
+        @((int)OrderStatusEnum.CancelledFromRestaurant)
+    ];
+
+    setInterval(function () {
+        const now = new Date();
+
+        if (now >= expectedArrival &&  !notShowBtnsStatuses.includes(lastStatus)) {
+            //halert("time is arrive");
+
+            const statusName = document.getElementById("statusName");
+            if (statusName) statusName.innerText = "يفترض أنه وصل الآن";
+
+            const statusTime = document.getElementById("statusTime");
+            if (statusTime) statusTime.style.display = "none";
+
+             const box = document.querySelector(".gradient-header");
+            if (box) {
+                box.style.background = "linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)";
+            }
+
+            const icon = document.getElementById("statusIcon");
+            if (icon) {
+                icon.textContent = "✅";
+            }
+
+
+    const btns = document.querySelector(".confirmation-buttons-container");
+      if (btns) {
+          btns.style.display = ""; 
+      }
+            clearInterval(arrivalChecker);
+        }
+    }, 1000);
+</script>

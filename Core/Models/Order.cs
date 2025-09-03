@@ -10,6 +10,8 @@ public class Order: BaseModel
     public int CustomerId { get; set; }
     public virtual Customer Customer { get; set; } = null!;
 
+    public string CustomerIdentifier { get; set; } = string.Empty;
+
     public int CustomerAddressId { get; set; }
     public virtual CustomerAddress CustomerAddress { get; set; } = null!;
 
@@ -27,7 +29,7 @@ public class Order: BaseModel
     public string OrderNumber { get; set; } = string.Empty; 
 
 
-    public OrderStatusEnum LastStatus { get; set; }
+    //public OrderStatusEnum LastStatus { get; set; }
 
     public virtual ICollection<OrderStatus> StatusHistory { get; set; } = new List<OrderStatus>();
     public virtual ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
@@ -68,7 +70,7 @@ public class OrderStatus
     public DateTime Timestamp { get; set; } = DateTime.Now;
 
     [MaxLength(50)]
-    public string? TimeToCompleteStatus { get; set; }
+    public TimeSpan? StatusDuration { get; set; }
 }
 
 

@@ -69,7 +69,11 @@ public class MappingProfile : Profile
        .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.ToppingOption.NameAr))
        .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.ToppingOption.ImageUrl));
 
-
+        CreateMap<Order, OrderStatusBoxViewModel>()
+            .ForMember(dest => dest.LastStatus,opt => opt.MapFrom(src => src.StatusHistory
+            .Select(s => s.Status).Last()))
+               .ForMember(dest => dest.DeliveryTimeInMinutes, opt => opt.MapFrom(src => src.Branch.DeliveryTimeInMinutes))
+               .ForMember(dest => dest.OrderDate, opt => opt.MapFrom(src => src.OrderDate));
 
         // ===============================
         // Payment

@@ -1,6 +1,8 @@
-﻿@using RMS.Web.Core.Enums
+﻿@using AutoMapper
+@using RMS.Web.Core.Enums
 @using RMS.Web.Core.ViewModels.Order
 @model OrderDetailsViewModel;
+
 
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -1087,7 +1089,10 @@
             <div class="section-header">
                 📍 حالة الطلب
             </div>
-            <div class="status-container">
+
+@*             <Partial name="_OrderStatusBox" model="OrderStatusBoxViewModel" />
+ *@
+@*             <div class="status-container">
                 <div class="status-icon">
                     🚗
                 </div>
@@ -1096,7 +1101,7 @@
                     <div class="status-time">الوصول المتوقع: 15-20 دقيقة</div>
                 </div>
             </div>
-        </div>
+ *@        </div>
 
         <!-- Order Items -->
         <div class="section">

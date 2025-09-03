@@ -22,10 +22,17 @@
     </div>
 }
 
-@if (Model.OrderConfirmed && Model.ConfirmedOrderId.HasValue)
+@if (Model.OrderConfirmed && Model.CurrentOrders.Any())
 {
-    <Partial name="_OrderProgressBox" model="Model.ConfirmedOrderId" />
+    foreach (var order in Model.CurrentOrders)
+    {
+        <div id="order-status-box">
+            @Html.Partial("_OrderStatusBox", order)
+        </div>
+
+    }
 }
+
 
 @if (Model?.CategoriesItems != null && Model.CategoriesItems.Any())
 {
@@ -52,5 +59,6 @@
 
 
 <Partial name="_CartAccessBtn" />
+
 
 

@@ -1,22 +1,26 @@
 ﻿using RMS.Web.Core.Consts;
 using RMS.Web.Core.Enums;
 using RMS.Web.Core.ViewModels.Order;
+using System.Threading.Tasks;
 
 
 
-/*stop in 
- #ordar details
- 1. باقي علي وصل طلبك (dlivery time - create order time)
- 2. optmize image items ui , when open modal be like item in cart
- 3. optmize address text
- 4. make order detail status dynmik , when send id status parmter to be  ( arrive , start , out of dilvery)
- 5. make 2 mode if using you kds and not using will just clac (dlivery time - create order time)
+/*
+ # seps
+ 1. just get allowed status in homecontroler
+ 2. optmize order details vieiw
+ 3. optmize image items ui , when open modal be like item in cart(make items and it's topping as parili view)
+ 4. optmize address text
+ 5. make regestriation to show his orders(curent or past )
+ 6. Implement search , using pakage in mvc project
+ 7. add sub main bar like in order , taker , talbat, snoono)
+ 8. add the card layout , with make responsive in it
+    now you are ready to test in real life , so using local host and ngrok
 
 
 
 
- - make regestriation to show his orders(curent or past , and sub main bar like in order , taker , talbat, snoono)
- - Implement search , using pakage in mvc project
+
 
 */
 
@@ -33,13 +37,16 @@ public class OrderController : Controller
 
     private readonly UserManager<ApplicationUser> _userManager;
 
+    private readonly SignInManager<ApplicationUser> _signInManager;
+
     public OrderController(ILogger<ItemController> logger, ApplicationDbContext context,
-        IMapper mapper, UserManager<ApplicationUser> userManager)
+        IMapper mapper, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
     {
         _logger = logger;
         _context = context;
         _mapper = mapper;
         _userManager = userManager;
+        _signInManager = signInManager;
     }
 
 
@@ -74,6 +81,7 @@ public class OrderController : Controller
 
         try
         {
+
             // 1. Ensure customer exists
             var customer = await EnsureCustomerExistsAsync(model);
 
@@ -132,19 +140,24 @@ public class OrderController : Controller
                 DiscountAmount = 0,
                 CashbackUsedAmount = 0,
                 GrandTotal = grandTotal,
-                LastStatus = OrderStatusEnum.Pending,
+                //LastStatus = OrderStatusEnum.Received, 
+                CustomerIdentifier = User?.Identity?.Name ?? HttpContext.Session.Id,
                 Items = orderItems,
                 OrderNumber = Guid.NewGuid().ToString("N")[..8].ToUpper(),
                 CreatedOn = DateTime.UtcNow
             };
 
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
+            var orderStatus = new OrderStatus
+            {
+                Status = OrderStatusEnum.Received,
+                Timestamp = DateTime.UtcNow
+            };
 
-            // 8. Create payment row (linked to order)
+
+            // 8. Create payment
             var payment = new Payment
             {
-                OrderId = order.Id,
+                Order = order,
                 Amount = model.Payment.Amount > 0 ? model.Payment.Amount : grandTotal, // fallback
                 PaymentMethod = model.Payment.PaymentMethod,
                 PaymentStatus = model.Payment.PaymentStatus,
@@ -152,6 +165,13 @@ public class OrderController : Controller
                 PaymentReference = model.Payment.PaymentReference,
                 PaymentDate = model.Payment.PaymentDate == default ? DateTime.Now : model.Payment.PaymentDate
             };
+
+
+
+            order.StatusHistory.Add(orderStatus);
+
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
 
             _context.Payments.Add(payment);
             await _context.SaveChangesAsync();
@@ -184,8 +204,11 @@ public class OrderController : Controller
             .Include(c => c.User)
             .FirstOrDefaultAsync(c => c.User.PhoneNumber == model.PhoneNumber);
 
-        if (customer != null) return customer;
-
+        if (customer != null)
+        {
+            await _signInManager.SignInAsync(customer.User, isPersistent: false);
+            return customer;
+        }
         if (string.IsNullOrWhiteSpace(model.PhoneNumber))
             throw new InvalidOperationException("Phone number is required.");
 
@@ -195,16 +218,19 @@ public class OrderController : Controller
             FullName = "Ashrf from C#",
             PhoneNumber = model.PhoneNumber,
             UserName = model.PhoneNumber,
-            CreatedOn = DateTime.UtcNow
+            CreatedOn = DateTime.Now
         };
 
         var result = await _userManager.CreateAsync(user);
         if (!result.Succeeded)
-            throw new InvalidOperationException("Unable to create user.");
+            throw new InvalidOperationException(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+        await _signInManager.SignInAsync(user, isPersistent: false);
 
         customer = new Customer { UserId = user.Id, User = user };
         _context.Customers.Add(customer);
         await _context.SaveChangesAsync();
+
 
         return customer;
     }
@@ -341,10 +367,10 @@ public class OrderController : Controller
         return now.TimeOfDay >= workingHour.OpeningTime && now.TimeOfDay <= workingHour.ClosingTime;
     }
 
-
-    public IActionResult OrderDetails(int id)
-   {
-        if (id == 0)
+    [HttpGet]
+    public IActionResult OrderDetails(int orderId)
+    {
+        if (orderId == 0)
             return NotFound();
 
         var order = _context.Orders
@@ -361,7 +387,7 @@ public class OrderController : Controller
                     .ThenInclude(to => to.ToppingOption)
             .Include(o => o.Payments)
             .Include(o => o.Branch)
-            .FirstOrDefault(o => o.Id == id);
+            .FirstOrDefault(o => o.Id == orderId);
 
 
 
@@ -371,20 +397,51 @@ public class OrderController : Controller
         var viewModel = _mapper.Map<OrderDetailsViewModel>(order);
         //return PartialView("_OrderDetails", viewModel);
         return View(viewModel);
-        /*
-         * 
-         - image or video as ad
-         - proggress bar contain status of the order
-         - dilvery time arrive
-         - divver name and phone number with call btn
-         - items 
-         
-         - pay way
-         - Details of the invoice
-         - btn call support , when click show popup have 3 btn (call branch , cascel order , order late)
-         */
-
     }
+
+
+    [HttpGet] 
+    public IActionResult ChangeStatus(int orderId, OrderStatusEnum newStatus )
+    {
+        var order = _context.Orders
+            .Include(o => o.StatusHistory)
+            .FirstOrDefault(o => o.Id == orderId);
+
+        if (order == null)
+            return NotFound("Order not found.");
+
+        var lastStatus = order.StatusHistory
+          .OrderByDescending(s => s.Timestamp)
+          .FirstOrDefault();
+
+        var timeToComplete = lastStatus != null
+            ? DateTime.UtcNow - lastStatus.Timestamp
+            : (TimeSpan?)null;
+
+        if (lastStatus != null && lastStatus.Status == newStatus)
+        {
+            return BadRequest("Order already has this status.");
+        }
+
+        // Add new status entry
+        order.StatusHistory.Add(new OrderStatus
+        {
+            Status = newStatus,
+            OrderId = order.Id,
+            Timestamp = DateTime.UtcNow,
+            StatusDuration = timeToComplete
+        });
+
+        _context.SaveChanges();
+
+        var viewModel = _mapper.Map<OrderStatusBoxViewModel>(order);
+
+        return RedirectToAction("Index", "Home") ;
+    }
+
+
+
+
 
 }
 

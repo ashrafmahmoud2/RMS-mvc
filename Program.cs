@@ -48,6 +48,15 @@ builder.Services.AddTransient<IEmailBodyBuilder, EmailBodyBuilder>();
 
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(1); // how long to keep session alive
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 builder.Services.AddAutoMapper(Assembly.GetAssembly(typeof(MappingProfile)));
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection(nameof(CloudinarySettings)));
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection(nameof(MailSettings)));
@@ -120,6 +129,8 @@ app.UseCookiePolicy(new CookiePolicyOptions
 //});
 
 app.UseRouting();
+
+app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();

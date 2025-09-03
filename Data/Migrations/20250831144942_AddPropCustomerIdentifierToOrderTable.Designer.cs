@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RMS.Web.Data;
 
@@ -11,9 +12,11 @@ using RMS.Web.Data;
 namespace RMS.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250831144942_AddPropCustomerIdentifierToOrderTable")]
+    partial class AddPropCustomerIdentifierToOrderTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -935,9 +938,9 @@ namespace RMS.Web.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<TimeSpan?>("StatusDuration")
+                    b.Property<string>("TimeToCompleteStatus")
                         .HasMaxLength(50)
-                        .HasColumnType("time");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("datetime2");

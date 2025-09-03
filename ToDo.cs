@@ -2,11 +2,13 @@
 #genral 
 - add data in ar end in en
 - don't forget to use enum gernallsettings
+- using UtcNow or now 
 
 
 #Branch
 - to handel BranchWorkingHourException , 
 - add duffel branch when open ,
+- add max allowd number of order in same time , and if allow make the 2 in kds , and in driver app as one trap
 
 #Options
 - MaxAllowedOptions and MinAllowedOptions cannot exceed the total number of available options.
@@ -26,6 +28,11 @@
 
 #cart
 - Add box contain totle price and delivery fees(get from db)
+
+
+#OrderStatus
+- timestamp to creaton 
+- add created by chef or user ?
 
 
 #chekout

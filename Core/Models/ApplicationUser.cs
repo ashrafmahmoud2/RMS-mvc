@@ -4,12 +4,11 @@ using Microsoft.AspNetCore.Identity;
 namespace RMS.Web.Core.Models;
 
 [Index(nameof(Email), IsUnique = true)]
-[Index(nameof(UserName), IsUnique = true)]
-[Index(nameof(FullName), nameof(PhoneNumber), IsUnique = true)]
+[Index(nameof(PhoneNumber), IsUnique = true)]
 public class ApplicationUser : IdentityUser
 {
     [MaxLength(100)]
-    public string FullName { get; set; } = null!;
+    public string? FullName { get; set; } = null!;
 
     public bool IsDeleted { get; set; }
 
@@ -20,4 +19,6 @@ public class ApplicationUser : IdentityUser
     public string? LastUpdatedById { get; set; }
 
     public DateTime? LastUpdatedOn { get; set; }
+
+    public Customer? Customer { get; set; }
 }
