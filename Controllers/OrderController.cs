@@ -1,27 +1,17 @@
 ﻿using RMS.Web.Core.Consts;
 using RMS.Web.Core.Enums;
+using RMS.Web.Core.Models;
 using RMS.Web.Core.ViewModels.Order;
 using System.Threading.Tasks;
 
 
-
 /*
  # seps
- 1. just get allowed status in homecontroler
- 2. optmize order details vieiw
- 3. optmize image items ui , when open modal be like item in cart(make items and it's topping as parili view)
- 4. optmize address text
  5. make regestriation to show his orders(curent or past )
  6. Implement search , using pakage in mvc project
  7. add sub main bar like in order , taker , talbat, snoono)
  8. add the card layout , with make responsive in it
     now you are ready to test in real life , so using local host and ngrok
-
-
-
-
-
-
 */
 
 public class OrderController : Controller
@@ -381,7 +371,8 @@ public class OrderController : Controller
                 .ThenInclude(ca => ca.Area)
             .Include(o => o.CustomerAddress)
                 .ThenInclude(ca => ca.Branch)
-            .Include(o => o.Items).ThenInclude(i => i.Item)
+            .Include(o => o.Items)
+            .ThenInclude(i => i.Item)
             .Include(o => o.Items).ThenInclude(i => i.ToppingGroups)
                 .ThenInclude(g => g.ToppingOptions)
                     .ThenInclude(to => to.ToppingOption)

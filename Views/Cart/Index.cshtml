@@ -1,4 +1,9 @@
-﻿<!DOCTYPE html>
+﻿@* #steps
+stop in make paritl view , 
+
+ *@
+
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -27,7 +32,7 @@
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             --border-radius: 12px;
-            --border-radius-lg: 16px;
+            --border-radius-lg: 30px;
             --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -48,6 +53,9 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            border-bottom-right-radius: 30px;
+            border-bottom-left-radius: 30px;
+        
         }
 
         .header-container {
@@ -267,7 +275,7 @@
             }
 
         .quantity-input {
-            width: 60px;
+            width: 10px;
             text-align: center;
             border: none;
             background: none;
@@ -283,30 +291,18 @@
             color: var(--primary-color);
         }
 
-        .remove-btn {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            color: var(--danger-color);
-            width: 40px;
-            height: 40px;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+       
 
-            .remove-btn:hover {
-                background: var(--danger-color);
-                color: white;
-                transform: scale(1.05);
-            }
 
         /* Toppings Section */
         .toppings-section {
             border-top: 1px solid var(--border);
-            background: var(--surface-variant);
+            background: var(--surface);
+            margin: 8px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.12);
         }
 
         .toppings-header {
@@ -341,24 +337,25 @@
         }
 
         .topping-thumb {
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            border: 2px solid white;
+            border: 1px solid black;
             object-fit: cover;
             margin-left: -8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: var(--primary-color);
         }
 
             .topping-thumb:first-child {
-                margin-left: 0;
+                margin-left: 12;
             }
 
         .more-toppings {
             background: var(--primary-color);
             color: white;
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -380,6 +377,12 @@
             align-items: center;
             gap: 8px;
             font-weight: 500;
+        }
+
+        .toggle-btn-text {
+            font-weight: 600;
+            color: var(--on-surface);
+            font-size: 16px;
         }
 
             .toggle-btn i {
@@ -404,8 +407,8 @@
             padding: 0 20px 16px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-        }
+/*             gap: 12px;
+ */        }
 
         .topping-item {
             display: flex;
@@ -414,14 +417,15 @@
             padding: 8px;
             background: white;
             border-radius: var(--border-radius);
-            border: 1px solid var(--border);
-        }
+/*             border: 1px solid var(--border);
+ */        }
 
         .topping-image {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             border-radius: var(--border-radius);
             object-fit: cover;
+            background: #f1f4f8;
         }
 
         .topping-details {
@@ -451,6 +455,8 @@
             backdrop-filter: blur(10px);
             border-top: 1px solid var(--border);
             z-index: 50;
+            border-top-right-radius: 30px;
+            border-top-left-radius: 30px;
         }
 
         .checkout-btn {
@@ -606,6 +612,8 @@
             animation: fadeOut 0.3s ease-out forwards;
         }
 
+
+
         @@keyframes fadeOut {
             from
 
@@ -739,23 +747,26 @@
                     totalItems += item.selectedCount;
                     totalPrice += item.totalPrice;
 
-                     const toppingsHTML = (item.toppings || []).map(topping => `
-            <div class="topping-item">
-                <img src="${topping.image}" alt="${topping.name}" class="topping-image">
-                <div class="topping-details">
-                    <div class="topping-name">${topping.name}</div>
-                    <div class="topping-price">${topping.price} ${item.currency} × ${topping.count}</div>
-                </div>
-            </div>
-        `).join('');
+                    const toppingsHTML = (item.toppings || []).map(topping => `
+                        <div class="topping-item">
+                            <img src="${topping.image}" alt="${topping.name}" class="topping-image">
+                            <div class="topping-details">
+                                <div class="topping-name">${topping.name}</div>
+        <div class="topping-price">
+          ${topping.price > 0 ? `${topping.price} ${item.currency} × ${topping.count}` : `مجاني × ${topping.count}`}
+        </div>
+                                    </div>
+                        </div>
+                    `).join('');
 
+                            const toppingsPreview = (item.toppings || [])
+            .slice(0, 2) 
+            .map(t => `<img src="${t.image}" alt="${t.name}" class="topping-thumb">`)
+            .join('');
 
-                       const toppingsPreview = (item.toppings || []).map(t =>
-            `<img src="${t.image}" alt="${t.name}" class="topping-thumb">`
-        ).join('');
-
-
-                    const moreCount = (item.toppings?.length || 0) - 3;
+        const moreCount = (item.toppings?.length || 0) > 2
+            ? (item.toppings.length - 2)
+            : 0;
 
                     return `
                         <div class="cart-item" data-index="${idx}">
@@ -772,7 +783,7 @@
 
                                 <div class="item-controls">
                                     <div class="quantity-control">
-                                        <button class="quantity-btn decrement" data-index="${idx}" ${item.selectedCount <= 1 ? 'disabled' : ''}>
+                                        <button class="quantity-btn decrement" data-index="${idx}">
                                             <i class="fas fa-minus"></i>
                                         </button>
                                         <input type="text" class="quantity-input" value="${item.selectedCount}" readonly>
@@ -784,10 +795,6 @@
                                     <div class="item-price">
                                         ${item.totalPrice.toFixed(2)} ${item.currency}
                                     </div>
-
-                                    <button class="remove-btn" data-index="${idx}" aria-label="حذف العنصر">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
                                 </div>
                             </div>
 
@@ -795,14 +802,14 @@
                                 <div class="toppings-section">
                                     <div class="toppings-header" onclick="toggleToppings(${idx})">
                                         <div class="toppings-preview">
-                                            <div class="toppings-title">الإضافات (${item.toppings.length})</div>
+                                            <div class="toppings-title">الأختيارات:</div>
                                             <div class="toppings-thumbnails">
                                                 ${toppingsPreview}
                                                 ${moreCount > 0 ? `<div class="more-toppings">+${moreCount}</div>` : ''}
                                             </div>
                                         </div>
                                         <button class="toggle-btn" data-index="${idx}">
-                                            <span>عرض التفاصيل</span>
+                                            <span class="toggle-btn-text">إظهار</span>
                                             <i class="fas fa-chevron-down"></i>
                                         </button>
                                     </div>
@@ -830,7 +837,6 @@
             // Save cart to localStorage
             const saveCart = () => {
                 try {
-                    // Update rawCart with new quantities
                     cart.forEach((item, idx) => {
                         if (rawCart[idx]) {
                             rawCart[idx].Quantity = item.selectedCount;
@@ -845,27 +851,31 @@
             // Handle quantity changes and removals
             cartContent.addEventListener("click", e => {
                 const idx = parseInt(e.target.closest('[data-index]')?.dataset.index);
-                if (idx === undefined || idx < 0 || idx >= cart.length) return;
+                if (isNaN(idx) || idx < 0 || idx >= cart.length) return;
+
+                const item = cart[idx];
+                const itemElement = e.target.closest('.cart-item');
+
+                const calcTotal = () => {
+                    const toppingsTotal = (item.toppings || []).reduce((sum, t) => sum + t.price * t.count, 0);
+                    item.totalPrice = (item.price + toppingsTotal) * item.selectedCount;
+                };
 
                 if (e.target.closest('.increment')) {
-                    cart[idx].selectedCount++;
-                    const toppingsTotal = (cart[idx].toppings || []).reduce((sum, t) => sum + t.price * t.count, 0);
-                    cart[idx].totalPrice = (cart[idx].price + toppingsTotal) * cart[idx].selectedCount;
+                    item.selectedCount++;
+                    calcTotal();
                     saveCart();
                     renderCart();
-                } else if (e.target.closest('.decrement')) {
-                    if (cart[idx].selectedCount > 1) {
-                        cart[idx].selectedCount--;
-                        const toppingsTotal = (cart[idx].toppings || []).reduce((sum, t) => sum + t.price * t.count, 0);
-                        cart[idx].totalPrice = (cart[idx].price + toppingsTotal) * cart[idx].selectedCount;
+                }
+                else if (e.target.closest('.decrement')) {
+                    if (item.selectedCount > 1) {
+                        item.selectedCount--;
+                        calcTotal();
                         saveCart();
                         renderCart();
-                    }
-                } else if (e.target.closest('.remove-btn')) {
-                    if (confirm("هل تريد حذف هذا العنصر من السلة؟")) {
-                        const itemElement = e.target.closest('.cart-item');
+                    } else {
+                        // حذف مع أنيميشن
                         itemElement.classList.add('fade-out');
-
                         setTimeout(() => {
                             cart.splice(idx, 1);
                             rawCart.splice(idx, 1);
@@ -888,7 +898,7 @@
 
                     const span = button.querySelector('span');
                     if (span) {
-                        span.textContent = isOpen ? 'عرض التفاصيل' : 'إخفاء التفاصيل';
+                        span.textContent = isOpen ? 'إظهار' : 'إخفاء';
                     }
                 }
             };
@@ -905,17 +915,15 @@
                 }
             };
 
-                    // inside DOMContentLoaded
-        const checkoutBtn = document.getElementById("checkoutBtn");
-
-        checkoutBtn.addEventListener("click", () => {
-            if (cart.length === 0) {
-                alert("⚠️ سلة التسوق فارغة، لا يمكنك المتابعة للدفع.");
-                return;
-            }
-            // لو فيه عناصر روح على صفحة الدفع
-            window.location.href = "/Checkout";
-        });
+            // Checkout button
+            const checkoutBtn = document.getElementById("checkoutBtn");
+            checkoutBtn.addEventListener("click", () => {
+                if (cart.length === 0) {
+                    alert("⚠️ سلة التسوق فارغة، لا يمكنك المتابعة للدفع.");
+                    return;
+                }
+                window.location.href = "/Checkout";
+            });
 
             // Initialize
             initCart();

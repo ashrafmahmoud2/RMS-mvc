@@ -1,15 +1,11 @@
-﻿@using AutoMapper
-@using RMS.Web.Core.Enums
-@using RMS.Web.Core.ViewModels.Order
-@model OrderDetailsViewModel;
-
-
+﻿@model OrderDetailsViewModel
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تفاصيل الطلب</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -155,40 +151,6 @@
             font-weight: 700;
         }
 
-        /* Banner */
-        .banner {
-            padding: 0;
-            margin-bottom: 24px;
-            border-radius: var(--border-radius-lg);
-            overflow: hidden;
-            position: relative;
-            height: 220px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .banner-content {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 28px;
-            font-weight: 700;
-            position: relative;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-            .banner-content::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1.5" fill="white" opacity="0.15"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
-            }
-
         /* Order Status */
         .status-container {
             display: flex;
@@ -214,7 +176,7 @@
             box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
         }
 
-        @@keyframes statusPulse {
+      @@keyframes statusPulse {
             0%, 100%
 
         {
@@ -246,6 +208,7 @@
         .items-preview {
             display: flex;
             align-items: center;
+            justify-content:space-between;
             gap: 20px;
             cursor: pointer;
             padding: 20px;
@@ -303,16 +266,36 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-            .item-image:first-child {
+        .item-thumbnail {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* يخلي الصورة تملأ البوكس بدون تمدد مشوه */
+            border-radius: 12px; /* يخليها نفس تقويس الـ item-image */
+        }
+
+
+            .item-image:nth-child(1) {
                 margin-right: -12px;
-                z-index: 3;
+                z-index: 6;
             }
 
             .item-image:nth-child(2) {
-                z-index: 2;
+                z-index: 5;
             }
 
             .item-image:nth-child(3) {
+                z-index: 4;
+            }
+
+            .item-image:nth-child(4) {
+                z-index: 3;
+            }
+
+            .item-image:nth-child(5) {
+                z-index: 2;
+            }
+
+            .item-image:nth-child(6) {
                 z-index: 1;
             }
 
@@ -338,11 +321,11 @@
             box-shadow: 0 2px 8px rgba(24, 84, 153, 0.3);
         }
 
-        .items-count {
+        .items-more {
             width: 60px;
             height: 60px;
             border-radius: 16px;
-            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            background: linear-gradient(45deg, #6c757d, #495057);
             margin-right: -12px;
             border: 4px solid var(--surface);
             display: flex;
@@ -350,19 +333,20 @@
             justify-content: center;
             color: white;
             font-weight: 700;
-            font-size: 18px;
+            font-size: 14px;
             position: relative;
             transition: var(--transition-spring);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1;
         }
 
-            .items-count:hover {
+            .items-more:hover {
                 transform: scale(1.05);
             }
 
         .items-info {
             flex: 1;
-            display:none;
+            display: none;
         }
 
         .items-label {
@@ -395,55 +379,38 @@
             border: 1px solid rgba(24, 84, 153, 0.1);
             border-radius: 16px;
             padding: 20px;
-            display: flex;
-            flex-wrap: wrap;
         }
 
-        .address-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 12px;
-            padding: 10px 0 10px 20px;
-        }
-
-        }
-
-            .address-row:last-child {
-                margin-bottom: 0;
-            }
-
-        .address-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: var(--primary-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
-        .address-content {
-            flex: 1;
-        }
-
-        .address-label {
-            color: var(--text-muted);
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 2px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .address-value {
+        .address-text {
             color: var(--text-primary);
             font-size: 16px;
             font-weight: 600;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .driver-note {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+
+        .driver-note-icon {
+            color: var(--success-color);
+            font-size: 16px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .driver-note-text {
+            color: var(--text-primary);
+            font-size: 15px;
+            font-weight: 500;
         }
 
         /* Info Row Enhanced */
@@ -508,7 +475,7 @@
                 animation: pendingPulse 2s infinite;
             }
 
-        @@keyframes pendingPulse {
+      @@keyframes pendingPulse {
             0%, 100%
 
         {
@@ -684,6 +651,7 @@
                 }
 
         /* Modal Enhanced */
+
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -907,7 +875,7 @@
         }
 
         /* Animations */
-        @@keyframes fadeIn {
+      @@keyframes fadeIn {
             from
 
         {
@@ -920,7 +888,7 @@
 
         }
 
-        @@keyframes fadeInUp {
+      @@keyframes fadeInUp {
             from
 
         {
@@ -935,7 +903,7 @@
 
         }
 
-        @@keyframes modalSlideUp {
+      @@keyframes modalSlideUp {
             from
 
         {
@@ -950,7 +918,7 @@
 
         }
 
-        @@keyframes shake {
+      @@keyframes shake {
             0%, 100%
 
         {
@@ -983,28 +951,17 @@
             font-size: 16px;
         }
 
-        .banner {
-            height: 180px;
-        }
-
-        .banner-content {
-            font-size: 24px;
-        }
-
         .modal {
             padding: 24px;
             margin: 20px;
         }
 
         .driver-container {
-/*             flex-direction: column;
- */            gap: 20px;
-            align-items: stretch;
+            gap: 20px;
         }
 
         .call-btn {
             align-self: center;
-           /*  width: 100%; */
             max-width: 200px;
             height: 50px;
             border-radius: 12px;
@@ -1015,16 +972,11 @@
             gap: -6px;
         }
 
-        .item-image {
+        .item-image, .items-more {
             width: 50px;
             height: 50px;
             margin-right: -8px;
-        }
-
-        .items-count {
-            width: 50px;
-            height: 50px;
-            font-size: 12px;
+            font-size: 14px;
         }
 
         .status-icon {
@@ -1042,19 +994,9 @@
         }
 
         @@media (max-width: 480px) {
-            .address-row
+            .support-option
 
         {
-            flex-direction: column;
-            gap: 8px;
-            align-items: flex-start;
-        }
-
-        .address-icon {
-            align-self: flex-start;
-        }
-
-        .support-option {
             flex-direction: column;
             text-align: center;
             gap: 12px;
@@ -1068,7 +1010,7 @@
     <div class="order-header">
         <div class="header-container">
             <button class="header-btn" onclick="window.history.back()">
-                ←
+                <i class="fas fa-arrow-right"></i>
             </button>
             <div class="header-title">طلب رقم #ORD-2024-001523</div>
             <div style="width: 48px;"></div>
@@ -1077,113 +1019,72 @@
 
     <!-- Main Container -->
     <div class="main-container">
-        <!-- Banner -->
-        <div style="display:none" class="section banner">
-            <div class="banner-content">
-                🍔 طلبك اللذيذ في الطريق
-            </div>
-        </div>
-
         <!-- Order Status -->
-        <div class="section">
+       
+    @*     <div class="section">
             <div class="section-header">
-                📍 حالة الطلب
+                <i class="fas fa-map-marker-alt"></i> حالة الطلب
             </div>
 
-@*             <Partial name="_OrderStatusBox" model="OrderStatusBoxViewModel" />
- *@
-@*             <div class="status-container">
+            @await Html.PartialAsync("_OrderItemsAndToppings", Model)
+
+            <div class="status-container">
                 <div class="status-icon">
-                    🚗
+                    <i class="fas fa-car"></i>
                 </div>
                 <div class="status-info">
                     <h3>في الطريق للتوصيل</h3>
                     <div class="status-time">الوصول المتوقع: 15-20 دقيقة</div>
                 </div>
             </div>
- *@        </div>
+        </div>
 
+ *@
         <!-- Order Items -->
         <div class="section">
             <div class="section-header">
-                🛍️ طلبك يحتوي على 8 منتجات
+                <i class="fas fa-shopping-bag"></i> طلبك يحتوي على @Model.Items.Count() منتجات
             </div>
             <div class="items-preview" onclick="showItemsModal()">
-                <div class="items-images">
-                    <div class="item-image" style="background: linear-gradient(45deg, #ff6b6b, #ff8e8e);">
-                        🍔
-                        <div class="item-counter">3</div>
-                    </div>
-                    <div class="item-image" style="background: linear-gradient(45deg, #feca57, #ff9ff3);">
-                        🍟
-                        <div class="item-counter">2</div>
-                    </div>
-                    <div class="item-image" style="background: linear-gradient(45deg, #48dbfb, #0abde3);">
-                        🥤
-                        <div class="item-counter">2</div>
-                    </div>
-                    <div class="item-image" style="background: linear-gradient(45deg, #ff6b6b, #ff8e8e);">
-                        🍔
-                        <div class="item-counter">3</div>
-                    </div>
-                    <div class="item-image" style="background: linear-gradient(45deg, #feca57, #ff9ff3);">
-                        🍟
-                        <div class="item-counter">2</div>
-                    </div>
-                    <div class="item-image" style="background: linear-gradient(45deg, #48dbfb, #0abde3);">
-                        🥤
-                        <div class="item-counter">2</div>
-                    </div>
+                <div class="items-images" id="itemsImages">
+                    @foreach (var item in Model.Items.Take(5))
+                    {
+                        <div class="item-image" style="background: linear-gradient(45deg, #165093, #335d92);">
+                            <img src="@Url.Content(item.ThumbnailUrl)" alt="@item.Title" class="item-thumbnail" />
+                            <div class="item-counter">@item.Quantity</div>
+                        </div>
 
-                    <div class="items-count">+3</div>
+                    }
+
+                    @if (Model.Items.Count() > 5)
+                    {
+                        <div class="items-more">
+                            +@(Model.Items.Count() - 6)
+                        </div>
+                    }
                 </div>
-                <div class="items-info">
-                    <div class="items-label">اختيارك من 10 عناصر</div>
-                    <div class="items-description">اضغط لعرض تفاصيل الطلب كاملة</div>
+
+                <div class="chevron-icon">
+                    <i class="fas fa-chevron-left"></i>
                 </div>
-                <div class="chevron-icon">‹</div>
             </div>
         </div>
 
         <!-- Delivery Address -->
         <div class="section">
             <div class="section-header">
-                📍 عنوان التوصيل
+                <i class="fas fa-map-marker-alt"></i> عنوان التوصيل
             </div>
             <div class="address-container">
-                <div class="address-row">
-                    <div class="address-icon">🏛️</div>
-                    <div class="address-content">
-                        <div class="address-label">المحافظة</div>
-                        <div class="address-value">@Model.CustomerAddress.GovernrateName </div>
-                    </div>
+                <div class="address-text">
+                    القاهرة، مدينة نصر، شارع مصطفى النحاس، عمارة 12 أمام البنك الأهلي
                 </div>
-                <div class="address-row">
-                    <div class="address-icon">🏘️</div>
-                    <div class="address-content">
-                        <div class="address-label">المنطقة</div>
-                        <div class="address-value">@Model.CustomerAddress.AreaName</div>
+                <div class="driver-note">
+                    <div class="driver-note-icon">
+                        <i class="fas fa-sticky-note"></i>
                     </div>
-                </div>
-                <div class="address-row">
-                    <div class="address-icon">🛣️</div>
-                    <div class="address-content">
-                        <div class="address-label">الشارع</div>
-                        <div class="address-value">@Model.CustomerAddress.Address</div>
-                    </div>
-                </div>
-                <div class="address-row">
-                    <div class="address-icon">🏢</div>
-                    <div class="address-content">
-                        <div class="address-label">العمارة والتفاصيل</div>
-                        <div class="address-value">@Model.CustomerAddress.BuildingDetails</div>
-                    </div>
-                </div>
-                <div class="address-row">
-                    <div class="address-icon">📍</div>
-                    <div class="address-content">
-                        <div class="address-label">علامة مميزة</div>
-                        <div class="address-value">بجوار مول كارفور</div>
+                    <div class="driver-note-text">
+                         لا تقم برن الجرس , اتصل و نا هنزل لك
                     </div>
                 </div>
             </div>
@@ -1192,67 +1093,29 @@
         <!-- Payment Info -->
         <div class="section">
             <div class="section-header">
-                💳 معلومات الدفع
+                <i class="fas fa-credit-card"></i> معلومات الدفع
             </div>
             <div class="info-row">
                 <div class="info-label">
-                    💰 طريقة الدفع
+                    <i class="fas fa-money-bill-wave"></i> طريقة الدفع
                 </div>
-                <div class="info-value">
-                    @if (Model.Payment.PaymentMethod == PaymentMethodEnum.Cash)
-                    {
-                        @:الدفع عند الاستلام
-                    }
-                    else if (Model.Payment.PaymentMethod == PaymentMethodEnum.Card)
-                    {
-                        @:الدفع بالبطاقة
-                    }
-                    else if (Model.Payment.PaymentMethod == PaymentMethodEnum.Online)
-                    {
-                        @:الدفع أونلاين
-                    }
-                    else if (Model.Payment.PaymentMethod == PaymentMethodEnum.Wallet)
-                    {
-                        @:المحفظة
-                    }
-                </div>
-
+                <div class="info-value">الدفع عند الاستلام</div>
             </div>
             <div class="info-row">
                 <div class="info-label">
-                    📊 حالة الدفع
+                    <i class="fas fa-chart-line"></i> حالة الدفع
                 </div>
-                <div class="payment-status">
-                    @if (Model.Payment.PaymentMethod == PaymentMethodEnum.Cash && Model.Payment.PaymentStatus == PaymentStatusEnum.Pending)
-                    {
-                        @:سيتم الدفع عند التسليم
-                    }
-                    else if (Model.Payment.PaymentStatus == PaymentStatusEnum.Pending)
-                    {
-                        @:قيد الانتظار
-                    }
-                    else if (Model.Payment.PaymentStatus == PaymentStatusEnum.Paid)
-                    {
-                        @:تم الدفع
-                    }
-                    else if (Model.Payment.PaymentStatus == PaymentStatusEnum.Failed)
-                    {
-                        @:فشل الدفع
-                    }
-                    else if (Model.Payment.PaymentStatus == PaymentStatusEnum.Refunded)
-                    {
-                        @:تم الاسترجاع
-                    }
+                <div class="payment-status pending">
+                    <i class="fas fa-clock"></i>
+                    سيتم الدفع عند التسليم
                 </div>
-
-
             </div>
         </div>
 
         <!-- Driver Info -->
         <div class="section">
             <div class="section-header">
-                🚗 معلومات السائق
+                <i class="fas fa-car"></i> معلومات السائق
             </div>
             <div class="driver-container">
                 <div class="driver-info">
@@ -1263,7 +1126,7 @@
                     </div>
                 </div>
                 <button class="call-btn" onclick="callDriver()">
-                    📞
+                    <i class="fas fa-phone"></i>
                 </button>
             </div>
         </div>
@@ -1271,29 +1134,29 @@
         <!-- Invoice -->
         <div class="section">
             <div class="section-header">
-                🧾 الفاتورة
+                <i class="fas fa-receipt"></i> الفاتورة
             </div>
             <div class="invoice-row">
                 <div class="invoice-label">
-                    🛒 المجموع الفرعي
+                    <i class="fas fa-shopping-cart"></i> المجموع الفرعي
                 </div>
-                <div class="invoice-value">@Model.SubTotal</div>
+                <div class="invoice-value">@Model.SubTotal </div>
             </div>
             <div class="invoice-row">
                 <div class="invoice-label">
-                    🚚 رسوم التوصيل
+                    <i class="fas fa-truck"></i> رسوم التوصيل
                 </div>
                 <div class="invoice-value">@Model.DeliveryFees</div>
             </div>
-            <div class="invoice-row">
+@*             <div class="invoice-row">
                 <div class="invoice-label">
-                    🎁 الخصم
+                    <i class="fas fa-gift"></i> الخصم
                 </div>
-                <div class="invoice-value discount-value">**</div>
-            </div>
+                <div class="invoice-value discount-value">-25 جنيه</div>
+            </div> *@
             <div class="invoice-row">
                 <div class="invoice-label">
-                    💰 المجموع الكلي
+                    <i class="fas fa-money-bill-wave"></i> المجموع الكلي
                 </div>
                 <div class="invoice-value">@Model.GrandTotal</div>
             </div>
@@ -1302,97 +1165,61 @@
         <!-- Support -->
         <div class="section">
             <div class="section-header">
-                🆘 تحتاج مساعدة؟
+                <i class="fas fa-life-ring"></i> تحتاج مساعدة؟
             </div>
             <button class="support-btn" onclick="showSupportModal()">
-                💬 تواصل مع الدعم
+                <i class="fas fa-comments"></i> تواصل مع الدعم
             </button>
         </div>
     </div>
 
     <!-- Items Modal -->
     <div class="modal-overlay" id="itemsModal">
-        <div class="modal">
+        <div class="modal" style="max-width: 650px;">
             <div class="modal-header">
-                <div class="modal-title">عناصر الطلب</div>
-                <button class="modal-close" onclick="closeModal('itemsModal')">&times;</button>
+                <div class="modal-title">عناصر الطلب (@Model.Items.Count منتجات)</div>
+                <button class="modal-close" onclick="closeModal('itemsModal')">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <div id="itemsList">
-                <div class="modal-item">
-                    <div class="modal-item-image" style="background: linear-gradient(45deg, #ff6b6b, #ff8e8e);">🍔</div>
-                    <div class="modal-item-info">
-                        <div class="modal-item-name">بيج ماك برجر</div>
-                        <div class="modal-item-details">الكمية: 3 • حجم كبير</div>
-                    </div>
-                    <div class="modal-item-price">90 جنيه</div>
-                </div>
-                <div class="modal-item">
-                    <div class="modal-item-image" style="background: linear-gradient(45deg, #feca57, #ff9ff3);">🍟</div>
-                    <div class="modal-item-info">
-                        <div class="modal-item-name">بطاطس مقلية</div>
-                        <div class="modal-item-details">الكمية: 2 • حجم كبير</div>
-                    </div>
-                    <div class="modal-item-price">40 جنيه</div>
-                </div>
-                <div class="modal-item">
-                    <div class="modal-item-image" style="background: linear-gradient(45deg, #48dbfb, #0abde3);">🥤</div>
-                    <div class="modal-item-info">
-                        <div class="modal-item-name">كوكا كولا</div>
-                        <div class="modal-item-details">الكمية: 2 • حجم كبير</div>
-                    </div>
-                    <div class="modal-item-price">30 جنيه</div>
-                </div>
-                <div class="modal-item">
-                    <div class="modal-item-image" style="background: linear-gradient(45deg, #ff9f43, #feca57);">🍗</div>
-                    <div class="modal-item-info">
-                        <div class="modal-item-name">أجنحة الدجاج</div>
-                        <div class="modal-item-details">الكمية: 1 • 6 قطع</div>
-                    </div>
-                    <div class="modal-item-price">45 جنيه</div>
-                </div>
-                <div class="modal-item">
-                    <div class="modal-item-image" style="background: linear-gradient(45deg, #a55eea, #26de81);">🥗</div>
-                    <div class="modal-item-info">
-                        <div class="modal-item-name">سلطة سيزر</div>
-                        <div class="modal-item-details">الكمية: 1 • مع الدجاج</div>
-                    </div>
-                    <div class="modal-item-price">35 جنيه</div>
-                </div>
-                <div class="modal-item">
-                    <div class="modal-item-image" style="background: linear-gradient(45deg, #fd79a8, #fdcb6e);">🍰</div>
-                    <div class="modal-item-info">
-                        <div class="modal-item-name">كيكة الشوكولاتة</div>
-                        <div class="modal-item-details">الكمية: 1 • قطعة</div>
-                    </div>
-                    <div class="modal-item-price">25 جنيه</div>
-                </div>
+                @await Html.PartialAsync("_OrderItemsAndToppings", Model)
             </div>
         </div>
     </div>
 
-    <!-- Support Modal -->
+
+<!-- Support Modal -->
     <div class="modal-overlay" id="supportModal">
         <div class="modal">
             <div class="modal-header">
                 <div class="modal-title">كيف يمكننا مساعدتك؟</div>
-                <button class="modal-close" onclick="closeModal('supportModal')">&times;</button>
+                <button class="modal-close" onclick="closeModal('supportModal')">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <div class="support-option contact" onclick="contactBranch()">
-                <div class="support-icon contact">📞</div>
+                <div class="support-icon contact">
+                    <i class="fas fa-phone"></i>
+                </div>
                 <div class="support-text">
                     <div class="support-title">الاتصال بالفرع</div>
                     <div class="support-description">تحدث مباشرة مع المطعم</div>
                 </div>
             </div>
             <div class="support-option cancel" onclick="cancelOrder()">
-                <div class="support-icon cancel">❌</div>
+                <div class="support-icon cancel">
+                    <i class="fas fa-times"></i>
+                </div>
                 <div class="support-text">
                     <div class="support-title">إلغاء الطلب</div>
                     <div class="support-description">إلغاء طلبك الحالي</div>
                 </div>
             </div>
             <div class="support-option report" onclick="reportDelay()">
-                <div class="support-icon report">⚠️</div>
+                <div class="support-icon report">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
                 <div class="support-text">
                     <div class="support-title">الإبلاغ عن تأخير</div>
                     <div class="support-description">أخبرنا عن مشاكل التوصيل</div>
@@ -1404,21 +1231,39 @@
     <script>
         // Modal Functions
         function showItemsModal() {
+            console.log("arrive");
+
             const modal = document.getElementById('itemsModal');
             modal.classList.add('show');
             document.body.style.overflow = 'hidden';
 
             // Add stagger animation to items
-            const items = modal.querySelectorAll('.modal-item');
+            const items = modal.querySelectorAll('.order-item-modal');
             items.forEach((item, index) => {
                 item.style.opacity = '0';
-                item.style.transform = 'translateX(30px)';
+                item.style.transform = 'translateY(20px)';
                 setTimeout(() => {
                     item.style.transition = 'all 0.4s ease-out';
                     item.style.opacity = '1';
-                    item.style.transform = 'translateX(0)';
+                    item.style.transform = 'translateY(0)';
                 }, index * 100);
             });
+        }
+
+        function toggleModalToppings(index) {
+            const content = document.querySelector(`.modal-toppings-content[data-index="${index}"]`);
+            const button = document.querySelector(`.modal-toggle-btn[data-index="${index}"]`);
+
+            if (content && button) {
+                const isOpen = content.classList.contains('open');
+                content.classList.toggle('open');
+                button.classList.toggle('open');
+
+                const span = button.querySelector('.modal-toggle-text');
+                if (span) {
+                    span.textContent = isOpen ? 'إظهار' : 'إخفاء';
+                }
+            }
         }
 
         function showSupportModal() {
@@ -1444,28 +1289,19 @@
             document.body.style.overflow = 'auto';
         }
 
-        // Header Functions
-        function goBack() {
-            document.body.style.animation = 'fadeOut 0.4s ease forwards';
-            setTimeout(() => {
-                alert('العودة للصفحة السابقة...');
-                // In real app: window.history.back() or navigate to orders list
-            }, 300);
-        }
-
         // Driver Functions
         function callDriver() {
             const callBtn = document.querySelector('.call-btn');
             const originalContent = callBtn.innerHTML;
 
             // Add loading state
-            callBtn.innerHTML = '<div style="width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite;"></div>';
+            callBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             callBtn.style.transform = 'scale(0.95)';
 
             setTimeout(() => {
                 callBtn.innerHTML = originalContent;
                 callBtn.style.transform = '';
-                alert('جاري الاتصال بأحمد حسن...\n📞 +20 123 456 7890');
+                alert('جاري الاتصال بأحمد حسن...\n+20 123 456 7890');
             }, 1500);
         }
 
@@ -1473,7 +1309,7 @@
         function contactBranch() {
             closeModal('supportModal');
             setTimeout(() => {
-                alert('جاري الاتصال بالمطعم...\n📞 فرع ماكدونالدز سموحة\n+20 3 123 4567');
+                alert('جاري الاتصال بالمطعم...\nفرع ماكدونالدز سموحة\n+20 3 123 4567');
             }, 300);
         }
 
@@ -1494,14 +1330,14 @@
         }
 
         // Enhanced Modal Interactions
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             if (e.target.classList.contains('modal-overlay')) {
                 e.target.classList.remove('show');
                 document.body.style.overflow = 'auto';
             }
         });
 
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 const openModal = document.querySelector('.modal-overlay.show');
                 if (openModal) {
@@ -1510,100 +1346,6 @@
                 }
             }
         });
-
-        // Add fadeOut animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @@keyframes fadeOut {
-                from {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-                to {
-                    opacity: 0;
-                    transform: translateY(30px);
-                }
-            }
-
-            @@keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Real-time order status simulation
-        let statusUpdateInterval;
-        let currentStatusIndex = 2;
-
-        const orderStatuses = [
-            {
-                icon: '👨‍🍳',
-                text: 'جاري تحضير طلبك',
-                time: 'الوصول المتوقع: 25-30 دقيقة',
-                color: '--warning-color'
-            },
-            {
-                icon: '📦',
-                text: 'الطلب جاهز للاستلام',
-                time: 'الوصول المتوقع: 20-25 دقيقة',
-                color: '--info-color'
-            },
-            {
-                icon: '🚗',
-                text: 'في الطريق للتوصيل',
-                time: 'الوصول المتوقع: 15-20 دقيقة',
-                color: '--success-color'
-            },
-            {
-                icon: '🏠',
-                text: 'تم التوصيل',
-                time: 'استمتع بوجبتك!',
-                color: '--success-color'
-            }
-        ];
-
-        function updateOrderStatus(status) {
-            const statusIcon = document.querySelector('.status-icon');
-            const statusTitle = document.querySelector('.status-info h3');
-            const statusTime = document.querySelector('.status-time');
-            const statusContainer = document.querySelector('.status-container');
-
-            // Add update animation
-            statusIcon.style.animation = 'statusPulse 0.8s ease-out';
-            statusIcon.innerHTML = status.icon;
-            statusTitle.textContent = status.text;
-            statusTime.textContent = status.time;
-
-            // Update colors based on status
-            if (status.color) {
-                statusIcon.style.background = `linear-gradient(135deg, var(${status.color}) 0%, var(${status.color.replace('color', 'dark')}) 100%)`;
-            }
-
-            // Update payment status if delivered
-            if (status.text === 'تم التوصيل') {
-                const paymentStatus = document.querySelector('.payment-status');
-                paymentStatus.className = 'payment-status paid';
-                paymentStatus.innerHTML = '✅ تم الدفع';
-
-                // Add celebration effect
-                createConfetti();
-            }
-
-            // Add notification
-            showNotification(`📱 ${status.text}`);
-        }
-
-        function startStatusUpdates() {
-            statusUpdateInterval = setInterval(() => {
-                if (currentStatusIndex < orderStatuses.length - 1) {
-                    currentStatusIndex++;
-                    updateOrderStatus(orderStatuses[currentStatusIndex]);
-                } else {
-                    clearInterval(statusUpdateInterval);
-                }
-            }, 8000); // Update every 8 seconds
-        }
 
         // Enhanced Notifications
         function showNotification(message) {
@@ -1633,33 +1375,28 @@
             }, 3000);
         }
 
-        // Confetti Effect
-        function createConfetti() {
-            const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#26de81'];
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeItemsDisplay();
 
-            for (let i = 0; i < 30; i++) {
+            // Staggered entrance animations
+            const sections = document.querySelectorAll('.section');
+            sections.forEach((section, index) => {
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(40px)';
                 setTimeout(() => {
-                    const confetti = document.createElement('div');
-                    confetti.style.cssText = `
-                        position: fixed;
-                        width: 8px;
-                        height: 8px;
-                        background: ${colors[Math.floor(Math.random() * colors.length)]};
-                        top: -10px;
-                        left: ${Math.random() * 100}%;
-                        border-radius: 50%;
-                        z-index: 1002;
-                        animation: confettifall 3s ease-out forwards;
-                        pointer-events: none;
-                    `;
-                    document.body.appendChild(confetti);
+                    section.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                }, index * 150);
+            });
 
-                    setTimeout(() => confetti.remove(), 3000);
-                }, i * 100);
-            }
-        }
+            setTimeout(() => {
+                showNotification('مرحباً! طلبك قيد المعالجة');
+            }, 2000);
+        });
 
-        // Add additional animations
+        // Add required animation styles
         const additionalStyles = document.createElement('style');
         additionalStyles.textContent = `
             @@keyframes slideInRight {
@@ -1683,115 +1420,9 @@
                     transform: translateX(100px);
                 }
             }
-
-            @@keyframes confettifall {
-                0% {
-                    transform: translateY(-10px) rotate(0deg);
-                    opacity: 1;
-                }
-                100% {
-                    transform: translateY(100vh) rotate(360deg);
-                    opacity: 0;
-                }
-            }
         `;
         document.head.appendChild(additionalStyles);
-
-        // Enhanced Page Load Animation
-        document.addEventListener('DOMContentLoaded', function() {
-            // Staggered entrance animations
-            const sections = document.querySelectorAll('.section');
-            sections.forEach((section, index) => {
-                section.style.opacity = '0';
-                section.style.transform = 'translateY(40px)';
-                setTimeout(() => {
-                    section.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                    section.style.opacity = '1';
-                    section.style.transform = 'translateY(0)';
-                }, index * 150);
-            });
-
-            // Start status updates after page loads
-            setTimeout(() => {
-                startStatusUpdates();
-                showNotification('🎉 مرحباً! طلبك قيد المعالجة');
-            }, 2000);
-
-            // Add micro-interactions
-            addMicroInteractions();
-        });
-
-        // Micro-interactions for better UX
-        function addMicroInteractions() {
-            // Add ripple effect to clickable elements
-            const clickableElements = document.querySelectorAll('.items-preview, .support-btn, .call-btn, .support-option');
-
-            clickableElements.forEach(element => {
-                element.addEventListener('click', function(e) {
-                    const ripple = document.createElement('div');
-                    const rect = this.getBoundingClientRect();
-                    const size = Math.max(rect.width, rect.height);
-                    const x = e.clientX - rect.left - size / 2;
-                    const y = e.clientY - rect.top - size / 2;
-
-                    ripple.style.cssText = `
-                        position: absolute;
-                        width: ${size}px;
-                        height: ${size}px;
-                        left: ${x}px;
-                        top: ${y}px;
-                        background: rgba(255, 255, 255, 0.5);
-                        border-radius: 50%;
-                        transform: scale(0);
-                        animation: ripple 0.6s ease-out;
-                        pointer-events: none;
-                        z-index: 1;
-                    `;
-
-                    this.style.position = 'relative';
-                    this.style.overflow = 'hidden';
-                    this.appendChild(ripple);
-
-                    setTimeout(() => ripple.remove(), 600);
-                });
-            });
-
-            // Add scroll reveal effect
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.animation = 'fadeInUp 0.6s ease-out';
-                    }
-                });
-            }, observerOptions);
-
-            document.querySelectorAll('.section').forEach(section => {
-                observer.observe(section);
-            });
-        }
-
-        // Add ripple animation
-        const rippleStyle = document.createElement('style');
-        rippleStyle.textContent = `
-            @@keyframes ripple {
-                to {
-                    transform: scale(2);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(rippleStyle);
-
-        // Performance optimization: Reduce animations on low-end devices
-        if (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) {
-            document.documentElement.style.setProperty('--transition', 'all 0.15s ease');
-            document.documentElement.style.setProperty('--transition-spring', 'all 0.2s ease');
-        }
     </script>
+
 </body>
 </html>

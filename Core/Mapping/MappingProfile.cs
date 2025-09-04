@@ -48,17 +48,18 @@ public class MappingProfile : Profile
         // Order
         // ===============================
         CreateMap<Order, OrderDetailsViewModel>()
-            .ForMember(dest => dest.CustomerAddress,opt => opt.MapFrom(src => src.CustomerAddress))
-            .ForMember(dest => dest.Items,opt => opt.MapFrom(src => src.Items))
-            .ForMember(dest => dest.Payment,opt => opt.MapFrom(src => src.Payments.FirstOrDefault()))
-            .ForMember(dest => dest.DeliveryTimeInMinutes,opt => opt.MapFrom(src => src.Branch.DeliveryTimeInMinutes))
-            .ForMember(dest => dest.BranchPhone,opt => opt.MapFrom(src => src.Branch.Phone));
+            .ForMember(dest => dest.CustomerAddress, opt => opt.MapFrom(src => src.CustomerAddress))
+            .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items))
+            .ForMember(dest => dest.Payment, opt => opt.MapFrom(src => src.Payments.FirstOrDefault()))
+            .ForMember(dest => dest.DeliveryTimeInMinutes, opt => opt.MapFrom(src => src.Branch.DeliveryTimeInMinutes))
+            .ForMember(dest => dest.BranchPhone, opt => opt.MapFrom(src => src.Branch.Phone));
 
         CreateMap<OrderItem, OrderItemViewModel>()
-            .ForMember(dest => dest.Title,opt => opt.MapFrom(src => src.Item.NameAr))   // Arabic name
-            .ForMember(dest => dest.Description,opt => opt.MapFrom(src => src.Item.DescriptionAr))
-            .ForMember(dest => dest.ThumbnailUrl,opt => opt.MapFrom(src => src.Item.ImageUrl))
-            .ForMember(dest => dest.SelectedToppingGroups,opt => opt.MapFrom(src => src.ToppingGroups));
+            .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Item.NameAr))   // Arabic name
+            .ForMember(dest => dest.ThumbnailUrl, opt => opt.MapFrom(src => src.Item.ThumbnailUrl))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Item.DescriptionAr))
+            //.ForMember(dest => dest.ThumbnailUrl, opt => opt.MapFrom(src => src.Item.ImageUrl))
+            .ForMember(dest => dest.SelectedToppingGroups, opt => opt.MapFrom(src => src.ToppingGroups));
 
         CreateMap<SelectedToppingGroup, SelectedToppingGroupViewModel>()
             //fix why Title by null in view modal 
@@ -70,7 +71,7 @@ public class MappingProfile : Profile
        .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.ToppingOption.ImageUrl));
 
         CreateMap<Order, OrderStatusBoxViewModel>()
-            .ForMember(dest => dest.LastStatus,opt => opt.MapFrom(src => src.StatusHistory
+            .ForMember(dest => dest.LastStatus, opt => opt.MapFrom(src => src.StatusHistory
             .Select(s => s.Status).Last()))
                .ForMember(dest => dest.DeliveryTimeInMinutes, opt => opt.MapFrom(src => src.Branch.DeliveryTimeInMinutes))
                .ForMember(dest => dest.OrderDate, opt => opt.MapFrom(src => src.OrderDate));

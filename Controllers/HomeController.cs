@@ -117,18 +117,22 @@ public class HomeController : Controller
                     .OrderByDescending(s => s.Timestamp)
                     .FirstOrDefault()?.Status;
 
-                //if (lastStatus == OrderStatusEnum.Cancelled)
-                //    return false; 
-
-                if (lastStatus == OrderStatusEnum.DriverConfirmedDelivery)
+                if (lastStatus == OrderStatusEnum.DriverConfirmedDelivery
+          || lastStatus == OrderStatusEnum.CustomerConfirmedDelivery
+          || lastStatus == OrderStatusEnum.CancelledFromCustomer
+          || lastStatus == OrderStatusEnum.CancelledFromRestaurant)
                 {
                     var deliveredTime = o.StatusHistory
                         .OrderByDescending(s => s.Timestamp)
                         .FirstOrDefault()?.Timestamp;
 
-                    if (deliveredTime.HasValue && (DateTime.UtcNow - deliveredTime.Value).TotalHours >= 1)
-                        return false; 
+                    if (deliveredTime.HasValue &&
+                        (DateTime.UtcNow - deliveredTime.Value).TotalHours >= 1)
+                    {
+                        return false;
+                    }
                 }
+
 
                 return true;
             })

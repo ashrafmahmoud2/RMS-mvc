@@ -26,6 +26,8 @@ public class OrderDetailsViewModel
 
     // Payment Info
     public PaymentSummaryViewModel Payment { get; set; } = new();
+
+    public OrderStatusBoxViewModel OrderStatusBox { get; set; } = new();
 }
 
 public class PaymentSummaryViewModel

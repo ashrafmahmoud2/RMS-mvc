@@ -1,0 +1,488 @@
+﻿@model OrderDetailsViewModel
+
+<style>
+    /* Updated Modal Styles to Match Cart Design */
+    .order-items-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .order-item-modal {
+        background: var(--surface);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        transition: var(--transition);
+        margin-bottom: 16px;
+        animation: slideInUp 0.3s ease-out;
+    }
+
+        .order-item-modal:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-1px);
+            border-color: var(--primary-color);
+        }
+
+    .modal-item {
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .modal-item-image {
+        flex-shrink: 0;
+        width: 80px;
+        height: 80px;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        background: var(--surface-variant);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .modal-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .modal-item-image:hover img {
+            transform: scale(1.05);
+        }
+
+    .modal-item-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .modal-item-name {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+        line-height: 1.4;
+    }
+
+    .modal-item-details {
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.4;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .modal-item-quantity {
+        background: var(--primary-color);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .modal-item-price {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--primary-color);
+        flex-shrink: 0;
+    }
+
+    /* Enhanced Toppings Section */
+    .modal-toppings-section {
+        border-top: 1px solid var(--border);
+        background: var(--surface);
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .modal-toppings-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        cursor: pointer;
+        transition: var(--transition);
+        border-radius: 0;
+    }
+
+        .modal-toppings-header:hover {
+            background: rgba(24, 84, 153, 0.05);
+        }
+
+    .modal-toppings-preview {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .modal-toppings-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 16px;
+    }
+
+    .modal-toppings-thumbnails {
+        display: flex;
+        align-items: center;
+        gap: -8px;
+    }
+
+    .modal-topping-thumb {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 3px solid white;
+        object-fit: cover;
+        margin-left: -8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        background: var(--surface-variant);
+        transition: var(--transition);
+    }
+
+        .modal-topping-thumb:first-child {
+            margin-left: -10px
+            ;
+        }
+
+        .modal-topping-thumb:hover {
+            transform: scale(1.1);
+            z-index: 10;
+            position: relative;
+        }
+
+    .modal-more-toppings {
+        background: var(--primary-color);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        margin-left: -8px;
+        border: 3px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .modal-toggle-btn {
+        background: none;
+        border: none;
+        color: var(--primary-color);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 8px;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+    }
+
+    .modal-toggle-text {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 16px;
+    }
+
+    .modal-toggle-btn i {
+        transition: transform 0.2s ease;
+        font-size: 14px;
+    }
+
+    .modal-toggle-btn.open i {
+        transform: rotate(180deg);
+    }
+
+    .modal-toppings-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+    }
+
+        .modal-toppings-content.open {
+            max-height: 1000px;
+            overflow:scroll;
+        }
+
+    .modal-toppings-list {
+        padding: 0 20px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .modal-topping-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        background: transparent;
+        border-radius: 0;
+        border: none;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+        transition: var(--transition);
+    }
+
+        .modal-topping-item:hover {
+            background: var(--surface-hover);
+            margin: 0 -16px;
+            padding-left: 16px;
+            padding-right: 16px;
+            border-radius: 12px;
+        }
+
+        .modal-topping-item:last-child {
+            border-bottom: none;
+        }
+
+    .modal-topping-image {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        object-fit: cover;
+        background: var(--surface-variant);
+        flex-shrink: 0;
+    }
+
+    .modal-topping-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .modal-topping-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 2px;
+        font-size: 14px;
+    }
+
+    .modal-topping-price {
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .modal-topping-free {
+        color: var(--success-color);
+        font-weight: 600;
+    }
+
+    .modal-topping-paid {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    /* Animations */
+    @@keyframes slideInUp {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    /* Loading state for images */
+    .modal-item-image img,
+    .modal-topping-thumb,
+    .modal-topping-image {
+        background-image: linear-gradient(45deg, #f1f5f9, #e2e8f0);
+        background-size: 400% 400%;
+        animation: shimmer 1.5s ease-in-out infinite;
+    }
+
+    @@keyframes shimmer {
+        0%
+
+    {
+        background-position: 0% 0%;
+    }
+
+    50% {
+        background-position: 100% 100%;
+    }
+
+    100% {
+        background-position: 0% 0%;
+    }
+
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .modal-item
+
+    {
+        padding: 16px;
+        gap: 12px;
+    }
+
+    .modal-item-image {
+        width: 64px;
+        height: 64px;
+    }
+
+    .modal-item-name {
+        font-size: 16px;
+    }
+
+    .modal-item-price {
+        font-size: 18px;
+    }
+
+    .modal-toppings-header {
+        padding: 12px 16px;
+    }
+
+    .modal-toppings-list {
+        padding: 0 16px 12px;
+    }
+
+    }
+</style>
+
+<div class="order-items-container">
+    @for (int i = 0; i < Model.Items.Count; i++)
+    {
+        var item = Model.Items[i];
+        var allToppings = item.SelectedToppingGroups?.SelectMany(g => g.SelectedToppingOptions).ToList() ?? new List<SelectedToppingOptionViewModel>();
+        var totalToppingsPrice = allToppings.Sum(t => t.PriceAtOrderTime * t.Quantity);
+        var totalItemPrice = (item.PriceAtOrderTime + totalToppingsPrice) * item.Quantity;
+
+        <div class="order-item-modal">
+            <!-- Main Item -->
+            <div class="modal-item">
+                <div class="modal-item-image">
+                    <img src="@Url.Content(item.ThumbnailUrl)" alt="@item.Title" loading="lazy" />
+                </div>
+                <div class="modal-item-info">
+                    <div class="modal-item-name">@item.Title</div>
+                    <div class="modal-item-details">
+                        <span class="modal-item-quantity">الكمية: @item.Quantity</span>
+                        @if (!string.IsNullOrEmpty(item.Description))
+                        {
+                            <span>@item.Description</span>
+                        }
+                    </div>
+                </div>
+                <div class="modal-item-price">@totalItemPrice.ToString("F2") جنيه</div>
+            </div>
+
+            <!-- Toppings Section -->
+            @if (allToppings.Any())
+            {
+                var visibleToppings = allToppings.Take(2).ToList();
+                var moreCount = allToppings.Count - 2;
+
+                <div class="modal-toppings-section">
+                    <div class="modal-toppings-header" onclick="toggleModalToppings(@i)">
+                        <div class="modal-toppings-preview">
+                            <div class="modal-toppings-title">الاختيارات:</div>
+                            <div class="modal-toppings-thumbnails">
+                                @foreach (var topping in visibleToppings)
+                                {
+                                    <img src="@Url.Content(topping.ImageUrl)" alt="@topping.Name" class="modal-topping-thumb" loading="lazy" />
+                                }
+                                @if (moreCount > 0)
+                                {
+                                    <div class="modal-more-toppings">+@moreCount</div>
+                                }
+                            </div>
+                        </div>
+                        <button class="modal-toggle-btn" data-index="@i">
+                            <span class="modal-toggle-text">إظهار</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div class="modal-toppings-content" data-index="@i">
+                        <div class="modal-toppings-list">
+                            @foreach (var topping in allToppings)
+                            {
+                                <div class="modal-topping-item">
+                                    <img src="@Url.Content(topping.ImageUrl)" alt="@topping.Name" class="modal-topping-image" loading="lazy" />
+                                    <div class="modal-topping-details">
+                                        <div class="modal-topping-name">@topping.Name</div>
+                                        <div class="modal-topping-price">
+                                            @if (topping.PriceAtOrderTime > 0)
+                                            {
+                                                <span class="modal-topping-paid">@topping.PriceAtOrderTime.ToString("F2") جنيه</span>
+                                                <span>× @topping.Quantity</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="modal-topping-free">مجاني</span>
+                                                <span>× @topping.Quantity</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<script>
+    function toggleModalToppings(index) {
+        const content = document.querySelector(`.modal-toppings-content[data-index="${index}"]`);
+        const button = document.querySelector(`.modal-toggle-btn[data-index="${index}"]`);
+
+        if (content && button) {
+            const isOpen = content.classList.contains('open');
+            content.classList.toggle('open');
+            button.classList.toggle('open');
+
+            const span = button.querySelector('.modal-toggle-text');
+            if (span) {
+                span.textContent = isOpen ? 'إظهار' : 'إخفاء';
+            }
+
+            // Add smooth scroll animation when opening
+            if (!isOpen) {
+                setTimeout(() => {
+                    content.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest'
+                    });
+                }, 150);
+            }
+        }
+    }
+
+    // Add stagger animation effect for items
+    document.addEventListener('DOMContentLoaded', function() {
+        const items = document.querySelectorAll('.order-item-modal');
+        items.forEach((item, index) => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                item.style.transition = 'all 0.4s ease-out';
+                item.style.opacity = '1';
+                item.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    });
+</script>
