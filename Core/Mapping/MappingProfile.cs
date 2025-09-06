@@ -52,7 +52,9 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items))
             .ForMember(dest => dest.Payment, opt => opt.MapFrom(src => src.Payments.FirstOrDefault()))
             .ForMember(dest => dest.DeliveryTimeInMinutes, opt => opt.MapFrom(src => src.Branch.DeliveryTimeInMinutes))
-            .ForMember(dest => dest.BranchPhone, opt => opt.MapFrom(src => src.Branch.Phone));
+            .ForMember(dest => dest.BranchPhone, opt => opt.MapFrom(src => src.Branch.Phone))
+            .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.NameAr))
+                .ForMember(dest => dest.OrderStatusBox, opt => opt.MapFrom(src => src)); 
 
         CreateMap<OrderItem, OrderItemViewModel>()
             .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Item.NameAr))   // Arabic name
@@ -71,8 +73,11 @@ public class MappingProfile : Profile
        .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.ToppingOption.ImageUrl));
 
         CreateMap<Order, OrderStatusBoxViewModel>()
-            .ForMember(dest => dest.LastStatus, opt => opt.MapFrom(src => src.StatusHistory
-            .Select(s => s.Status).Last()))
+        .ForMember(dest => dest.LastStatus, opt => opt.MapFrom(src =>
+        src.StatusHistory
+           .OrderByDescending(s => s.Timestamp)
+           .Select(s => s.Status)
+           .FirstOrDefault()))
                .ForMember(dest => dest.DeliveryTimeInMinutes, opt => opt.MapFrom(src => src.Branch.DeliveryTimeInMinutes))
                .ForMember(dest => dest.OrderDate, opt => opt.MapFrom(src => src.OrderDate));
 

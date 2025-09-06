@@ -1,0 +1,624 @@
+﻿@using RMS.Web.Core.Enums
+@model IEnumerable<OrderDetailsViewModel>
+@{
+    string GetStatusClass(OrderStatusEnum status) => status switch
+    {
+        OrderStatusEnum.Received => "pending",
+        OrderStatusEnum.Preparing => "preparing",
+        OrderStatusEnum.Delivering => "delivering",
+        OrderStatusEnum.DriverConfirmedDelivery or OrderStatusEnum.CustomerConfirmedDelivery => "completed",
+        OrderStatusEnum.CancelledFromRestaurant or OrderStatusEnum.CancelledFromCustomer => "cancelled",
+        _ => "pending"
+    };
+
+    string GetStatusText(OrderStatusEnum status) => status switch
+    {
+        OrderStatusEnum.Received => "استلم المطعم طلبك",
+        OrderStatusEnum.Preparing => "جاري التحضير",
+        OrderStatusEnum.Delivering => "قيد التوصيل",
+        OrderStatusEnum.DriverConfirmedDelivery => "تم توصيل الطلب",
+        OrderStatusEnum.CustomerConfirmedDelivery => "تم استلام الطلب",
+        OrderStatusEnum.CancelledFromRestaurant => "تم إلغاء الطلب من المطعم",
+        OrderStatusEnum.CancelledFromCustomer => "تم إلغاء الطلب من قبلك",
+
+
+        _ => "غير معروف"
+    };
+
+    string GetStatusIcon(OrderStatusEnum status) => status switch
+    {
+        OrderStatusEnum.Received => "fa-clock",
+        OrderStatusEnum.Preparing => "fa-utensils",
+        OrderStatusEnum.Delivering => "fa-truck",
+        OrderStatusEnum.DriverConfirmedDelivery or OrderStatusEnum.CustomerConfirmedDelivery => "fa-check-circle",
+        OrderStatusEnum.CancelledFromRestaurant or OrderStatusEnum.CancelledFromCustomer => "fa-times-circle",
+        _ => "fa-info-circle"
+    };
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>طلباتي</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #0052a3;
+            --primary-dark: #003875;
+            --primary-light: #3380c7;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --surface-hover: #f1f5f9;
+            --border: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+            --border-radius: 16px;
+            --border-radius-lg: 24px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .orders-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            padding: 16px 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 12px;
+            transition: var(--transition);
+            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+            .header-btn:hover {
+                background: rgba(255, 255, 255, 0.25);
+                transform: scale(1.05);
+            }
+
+        .header-title {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+
+      
+       
+      
+
+        /* Orders List */
+        .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .order-card {
+            background: var(--surface);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: var(--transition);
+            animation: slideInUp 0.5s ease-out;
+        }
+
+            .order-card:hover {
+                box-shadow: var(--shadow-lg);
+                transform: translateY(-2px);
+                border-color: var(--primary-light);
+            }
+
+        .order-card-header {
+            background: linear-gradient(135deg, var(--surface) 0%, var(--surface-hover) 100%);
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .order-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .order-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .order-date {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .order-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+            .order-status.pending {
+                background: rgba(245, 158, 11, 0.1);
+                color: var(--warning-color);
+                border: 1px solid rgba(245, 158, 11, 0.2);
+            }
+
+            .order-status.confirmed {
+                background: rgba(59, 130, 246, 0.1);
+                color: var(--info-color);
+                border: 1px solid rgba(59, 130, 246, 0.2);
+            }
+
+            .order-status.preparing {
+                background: rgba(168, 85, 247, 0.1);
+                color: #a855f7;
+                border: 1px solid rgba(168, 85, 247, 0.2);
+            }
+
+            .order-status.delivering {
+                background: rgba(34, 197, 94, 0.1);
+                color: #22c55e;
+                border: 1px solid rgba(34, 197, 94, 0.2);
+            }
+
+            .order-status.completed {
+                background: rgba(16, 185, 129, 0.1);
+                color: var(--success-color);
+                border: 1px solid rgba(16, 185, 129, 0.2);
+            }
+
+            .order-status.cancelled {
+                background: rgba(239, 68, 68, 0.1);
+                color: var(--danger-color);
+                border: 1px solid rgba(239, 68, 68, 0.2);
+            }
+
+        .order-card-body {
+            padding: 20px;
+        }
+
+        .order-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .order-detail {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .order-detail i {
+                width: 20px;
+                color: var(--primary-color);
+                font-size: 16px;
+            }
+
+        .order-detail-text {
+            flex: 1;
+        }
+
+        .order-detail-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+        }
+
+        .order-detail-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .order-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .order-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .order-btn {
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+            .order-btn.primary {
+                background: var(--primary-color);
+                color: white;
+                border-color: var(--primary-color);
+            }
+
+                .order-btn.primary:hover {
+                    background: var(--primary-dark);
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(0, 82, 163, 0.3);
+                }
+
+            .order-btn.secondary {
+                background: transparent;
+                color: var(--text-secondary);
+                border-color: var(--border);
+            }
+
+                .order-btn.secondary:hover {
+                    background: var(--surface-hover);
+                    color: var(--text-primary);
+                    border-color: var(--primary-color);
+                }
+
+        /* Empty State */
+        .empty-orders {
+            margin-top: 200px;
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--surface);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow);
+        }
+
+        .empty-orders-icon {
+            font-size: 64px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-orders h2 {
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .empty-orders p {
+            color: var(--text-secondary);
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+
+        .start-ordering-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .start-ordering-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 82, 163, 0.3);
+            }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @@keyframes spin {
+            0%
+
+        {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+
+        }
+
+        @@keyframes slideInUp {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .main-container
+
+        {
+            padding: 16px;
+        }
+
+        .order-info {
+            grid-template-columns: 1fr;
+        }
+
+        .order-actions {
+            flex-direction: column;
+        }
+
+        .order-btn {
+            justify-content: center;
+        }
+
+        .filter-tabs {
+            justify-content: center;
+        }
+
+        .summary-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        }
+
+        @@media (max-width: 480px) {
+            .header-title
+
+        {
+            font-size: 18px;
+        }
+
+        .order-card-header,
+        .order-card-body {
+            padding: 16px;
+        }
+
+        .summary-stats {
+            grid-template-columns: 1fr;
+        }
+
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="orders-header">
+        <div class="header-container">
+            <button class="header-btn" onclick="window.history.back()">
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            <div class="header-title">طلباتي</div>
+            <div style="width: 48px;"></div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+
+
+
+        <!-- Orders List -->
+        <div class="orders-list">
+            @if (!Model.Any())
+            {
+                <div class="empty-orders">
+                    <i class="fas fa-box-open empty-orders-icon"></i>
+                    <h2>لا توجد طلبات</h2>
+                    <p>ابدأ أول طلب لك الآن!</p>
+                    <a asp-controller="Home" asp-action="Index" class="start-ordering-btn">
+                        اطلب الآن
+                    </a>
+                </div>
+            }
+            else
+            {
+                @foreach (var order in Model)
+                {
+                    var status = (OrderStatusEnum)order.OrderStatusBox.LastStatusId;
+                    var statusClass = GetStatusClass(status);
+                    var statusText = GetStatusText(status);
+                    var statusIcon = GetStatusIcon(status);
+
+              
+                    <div class="order-card" data-status="@statusClass">
+                        <div class="order-card-header">
+                            <div class="order-header-top">
+                                <div>
+                                    <div class="order-number">طلب رقم @order.OrderNumber</div>
+                                    <div class="order-date">@order.OrderDate.ToString("yyyy/MM/dd HH:mm")</div>
+                                </div>
+                                <div class="order-status @statusClass">
+                                    <i class="fas @statusIcon"></i>
+                                    @statusText
+                                </div>
+                            </div>
+                        </div>
+                        <div class="order-card-body">
+                            <div class="order-info">
+                                <div class="order-detail">
+                                    <i class="fas fa-store"></i>
+                                    <div class="order-detail-text">
+                                        <div class="order-detail-label">الفرع</div>
+                                        <div class="order-detail-value">@order.BranchName</div>
+                                    </div>
+                                </div>
+                                <div class="order-detail">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    <div class="order-detail-text">
+                                        <div class="order-detail-label">المجموع</div>
+                                        <div class="order-detail-value order-price">@order.GrandTotal.ToString("N2") جنيه</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="order-actions">
+                                <a asp-action="OrderDetails" asp-route-orderId="@order.Id" class="order-btn primary">
+                                    <i class="fas fa-eye"></i>
+                                    التفاصيل
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <script>
+        // Filter functionality
+        function filterOrders(status) {
+            const orderCards = document.querySelectorAll('.order-card');
+            const filterTabs = document.querySelectorAll('.filter-tab');
+
+            // Update active tab
+            filterTabs.forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Filter orders
+            orderCards.forEach(card => {
+                if (status === 'all' || card.dataset.status === status) {
+                    card.style.display = 'block';
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100);
+                } else {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                    }, 300);
+                }
+            });
+        }
+
+        // Track order functionality
+        function trackOrder(orderNumber) {
+            // Implementation for order tracking
+            alert(`تتبع الطلب ${orderNumber}\nسيتم فتح خريطة التتبع...`);
+            // In real implementation, this would open a tracking modal or page
+        }
+
+        // Reorder functionality
+        function reorder(orderNumber) {
+            if (confirm(`هل تريد إعادة طلب نفس العناصر من الطلب ${orderNumber}؟`)) {
+                alert('جاري إضافة العناصر إلى السلة...');
+                // In real implementation, this would add items to cart
+            }
+        }
+
+        // Contact branch functionality
+        function contactBranch(branchName) {
+            alert(`الاتصال بـ ${branchName}\nرقم الهاتف: 050-123-4567`);
+            // In real implementation, this would initiate a phone call
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add stagger animation to order cards
+            const orderCards = document.querySelectorAll('.order-card');
+            orderCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease-out';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 150);
+            });
+        });
+    </script>
+</body>
+</html>

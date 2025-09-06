@@ -1,49 +1,638 @@
-﻿<header class="header">
-    <div class="container">
-        <button class="menu-button" type="button">
-            <i class="fa-solid fa-bars"></i>
-        </button>
-
-        <h1 class="urdu-text"> شاورما المنصوره</h1>
-    </div>
-</header>
+﻿
 
 
-<style>
-    /* Header Styles */
-    .header {
-        background-color: #fff;
-        padding: 10px 0px;
-        border-bottom: 1px solid #ccc;
-    }
 
-        .header .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-    .urdu-text {
-        font-family: 'Noto Nastaliq Urdu', serif;
-    }
+        :root {
+            --primary-color: #0052a3;
+            --primary-dark: #003875;
+            --primary-light: #3380c7;
+            --success-color: #10b981;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --surface-hover: #f1f5f9;
+            --border: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+            --border-radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
 
+        /* Header Styles */
+        .header {
+            background-color: var(--surface);
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-    .menu-button {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0;
-        color: #0052a3;
-        font-size: 31px;
-    }
+            .header .container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 20px;
+            }
 
-    .menu-icon {
-        width: 30px;
-        height: 30px;
-    }
+        .urdu-text {
+            font-family: 'Noto Nastaliq Urdu', serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
 
-    .header h1 {
-        font-size: 20PX;
-    }
-</style>
+        .menu-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            color: var(--primary-color);
+            font-size: 24px;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+        }
+
+            .menu-button:hover {
+                background: var(--surface-hover);
+                transform: scale(1.05);
+            }
+
+            .menu-button:active {
+                transform: scale(0.95);
+            }
+
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+            .sidebar-overlay.active {
+                opacity: 1;
+                visibility: visible;
+            }
+
+        /* Sidebar Menu */
+        .sidebar-menu {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 320px;
+            height: 100vh;
+            background: var(--surface);
+            box-shadow: var(--shadow-lg);
+            transform: translateX(100%);
+            transition: var(--transition);
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+            .sidebar-menu.active {
+                transform: translateX(0);
+            }
+
+        /* Sidebar Header */
+        .sidebar-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 24px 20px;
+            position: relative;
+        }
+
+        .sidebar-close {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+
+            .sidebar-close:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: scale(1.1);
+            }
+
+        .sidebar-user-info {
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .sidebar-user-avatar {
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin: 0 auto 12px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .sidebar-user-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-user-email {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Sidebar Content */
+        .sidebar-content {
+            flex: 1;
+            padding: 0;
+        }
+
+        .menu-section {
+            padding-top: 16px;
+        }
+
+        /*     .menu-section:not(:last-child) {
+                border-bottom: 1px solid var(--border);
+            } */
+
+        .menu-section-title {
+            padding: 0 20px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: right;
+            font-size: 16px;
+            position: relative;
+        }
+
+            .menu-item:hover {
+                background: var(--surface-hover);
+                color: var(--primary-color);
+                padding-right: 24px;
+            }
+
+            .menu-item::before {
+                content: '';
+                position: absolute;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                width: 4px;
+                background: var(--primary-color);
+                transform: scaleY(0);
+                transition: var(--transition);
+            }
+
+            .menu-item:hover::before {
+                transform: scaleY(1);
+            }
+
+            .menu-item i {
+                font-size: 20px;
+                width: 24px;
+                text-align: center;
+                flex-shrink: 0;
+            }
+
+        .menu-item-text {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .menu-item-badge {
+            background: var(--success-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .menu-item-arrow {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Language Toggle */
+        .language-toggle {
+            display: flex;
+            background: var(--surface-hover);
+            border-radius: var(--border-radius);
+            padding: 4px;
+            margin: 0 20px;
+        }
+
+        .language-option {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+            .language-option.active {
+                background: var(--primary-color);
+                color: white;
+                box-shadow: 0 2px 4px rgba(0, 82, 163, 0.3);
+            }
+
+        /* Social Media Icons */
+        .social-media {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            padding: 16px 20px 0;
+        }
+
+        .social-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: var(--transition);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+            .social-icon.facebook {
+                background: #1877f2;
+            }
+
+            .social-icon.instagram {
+                background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            }
+
+            .social-icon.whatsapp {
+                background: #25d366;
+            }
+
+            .social-icon:hover {
+                transform: translateY(-2px) scale(1.05);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            }
+
+        /* Sidebar Footer */
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .logout-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 16px 20px;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+            .logout-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 6px 20px rgba(0, 82, 163, 0.3);
+            }
+
+        .powered-by {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .sidebar-menu
+
+        {
+            width: 280px;
+        }
+
+        .menu-item {
+            padding: 14px 16px;
+        }
+
+        .sidebar-header {
+            padding: 20px 16px;
+        }
+
+        }
+
+        @@media (max-width: 480px) {
+            .sidebar-menu
+
+        {
+            width: 100vw;
+            max-width: 320px;
+        }
+
+        }
+
+        /* Animation delays for menu items */
+        .menu-item {
+            opacity: 0;
+            transform: translateX(20px);
+            animation: slideInMenuItem 0.3s ease-out forwards;
+        }
+
+            .menu-item:nth-child(1) {
+                animation-delay: 0.05s;
+            }
+
+            .menu-item:nth-child(2) {
+                animation-delay: 0.1s;
+            }
+
+            .menu-item:nth-child(3) {
+                animation-delay: 0.15s;
+            }
+
+            .menu-item:nth-child(4) {
+                animation-delay: 0.2s;
+            }
+
+            .menu-item:nth-child(5) {
+                animation-delay: 0.25s;
+            }
+
+            .menu-item:nth-child(6) {
+                animation-delay: 0.3s;
+            }
+
+        @@keyframes slideInMenuItem {
+            to
+
+        {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        }
+    </style>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <button class="menu-button" type="button" id="menuToggle">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <h1 class="urdu-text">شاورما المنصوره</h1>
+        </div>
+    </header>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar Menu -->
+    <div class="sidebar-menu" id="sidebarMenu">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <button class="sidebar-close" id="sidebarClose">
+                <i class="fa-solid fa-times"></i>
+            </button>
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="sidebar-user-name">أحمد محمد</div>
+                <div class="sidebar-user-email">ahmed@example.com</div>
+            </div>
+        </div>
+
+        <!-- Sidebar Content -->
+        <div class="sidebar-content">
+            <!-- Main Menu Section -->
+            <div class="menu-section">
+                <div class="menu-section-title">القائمة الرئيسية</div>
+                <a asp-controller="Order" asp-action="CustomerOrders" class="menu-item">
+                    <i class="fa-solid fa-receipt"></i>
+                    <span class="menu-item-text">طلباتي</span>
+                    <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                </a>
+                <a href="/Cart" class="menu-item">
+                    <i class="fa-solid fa-shopping-cart"></i>
+                    <span class="menu-item-text">السلة</span>
+                    <span class="menu-item-badge">3</span>
+                    <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                </a>
+                <a href="/Wallet" class="menu-item">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span class="menu-item-text">محفظتي</span>
+                    <span class="menu-item-badge">200 جنيه</span>
+                    <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                </a>
+                <a href="/Profile" class="menu-item">
+                    <i class="fa-solid fa-user-circle"></i>
+                    <span class="menu-item-text">ملفي الشخصي</span>
+                    <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                </a>
+                <a href="/Address" class="menu-item">
+                    <i class="fa-solid fa-map-marker-alt"></i>
+                    <span class="menu-item-text">عناويني</span>
+                    <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                </a>
+                <a href="/Support" class="menu-item">
+                    <i class="fa-solid fa-life-ring"></i>
+                    <span class="menu-item-text">الدعم</span>
+                    <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                </a>
+            </div>
+
+            <!-- Settings & Tools Section -->
+            <div class="menu-section">
+                <div class="menu-item" style="flex-direction: column; gap: 12px; align-items: stretch;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <i class="fa-solid fa-language"></i>
+                        <span class="menu-item-text">اللغة</span>
+                    </div>
+                    <div class="language-toggle">
+                        <button class="language-option active" onclick="switchLanguage('ar')">العربية</button>
+                        <button class="language-option" onclick="switchLanguage('en')">English</button>
+                    </div>
+                </div>
+
+                <div class="menu-item" style="flex-direction: column; gap: 12px; align-items: stretch;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <i class="fa-solid fa-share-nodes"></i>
+                        <span class="menu-item-text">تابعنا على</span>
+                    </div>
+                    <div class="social-media">
+                        <a href="#" class="social-icon facebook">
+                            <i class="fa-brands fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-icon instagram">
+                            <i class="fa-brands fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-icon whatsapp">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="handleLogout()">
+                <i class="fa-solid fa-sign-out-alt"></i>
+                <span>تسجيل الخروج</span>
+            </button>
+            <div class="powered-by">Powered by Ashraf</div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar functionality
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const sidebarMenu = document.getElementById('sidebarMenu');
+        const sidebarClose = document.getElementById('sidebarClose');
+
+        function openSidebar() {
+            sidebarOverlay.classList.add('active');
+            sidebarMenu.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebarOverlay.classList.remove('active');
+            sidebarMenu.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Event listeners
+        menuToggle.addEventListener('click', openSidebar);
+        sidebarClose.addEventListener('click', closeSidebar);
+        sidebarOverlay.addEventListener('click', closeSidebar);
+
+        // Close sidebar with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeSidebar();
+            }
+        });
+
+        // Language switching
+        function switchLanguage(lang) {
+            const options = document.querySelectorAll('.language-option');
+            options.forEach(option => {
+                option.classList.remove('active');
+                if (option.onclick.toString().includes(lang)) {
+                    option.classList.add('active');
+                }
+            });
+
+            // Here you would implement actual language switching logic
+            console.log('Switching to language:', lang);
+
+            // Example: redirect or reload with language parameter
+            // window.location.href = `?lang=${lang}`;
+        }
+
+        // Logout functionality
+        function handleLogout() {
+            if (confirm('هل تريد تسجيل الخروج؟')) {
+                // Implement logout logic here
+                console.log('Logging out...');
+                // Example: redirect to login page
+                // window.location.href = '/Account/Logout';
+            }
+        }
+
+        // Add smooth scroll prevention when sidebar is open
+        let startY = 0;
+        document.addEventListener('touchstart', function(e) {
+            if (sidebarMenu.classList.contains('active') && !sidebarMenu.contains(e.target)) {
+                startY = e.touches[0].pageY;
+            }
+        });
+
+        document.addEventListener('touchmove', function(e) {
+            if (sidebarMenu.classList.contains('active') && !sidebarMenu.contains(e.target)) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>

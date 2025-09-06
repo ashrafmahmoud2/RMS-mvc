@@ -5,12 +5,17 @@ using RMS.Web.Core.ViewModels.Order;
 using System.Threading.Tasks;
 
 
+
+
 /*
+
  # seps
- 5. make regestriation to show his orders(curent or past )
- 6. Implement search , using pakage in mvc project
- 7. add sub main bar like in order , taker , talbat, snoono)
+
+ 6. make regestriation to show his orders(curent or past )
+ 7. Implement search , using pakage in mvc project
  8. add the card layout , with make responsive in it
+ 9. make one modal to show error in chekout page   
+ 10. Make prail view if no itsm , orders to show in chekout , my orders page and if not login like orders , accout any thing need login 
     now you are ready to test in real life , so using local host and ngrok
 */
 
@@ -196,7 +201,7 @@ public class OrderController : Controller
 
         if (customer != null)
         {
-            await _signInManager.SignInAsync(customer.User, isPersistent: false);
+            await _signInManager.SignInAsync(customer.User, isPersistent: true);
             return customer;
         }
         if (string.IsNullOrWhiteSpace(model.PhoneNumber))
@@ -386,7 +391,6 @@ public class OrderController : Controller
             return NotFound();
 
         var viewModel = _mapper.Map<OrderDetailsViewModel>(order);
-        //return PartialView("_OrderDetails", viewModel);
         return View(viewModel);
     }
 
@@ -430,8 +434,24 @@ public class OrderController : Controller
         return RedirectToAction("Index", "Home") ;
     }
 
+    [HttpGet]
+    public IActionResult CustomerOrders()  
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
+        var orders = _context.Orders
+            .Include(o => o.Branch)
+            .Include(o => o.StatusHistory)
+            .Where(o => o.Customer.UserId == userId)
+            .OrderBy(o => o.OrderDate)
+            .ToList();
 
+       
+
+        var viewModel = _mapper.Map<IEnumerable<OrderDetailsViewModel>>(orders);
+        
+        return View(viewModel);
+    }
 
 
 }

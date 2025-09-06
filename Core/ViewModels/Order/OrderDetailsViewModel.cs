@@ -2,10 +2,14 @@
 
 namespace RMS.Web.Core.ViewModels.Order;
 
+
+
+
 public class OrderDetailsViewModel
 {
     public int Id { get; set; }
     public string OrderNumber { get; set; }= null!;
+    public DateTime OrderDate { get; set; } = DateTime.UtcNow;
 
     // Address
     public CustomerAddressViewModel CustomerAddress { get; set; } = new();
@@ -22,6 +26,7 @@ public class OrderDetailsViewModel
     //Bracnch 
     public int DeliveryTimeInMinutes { get; set; }
     public string BranchPhone { get; set; } = null!;
+    public string BranchName { get; set; } = null!;
 
 
     // Payment Info
@@ -29,6 +34,8 @@ public class OrderDetailsViewModel
 
     public OrderStatusBoxViewModel OrderStatusBox { get; set; } = new();
 }
+
+
 
 public class PaymentSummaryViewModel
 {

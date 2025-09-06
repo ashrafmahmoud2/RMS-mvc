@@ -35,6 +35,10 @@
 - add created by chef or user ?
 
 
+#order details
+- handal cancel order affter time , and if not be visable if come from cutomerorders veiw
+
+
 #chekout
 - add max allowd number of order in same time
 - handel if add more then order like show 2 progress box , and add in kds 

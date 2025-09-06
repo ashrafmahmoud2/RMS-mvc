@@ -11,20 +11,23 @@ using static System.Net.Mime.MediaTypeNames;
 namespace RMS.Web.Controllers;
 public class HomeController : Controller
 {
-//    dont give thi order in homeconttroler
-//(if cancell(keep it in ui 2H or he click btn that he now))
-//(if arrived(keep it in ui 2H or he click btn that  arrived))
+
     private readonly ILogger<HomeController> _logger;
 
     private readonly ApplicationDbContext _context;
 
     private readonly IMapper _mapper;
 
-    public HomeController(ILogger<HomeController> logger, ApplicationDbContext context, IMapper mapper)
+    private readonly SignInManager<ApplicationUser> _signInManager;
+
+
+    public HomeController(ILogger<HomeController> logger, ApplicationDbContext context,
+        IMapper mapper, SignInManager<ApplicationUser> signInManager)
     {
         _logger = logger;
         _context = context;
         _mapper = mapper;
+        _signInManager = signInManager;
     }
 
 
@@ -33,8 +36,20 @@ public class HomeController : Controller
         var branchId = 1;
 
 
-        //if(singin)
-        var currentOrders = GetCurrentOrders();
+        List<OrderStatusBoxViewModel> currentOrders = new();
+
+
+        if (User.Identity?.IsAuthenticated ?? false)
+        {
+             currentOrders = GetCurrentOrders();
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+           var customer = _context.Customers.FirstOrDefault(c => c.UserId == userId);
+            //if (customer != null && customer.DefaultBranchId.HasValue)
+            //{
+            //    branchId = customer.DefaultBranchId.Value;
+            //}
+
+        }
 
         var model = new HomeViewModel
         {
