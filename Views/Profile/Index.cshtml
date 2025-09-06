@@ -1,0 +1,736 @@
+﻿@using RMS.Web.Core.ViewModels.Profile
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "ملفي الشخصي";
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #0052a3;
+            --primary-dark: #003875;
+            --primary-light: #3380c7;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --surface-hover: #f1f5f9;
+            --surface-variant: #f8fafc;
+            --border: #e2e8f0;
+            --border-focus: #3b82f6;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+            --border-radius-lg: 20px;
+            --border-radius-xl: 24px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-spring: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--background) 0%, #e2e8f0 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .profile-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            padding: 16px 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 12px;
+            transition: var(--transition-spring);
+            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05) translateX(-2px);
+        }
+
+        .header-title {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 32px 20px;
+        }
+
+        /* Profile Card */
+        .profile-card {
+            background: var(--surface);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            position: relative;
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        .profile-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+        }
+
+        /* Profile Header Section */
+        .profile-card-header {
+            background: linear-gradient(135deg, var(--surface) 0%, var(--surface-variant) 100%);
+            padding: 32px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            margin: 0 auto 16px;
+            box-shadow: var(--shadow);
+            border: 4px solid white;
+            animation: avatarPulse 3s ease-in-out infinite;
+        }
+
+     @@keyframes avatarPulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: var(--shadow), 0 0 0 0 rgba(0, 82, 163, 0.4);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: var(--shadow-lg), 0 0 0 10px rgba(0, 82, 163, 0);
+            }
+        }
+
+        .profile-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .profile-subtitle {
+            color: var(--text-secondary);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* Form Section */
+        .profile-form {
+            padding: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            animation: fadeInUp 0.5s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.2s; }
+        .form-group:nth-child(3) { animation-delay: 0.3s; }
+        .form-group:nth-child(4) { animation-delay: 0.4s; }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-label i {
+            color: var(--primary-color);
+            width: 16px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid var(--border);
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+            background: var(--surface);
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 82, 163, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-control:hover {
+            border-color: var(--primary-light);
+        }
+
+        .form-control.is-valid {
+            border-color: var(--success-color);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .form-control.is-invalid {
+            border-color: var(--danger-color);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        /* Validation Messages */
+        .text-danger {
+            color: var(--danger-color);
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .text-danger::before {
+            content: '\f06a';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+        }
+
+        /* Success Message */
+        .alert-success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--success-color);
+            padding: 16px 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            animation: slideInDown 0.5s ease-out;
+        }
+
+        .alert-success i {
+            font-size: 20px;
+        }
+
+        /* Submit Button */
+        .btn-container {
+            margin-top: 32px;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-spring);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading State */
+        .btn-loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin: -12px 0 0 -12px;
+            width: 24px;
+            height: 24px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Animations */
+     @@keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+     @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+     @@keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+     @@keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+     @@keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .main-container {
+                padding: 20px 16px;
+            }
+
+            .profile-card-header,
+            .profile-form {
+                padding: 24px;
+            }
+
+            .header-title {
+                font-size: 20px;
+            }
+
+            .profile-title {
+                font-size: 20px;
+            }
+
+            .form-control {
+                padding: 14px 16px;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .main-container {
+                padding: 16px;
+            }
+
+            .profile-card-header,
+            .profile-form {
+                padding: 20px;
+            }
+
+            .btn-primary {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Focus visible for accessibility */
+        .form-control:focus-visible,
+        .btn-primary:focus-visible,
+        .header-btn:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode support */
+        @@media (prefers-contrast: high) {
+            :root {
+                --border: #000000;
+                --text-secondary: #000000;
+            }
+        }
+
+        /* Reduced motion support */
+        @@media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="profile-header">
+        <div class="header-container">
+            <button class="header-btn" onclick="window.history.back()" aria-label="العودة">
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            <div class="header-title">@ViewData["Title"]</div>
+            <div style="width: 48px;"></div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Success Message -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert-success" id="successAlert">
+                <i class="fas fa-check-circle"></i>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+        }
+
+        <!-- Profile Card -->
+        <div class="profile-card">
+            <!-- Profile Header -->
+            <div class="profile-card-header">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h1 class="profile-title">@ViewData["Title"]</h1>
+                <p class="profile-subtitle">إدارة معلوماتك الشخصية</p>
+            </div>
+
+            <!-- Profile Form -->
+            <div class="profile-form">
+                <form asp-action="Index" method="post" id="profileForm">
+                    <!-- Full Name -->
+                    <div class="form-group">
+                        <label asp-for="FullName" class="form-label">
+                            <i class="fas fa-user"></i>
+                            الاسم الكامل
+                        </label>
+                        <div class="input-wrapper">
+                            <input asp-for="FullName" class="form-control" placeholder="أدخل اسمك الكامل" />
+                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label asp-for="Email" class="form-label">
+                            <i class="fas fa-envelope"></i>
+                            البريد الإلكتروني
+                        </label>
+                        <div class="input-wrapper">
+                            <input asp-for="Email" class="form-control" type="email" placeholder="أدخل بريدك الإلكتروني" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div class="form-group">
+                        <label asp-for="PhoneNumber" class="form-label">
+                            <i class="fas fa-phone"></i>
+                            رقم الهاتف الأساسي
+                        </label>
+                        <div class="input-wrapper">
+                            <input asp-for="PhoneNumber" class="form-control" type="tel" placeholder="أدخل رقم هاتفك" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Secondary Phone -->
+                    <div class="form-group">
+                        <label asp-for="SecondaryPhoneNumber" class="form-label">
+                            <i class="fas fa-mobile-alt"></i>
+                            رقم الهاتف الثانوي
+                        </label>
+                        <div class="input-wrapper">
+                            <input asp-for="SecondaryPhoneNumber" class="form-control" type="tel" placeholder="أدخل رقم هاتف إضافي (اختياري)" />
+                            <span asp-validation-for="SecondaryPhoneNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="btn-container">
+                        <button type="submit" class="btn-primary" id="submitBtn">
+                            <i class="fas fa-save"></i>
+                            <span>حفظ التغييرات</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('profileForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const inputs = document.querySelectorAll('.form-control');
+            const successAlert = document.getElementById('successAlert');
+
+            // Auto-hide success message
+            if (successAlert) {
+                setTimeout(() => {
+                    successAlert.style.opacity = '0';
+                    successAlert.style.transform = 'translateY(-20px)';
+                    setTimeout(() => {
+                        successAlert.remove();
+                    }, 300);
+                }, 5000);
+            }
+
+            // Form validation and styling
+            inputs.forEach(input => {
+                // Real-time validation styling
+                input.addEventListener('input', function() {
+                    validateField(this);
+                });
+
+                input.addEventListener('blur', function() {
+                    validateField(this);
+                });
+
+                // Initial validation on page load
+                if (input.value) {
+                    validateField(input);
+                }
+            });
+
+            function validateField(field) {
+                const isValid = field.checkValidity() && field.value.trim() !== '';
+                const isRequired = field.hasAttribute('data-val-required') || field.required;
+                
+                if (field.value.trim() === '') {
+                    field.classList.remove('is-valid', 'is-invalid');
+                } else if (isValid) {
+                    field.classList.remove('is-invalid');
+                    field.classList.add('is-valid');
+                } else {
+                    field.classList.remove('is-valid');
+                    field.classList.add('is-invalid');
+                }
+            }
+
+            // Enhanced form submission
+            form.addEventListener('submit', function(e) {
+                // Add loading state
+                submitBtn.classList.add('btn-loading');
+                submitBtn.disabled = true;
+
+                // Validate all fields
+                let isFormValid = true;
+                inputs.forEach(input => {
+                    if (!input.checkValidity()) {
+                        isFormValid = false;
+                        input.classList.add('is-invalid');
+                        // Animate invalid field
+                        input.style.animation = 'shake 0.5s ease-in-out';
+                        setTimeout(() => {
+                            input.style.animation = '';
+                        }, 500);
+                    }
+                });
+
+                if (!isFormValid) {
+                    e.preventDefault();
+                    submitBtn.classList.remove('btn-loading');
+                    submitBtn.disabled = false;
+                    
+                    // Show error message
+                    showNotification('يرجى التحقق من البيانات المدخلة', 'error');
+                    return;
+                }
+
+                // Show processing message
+                showNotification('جاري حفظ البيانات...', 'info');
+            });
+
+            // Phone number formatting
+            const phoneInputs = document.querySelectorAll('input[type="tel"]');
+            phoneInputs.forEach(input => {
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.startsWith('20')) {
+                        value = value.slice(2);
+                    }
+                    if (value.length > 11) {
+                        value = value.slice(0, 11);
+                    }
+                    e.target.value = value;
+                });
+            });
+
+         
+            // Notification system
+            function showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `notification notification-${type}`;
+                notification.innerHTML = `
+                    <i class="fas ${type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i>
+                    <span>${message}</span>
+                `;
+
+                // Add notification styles
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${type === 'error' ? 'var(--danger-color)' : type === 'success' ? 'var(--success-color)' : 'var(--info-color)'};
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: var(--border-radius);
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-weight: 500;
+                    z-index: 1000;
+                    transform: translateX(100px);
+                    opacity: 0;
+                    transition: var(--transition);
+                    box-shadow: var(--shadow-lg);
+                `;
+
+                document.body.appendChild(notification);
+
+                // Animate in
+                setTimeout(() => {
+                    notification.style.transform = 'translateX(0)';
+                    notification.style.opacity = '1';
+                }, 100);
+
+                // Auto remove
+                setTimeout(() => {
+                    notification.style.transform = 'translateX(100px)';
+                    notification.style.opacity = '0';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+
+            // Keyboard navigation enhancement
+            form.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
+                    e.preventDefault();
+                    const inputs = Array.from(form.querySelectorAll('input'));
+                    const currentIndex = inputs.indexOf(e.target);
+                    const nextInput = inputs[currentIndex + 1];
+                    
+                    if (nextInput) {
+                        nextInput.focus();
+                    } else {
+                        submitBtn.focus();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

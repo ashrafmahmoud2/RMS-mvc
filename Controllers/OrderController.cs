@@ -8,6 +8,28 @@ using System.Threading.Tasks;
 
 
 
+//When I click on
+
+//```html
+//<a href="/Support" class= "menu-item" >
+//    < i class= "fa-solid fa-life-ring" ></ i >
+//    < span class= "menu-item-text" > اتصل بالفرع </ span >
+//    < i class= "fa-solid fa-chevron-left menu-item-arrow" ></ i >
+//</ a >
+//```
+
+//I want it to behave like a **collapsible menu** instead of redirecting.
+
+//* On click, it should expand and show two sub-options:
+
+//  * 📞 **اتصال * * → `tel: @branch.PhoneNumber`
+//  * 💬 **واتساب * * → `https://wa.me/@branch.PhoneNumber`
+
+//*Clicking again should collapse/hide the options.
+
+//* Smooth animation for expand/collapse.
+
+//* Keep the main menu item highlighted/active when expanded.
 
 
 

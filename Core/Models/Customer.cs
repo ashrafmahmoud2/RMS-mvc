@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Threading;
 
 namespace RMS.Web.Core.Models;
 
@@ -15,6 +16,8 @@ public class Customer
 
     public int? DefaultAddressId { get; set; }
 
+    [MaxLength(20)]
+    public string? SecondaryPhoneNumber { get; set; }
     public ICollection<CustomerAddress> Addresses { get; set; } = new List<CustomerAddress>();
 }
 
