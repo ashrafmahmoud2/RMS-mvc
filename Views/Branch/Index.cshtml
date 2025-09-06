@@ -1,0 +1,621 @@
+﻿@using RMS.Web.Core.ViewModels.GovernateAreaBranch
+@model BranchIndexViewModel
+@{
+    ViewData["Title"] = "الفروع";
+}
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --primary-color: #0052a3;
+        --primary-dark: #003875;
+        --primary-light: #3380c7;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+        --warning-color: #f59e0b;
+        --background: #f8fafc;
+        --surface: #ffffff;
+        --surface-hover: #f1f5f9;
+        --border: #e2e8f0;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+        --border-radius: 16px;
+        --border-radius-lg: 24px;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--background);
+        color: var(--text-primary);
+        line-height: 1.6;
+        min-height: 100vh;
+    }
+
+    /* Header */
+    .branches-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        padding: 16px 0;
+        box-shadow: var(--shadow);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .header-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 12px;
+        transition: var(--transition);
+        border-radius: 12px;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+    }
+
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+        }
+
+    .header-title {
+        color: white;
+        font-size: 24px;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Main Container */
+    .main-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 20px;
+    }
+
+    /* Governorate Section */
+    .governorate-section {
+        margin-bottom: 48px;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .governorate-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        padding: 20px 24px;
+        border-radius: var(--border-radius-lg);
+        margin-bottom: 24px;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .governorate-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+    .governorate-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0;
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    @@keyframes shimmer {
+        0%, 100%
+
+    {
+        transform: translateX(-100%) translateY(-100%) rotate(0deg);
+    }
+
+    50% {
+        transform: translateX(0%) translateY(0%) rotate(180deg);
+    }
+
+    }
+
+    /* Branches Grid */
+    .branches-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+    }
+
+    .branch-card {
+        background: var(--surface);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        transition: var(--transition);
+        position: relative;
+        animation: slideInUp 0.5s ease-out;
+    }
+
+        .branch-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+            border-color: var(--primary-light);
+        }
+
+    .branch-image {
+        width: 100%;
+        height: 200px;
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(45deg, var(--surface-hover), var(--border));
+    }
+
+        .branch-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+    .branch-card:hover .branch-image img {
+        transform: scale(1.05);
+    }
+
+    .branch-image-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        color: white;
+        font-size: 48px;
+    }
+
+    .branch-status-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+        .branch-status-badge.open {
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .branch-status-badge.closed {
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+    .branch-content {
+        padding: 24px;
+    }
+
+    .branch-name {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        line-height: 1.3;
+    }
+
+    .branch-working-hours {
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 16px;
+        padding: 8px 12px;
+        background: var(--surface-hover);
+        border-radius: 8px;
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .branch-info {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .branch-info-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .branch-info-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(0, 82, 163, 0.3);
+    }
+
+    .branch-info-text {
+        flex: 1;
+        line-height: 1.4;
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    .branch-delivery-info {
+        margin-top: 16px;
+        padding: 12px;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
+        border-radius: 12px;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .delivery-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        margin-bottom: 4px;
+    }
+
+        .delivery-item:last-child {
+            margin-bottom: 0;
+        }
+
+    .delivery-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .delivery-value {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    /* Empty State */
+    .empty-branches {
+        text-align: center;
+        padding: 60px 20px;
+        background: var(--surface);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow);
+    }
+
+    .empty-branches-icon {
+        font-size: 64px;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .empty-branches h2 {
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .empty-branches p {
+        color: var(--text-secondary);
+        font-size: 16px;
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .main-container
+
+    {
+        padding: 16px;
+    }
+
+    .branches-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .governorate-title {
+        font-size: 24px;
+    }
+
+    .branch-content {
+        padding: 20px;
+    }
+
+    .branch-image {
+        height: 180px;
+    }
+
+    }
+
+    @@media (max-width: 480px) {
+        .header-title
+
+    {
+        font-size: 20px;
+    }
+
+    .governorate-title {
+        font-size: 20px;
+    }
+
+    .branch-content {
+        padding: 16px;
+    }
+
+    }
+
+    /* Animation Delays */
+    .branch-card:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .branch-card:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .branch-card:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    .branch-card:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+
+    .branch-card:nth-child(5) {
+        animation-delay: 0.5s;
+    }
+
+    .branch-card:nth-child(6) {
+        animation-delay: 0.6s;
+    }
+
+    @@keyframes fadeInUp {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    @@keyframes slideInUp {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+</style>
+
+<!-- Header -->
+<div class="branches-header">
+    <div class="header-container">
+        <button class="header-btn" onclick="window.history.back()">
+            <i class="fas fa-arrow-right"></i>
+        </button>
+        <div class="header-title">@ViewData["Title"]</div>
+        <div style="width: 48px;"></div>
+    </div>
+</div>
+
+<!-- Main Container -->
+<div class="main-container">
+    @if (Model?.Governorates?.Any() == true)
+    {
+        @foreach (var governorate in Model.Governorates)
+        {
+            <div class="governorate-section">
+                <!-- Governorate Header -->
+                <div class="governorate-header">
+                    <h1 class="governorate-title">
+                        <i class="fas fa-map-marker-alt"></i>
+                        @governorate.Name
+                    </h1>
+                </div>
+
+                <!-- Branches Grid -->
+                <div class="branches-grid">
+                    @foreach (var branch in governorate.Branches)
+                    {
+                        <div class="branch-card">
+                            <!-- Branch Image -->
+                            <div class="branch-image">
+                                @if (!string.IsNullOrEmpty(branch.BranchImages))
+                                {
+                                    <img src="@Url.Content(branch.BranchImages)" alt="@branch.Name" loading="lazy">
+                                }
+                                else
+                                {
+                                    <div class="branch-image-placeholder">
+                                        <i class="fas fa-store"></i>
+                                    </div>
+                                }
+
+                                <!-- Status Badge -->
+                                <div class="branch-status-badge @(branch.IsCurrentlyOpen ? "open" : "closed")">
+                                    <i class="fas @(branch.IsCurrentlyOpen ? "fa-clock" : "fa-clock")"></i>
+                                    @branch.WorkingHoursStatus
+                                </div>
+                            </div>
+
+                            <!-- Branch Content -->
+                            <div class="branch-content">
+                                <!-- Branch Name -->
+                                <h2 class="branch-name">@branch.Name</h2>
+
+                                <!-- Working Hours -->
+                                <div class="branch-working-hours">
+                                    <i class="fas fa-clock"></i>
+                                    @branch.WorkingHoursText
+                                </div>
+
+                                <!-- Branch Info -->
+                                <div class="branch-info">
+                                    <!-- Phone -->
+                                    <div class="branch-info-item">
+                                        <div class="branch-info-icon">
+                                            <i class="fas fa-phone"></i>
+                                        </div>
+                                        <div class="branch-info-text">@branch.Phone</div>
+                                    </div>
+
+                                    <!-- Address -->
+                                    <div class="branch-info-item">
+                                        <div class="branch-info-icon">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </div>
+                                        <div class="branch-info-text">@branch.Address</div>
+                                    </div>
+                                </div>
+
+                                <!-- Delivery Info -->
+                                <div class="branch-delivery-info">
+                                    <div class="delivery-item">
+                                        <span class="delivery-label">رسوم التوصيل:</span>
+                                        <span class="delivery-value">@branch.DeliveryFee جنيه</span>
+                                    </div>
+                                    <div class="delivery-item">
+                                        <span class="delivery-label">وقت التوصيل:</span>
+                                        <span class="delivery-value">@branch.DeliveryTimeInMinutes دقيقة</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="empty-branches">
+            <div class="empty-branches-icon">
+                <i class="fas fa-store-slash"></i>
+            </div>
+            <h2>لا توجد فروع متاحة</h2>
+            <p>لم يتم العثور على أي فروع في الوقت الحالي</p>
+        </div>
+    }
+</div>
+
+<script>
+    // Initialize page animations
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add stagger animation to branch cards within each governorate
+        const governorateSections = document.querySelectorAll('.governorate-section');
+
+        governorateSections.forEach((section, sectionIndex) => {
+            const branchCards = section.querySelectorAll('.branch-card');
+
+            branchCards.forEach((card, cardIndex) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease-out';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, (sectionIndex * 200) + (cardIndex * 100));
+            });
+        });
+
+        // Add click handlers for phone numbers
+        const phoneElements = document.querySelectorAll('.branch-info-item');
+        phoneElements.forEach(element => {
+            const icon = element.querySelector('.fa-phone');
+            if (icon) {
+                element.style.cursor = 'pointer';
+                element.addEventListener('click', function() {
+                    const phoneNumber = element.querySelector('.branch-info-text').textContent;
+                    window.location.href = `tel:${phoneNumber}`;
+                });
+            }
+        });
+
+        // Add intersection observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        // Observe all governorate sections
+        governorateSections.forEach(section => {
+            observer.observe(section);
+        });
+    });
+
+    // Handle image loading errors
+    document.addEventListener('DOMContentLoaded', function() {
+        const images = document.querySelectorAll('.branch-image img');
+        images.forEach(img => {
+            img.addEventListener('error', function() {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'branch-image-placeholder';
+                placeholder.innerHTML = '<i class="fas fa-store"></i>';
+                this.parentNode.replaceChild(placeholder, this);
+            });
+        });
+    });
+</script>

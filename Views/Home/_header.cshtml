@@ -1,4 +1,6 @@
-﻿
+﻿@{
+ 
+}
 
 
 
@@ -476,8 +478,20 @@
                 <div class="sidebar-user-avatar">
                     <i class="fa-solid fa-user"></i>
                 </div>
-                <div class="sidebar-user-name">أحمد محمد</div>
-                <div class="sidebar-user-email">ahmed@example.com</div>
+                @if (User.Identity?.IsAuthenticated ?? false)
+                {
+                    @if (!string.IsNullOrWhiteSpace(User.Identity?.Name))
+                    {
+                        <div class="sidebar-user-name">@User.Identity.Name</div>
+                    }
+
+                    <div class="sidebar-user-email">@User.FindFirst("number")?.Value</div>
+                }
+                else
+                {
+                    <div class="sidebar-user-guest">ضيف</div>
+                }
+
             </div>
         </div>
 
@@ -494,13 +508,19 @@
                 <a href="/Cart" class="menu-item">
                     <i class="fa-solid fa-shopping-cart"></i>
                     <span class="menu-item-text">السلة</span>
-                    <span class="menu-item-badge">3</span>
-                    <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+@*                     <span class="menu-item-badge">3</span>
+ *@                    <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
                 </a>
-                <a href="/Wallet" class="menu-item">
+         @*        <a href="/Wallet" class="menu-item">
                     <i class="fa-solid fa-wallet"></i>
                     <span class="menu-item-text">محفظتي</span>
                     <span class="menu-item-badge">200 جنيه</span>
+                    <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                </a> *@
+
+                <a asp-controller="Branch" asp-action="Index" class="menu-item">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span class="menu-item-text">الفروع</span>
                     <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
                 </a>
                 <a href="/Profile" class="menu-item">
@@ -508,21 +528,21 @@
                     <span class="menu-item-text">ملفي الشخصي</span>
                     <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
                 </a>
-                <a href="/Address" class="menu-item">
+        @*         <a href="/Address" class="menu-item">
                     <i class="fa-solid fa-map-marker-alt"></i>
                     <span class="menu-item-text">عناويني</span>
                     <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
-                </a>
+                </a> *@
                 <a href="/Support" class="menu-item">
                     <i class="fa-solid fa-life-ring"></i>
-                    <span class="menu-item-text">الدعم</span>
+                    <span class="menu-item-text">اتصل ب الفرع</span>
                     <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
                 </a>
             </div>
 
             <!-- Settings & Tools Section -->
             <div class="menu-section">
-                <div class="menu-item" style="flex-direction: column; gap: 12px; align-items: stretch;">
+@*                 <div class="menu-item" style="flex-direction: column; gap: 12px; align-items: stretch;">
                     <div style="display: flex; align-items: center; gap: 16px;">
                         <i class="fa-solid fa-language"></i>
                         <span class="menu-item-text">اللغة</span>
@@ -532,7 +552,7 @@
                         <button class="language-option" onclick="switchLanguage('en')">English</button>
                     </div>
                 </div>
-
+ *@
                 <div class="menu-item" style="flex-direction: column; gap: 12px; align-items: stretch;">
                     <div style="display: flex; align-items: center; gap: 16px;">
                         <i class="fa-solid fa-share-nodes"></i>
@@ -557,8 +577,12 @@
         <div class="sidebar-footer">
             <button class="logout-btn" onclick="handleLogout()">
                 <i class="fa-solid fa-sign-out-alt"></i>
-                <span>تسجيل الخروج</span>
+                <span>
+                    @(User.Identity?.IsAuthenticated ?? false ? "تسجيل الخروج" : "تسجيل الدخول")
+                </span>
             </button>
+
+
             <div class="powered-by">Powered by Ashraf</div>
         </div>
     </div>

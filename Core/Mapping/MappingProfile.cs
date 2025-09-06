@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using RMS.Web.Core.ViewModels.GovernateAreaBranch;
 using RMS.Web.Core.ViewModels.Home;
 using RMS.Web.Core.ViewModels.Item;
 using RMS.Web.Core.ViewModels.Order;
@@ -88,12 +89,21 @@ public class MappingProfile : Profile
 
 
         // ===============================
-        // Customer & Address
+        // Customer & Address & Branch
         // ===============================
         CreateMap<CustomerAddress, CustomerAddressViewModel>()
       .ForMember(dest => dest.GovernrateName, opt => opt.MapFrom(src => src.Governrate.NameAr))
       .ForMember(dest => dest.AreaName, opt => opt.MapFrom(src => src.Area.NameAr))
       .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.NameAr));
+
+        CreateMap<Branch, BranchViewModel>()
+           .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameAr))
+           .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.AddressAr))
+           .ForMember(dest => dest.GovernorateNameAr, opt => opt.MapFrom(src => src.Governorate!.NameAr))
+           .ForMember(dest => dest.AreaNameAr, opt => opt.MapFrom(src => src.Area!.NameAr))
+           .ForMember(dest => dest.WorkingHours, opt => opt.MapFrom(src => src.BranchWorkingHours));
+
+        CreateMap<BranchWorkingHour, BranchWorkingHourViewModel>();
 
     }
 }
