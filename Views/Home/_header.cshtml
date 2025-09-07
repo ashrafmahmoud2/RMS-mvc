@@ -280,6 +280,64 @@
             color: var(--text-muted);
         }
 
+    .collapsible-item {
+        cursor: pointer;
+        user-select: none;
+    }
+
+        .collapsible-item.expanded {
+            background: var(--surface-hover);
+            color: var(--primary-color);
+        }
+
+            .collapsible-item.expanded::before {
+                transform: scaleY(1);
+            }
+
+    .menu-item-arrow.rotated {
+        transform: rotate(180deg);
+    }
+
+    .sub-menu {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+        background: var(--surface-hover);
+        border-left: 4px solid var(--primary-color);
+        margin-left: 20px;
+    }
+
+        .sub-menu.expanded {
+            max-height: 120px;
+            padding: 8px 0;
+        }
+
+    .sub-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 20px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: var(--transition);
+        border-left: 3px solid transparent;
+    }
+
+        .sub-menu-item:hover {
+            background: var(--surface);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+            padding-right: 24px;
+        }
+
+        .sub-menu-item i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
         /* Language Toggle */
         .language-toggle {
             display: flex;
@@ -533,11 +591,21 @@
                     <span class="menu-item-text">عناويني</span>
                     <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
                 </a> *@
-                <a href="/Support" class="menu-item">
+                <div class="menu-item collapsible-item" onclick="toggleSupportMenu()" id="supportMenuItem">
                     <i class="fa-solid fa-life-ring"></i>
-                    <span class="menu-item-text">اتصل ب الفرع</span>
-                    <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
-                </a>
+                    <span class="menu-item-text">اتصل بالفرع</span>
+                    <i class="fa-solid fa-chevron-down menu-item-arrow" id="supportArrow"></i>
+                </div>
+                <div class="sub-menu" id="supportSubMenu">
+                    <a href="tel:+201234567890" class="sub-menu-item">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>اتصال</span>
+                    </a>
+                    <a href="https://wa.me/201234567890" class="sub-menu-item" target="_blank">
+                        <i class="fa-brands fa-whatsapp"></i>
+                        <span>واتساب</span>
+                    </a>
+                </div>
             </div>
 
             <!-- Settings & Tools Section -->
@@ -658,5 +726,25 @@
                 e.preventDefault();
             }
         }, { passive: false });
+
+                function toggleSupportMenu() {
+            const supportMenuItem = document.getElementById('supportMenuItem');
+            const supportSubMenu = document.getElementById('supportSubMenu');
+            const supportArrow = document.getElementById('supportArrow');
+
+            const isExpanded = supportSubMenu.classList.contains('expanded');
+
+            if (isExpanded) {
+                // Collapse
+                supportSubMenu.classList.remove('expanded');
+                supportMenuItem.classList.remove('expanded');
+                supportArrow.classList.remove('rotated');
+            } else {
+                // Expand
+                supportSubMenu.classList.add('expanded');
+                supportMenuItem.classList.add('expanded');
+                supportArrow.classList.add('rotated');
+            }
+        }
     </script>
 </body>
