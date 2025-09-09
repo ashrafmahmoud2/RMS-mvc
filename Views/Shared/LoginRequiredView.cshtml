@@ -1,0 +1,747 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول مطلوب</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0052a3;
+            --primary-dark: #003875;
+            --primary-light: #3380c7;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+            --surface: #ffffff;
+            --surface-hover: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --border-radius: 16px;
+            --border-radius-lg: 24px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-spring: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Enhanced Background Animation */
+        .modal-background {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            background: #eef1f5;
+        }
+
+        .floating-element {
+            position: absolute;
+            border-radius: 50%;
+            animation: float 25s linear infinite;
+            opacity: 0;
+        }
+
+            .floating-element:nth-child(1) {
+                width: 100px;
+                height: 100px;
+                background: rgba(255, 255, 255, 0.1);
+                left: 10%;
+                animation-duration: 20s;
+                animation-delay: 0s;
+            }
+
+            .floating-element:nth-child(2) {
+                width: 150px;
+                height: 150px;
+                background: rgba(255, 255, 255, 0.08);
+                left: 70%;
+                animation-duration: 25s;
+                animation-delay: 5s;
+            }
+
+            .floating-element:nth-child(3) {
+                width: 80px;
+                height: 80px;
+                background: rgba(255, 255, 255, 0.12);
+                left: 40%;
+                animation-duration: 30s;
+                animation-delay: 10s;
+            }
+
+            .floating-element:nth-child(4) {
+                width: 120px;
+                height: 120px;
+                background: rgba(255, 255, 255, 0.06);
+                left: 85%;
+                animation-duration: 22s;
+                animation-delay: 15s;
+            }
+
+            .floating-element:nth-child(5) {
+                width: 90px;
+                height: 90px;
+                background: rgba(255, 255, 255, 0.1);
+                left: 15%;
+                animation-duration: 28s;
+                animation-delay: 8s;
+            }
+
+      @@keyframes float {
+            0%
+
+        {
+            transform: translateY(110vh) scale(0.8) rotate(0deg);
+            opacity: 0;
+        }
+
+        10% {
+            opacity: 0.3;
+        }
+
+        50% {
+            opacity: 0.6;
+            transform: translateY(50vh) scale(1.1) rotate(180deg);
+        }
+
+        90% {
+            opacity: 0.2;
+        }
+
+        100% {
+            transform: translateY(-20vh) scale(1.3) rotate(360deg);
+            opacity: 0;
+        }
+
+        }
+
+        /* Header Enhancement */
+        .orders-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            padding: 16px 0;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 12px;
+            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            transition: var(--transition-spring);
+            position: relative;
+        }
+
+            .header-btn:hover {
+                background: rgba(255, 255, 255, 0.25);
+                transform: scale(1.05) translateX(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+
+            .header-btn:active {
+                transform: scale(0.95);
+            }
+
+        .header-title {
+            color: white;
+            font-size: 22px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Enhanced Login Container */
+        .login-container {
+            background: var(--surface);
+            border-radius: var(--border-radius-lg);
+            padding: 80px 40px;
+            text-align: center;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideInUp 0.8s ease-out;
+            position: relative;
+            overflow: hidden;
+           
+        }
+
+            .login-container::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(90deg, var(--primary-color), var(--primary-light), var(--success-color));
+            }
+
+        /* Enhanced Icon */
+        .login-icon {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--warning-color), #d97706);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+            animation: iconPulse 3s infinite;
+            border: 4px solid rgba(245, 158, 11, 0.2);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+        }
+
+      @@keyframes iconPulse {
+            0%, 100%
+
+        {
+            transform: scale(1);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3), 0 0 0 0 rgba(245, 158, 11, 0.4);
+        }
+
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(245, 158, 11, 0.4), 0 0 0 15px rgba(245, 158, 11, 0);
+        }
+
+        }
+
+        /* Typography Enhancement */
+        .login-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        .login-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        /* Button Container */
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Primary Login Button */
+        .login-btn {
+            width: 100%;
+            padding: 18px 24px;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            position: relative;
+            transition: var(--transition-spring);
+            text-decoration: none;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+            .login-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 15px 35px rgba(0, 82, 163, 0.4);
+            }
+
+            .login-btn:active {
+                transform: translateY(-1px);
+            }
+
+            .login-btn::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                transition: left 0.6s ease;
+            }
+
+            .login-btn:hover::before {
+                left: 100%;
+            }
+
+        /* Secondary Button (Guest Continue) */
+        .guest-btn {
+            width: 100%;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--surface-hover);
+            border: 2px solid var(--border);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: var(--transition);
+            text-decoration: none;
+            display:none;
+        }
+
+            .guest-btn:hover {
+                background: var(--surface);
+                border-color: var(--primary-color);
+                color: var(--primary-color);
+                transform: translateY(-1px);
+                box-shadow: var(--shadow);
+            }
+
+        /* Info Section */
+        .info-section {
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-radius: var(--border-radius);
+            display:none;
+        }
+
+        .info-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: var(--info-color);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .info-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Benefits List */
+        .benefits-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .benefit-icon {
+            color: var(--success-color);
+            font-size: 12px;
+        }
+
+        /* Loading State */
+        .btn-loading {
+            position: relative;
+            color: transparent;
+        }
+
+            .btn-loading::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                margin: -12px 0 0 -12px;
+                width: 24px;
+                height: 24px;
+                border: 2px solid transparent;
+                border-top: 2px solid currentColor;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                color: white;
+            }
+
+        /* Animations */
+      @@keyframes slideInUp {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(50px) scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        }
+
+      @@keyframes spin {
+            0%
+
+        {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .main-content
+
+        {
+            padding: 20px 16px;
+        }
+
+        .login-container {
+            
+/*             padding: 36px 28px;
+ */        }
+
+        .login-title {
+            font-size: 24px;
+        }
+
+        .login-subtitle {
+            font-size: 15px;
+        }
+
+        .header-title {
+            font-size: 18px;
+        }
+
+        }
+
+        @@media (max-width: 480px) {
+            .login-container
+
+        {
+          /*   padding: 80px 20px; */
+          margin-top:40%;
+        }
+
+        .login-icon {
+            width: 70px;
+            height: 70px;
+            font-size: 28px;
+        }
+
+        .login-title {
+            font-size: 22px;
+        }
+
+        }
+
+        /* Accessibility Enhancements */
+        .login-btn:focus-visible,
+        .guest-btn:focus-visible,
+        .header-btn:focus-visible {
+            outline: 2px solid var(--primary-light);
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode support */
+        @@media (prefers-contrast: high) {
+            : root
+
+        {
+            --border: #000000;
+            --text-secondary: #000000;
+        }
+
+        }
+
+        /* Reduced motion support */
+        @@media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after
+
+        {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+
+        }
+    </style>
+</head>
+<body>
+    <!-- Enhanced Header -->
+    <div class="orders-header">
+        <div class="header-container">
+            <button class="header-btn" onclick="window.history.back()" aria-label="العودة">
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            <div class="header-title">تسجيل الدخول</div>
+            <div style="width: 48px;"></div>
+        </div>
+    </div>
+
+    <!-- Enhanced Background -->
+    <div class="modal-background">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="login-container">
+            <div class="login-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+
+            <h1 class="login-title">تسجيل الدخول مطلوب</h1>
+            <p class="login-subtitle">للوصول إلى هذه الصفحة والاستمتاع بجميع الميزات، يرجى تسجيل الدخول أولاً</p>
+
+            <!-- Button Container -->
+            <div class="button-container">
+                <!-- Primary Login Button -->
+                <a asp-action="Login" asp-controller="Account" class="login-btn" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>تسجيل الدخول</span>
+                </a>
+
+                <!-- Guest Continue Button -->
+                <a href="javascript:void(0)" class="guest-btn" onclick="continueAsGuest()">
+                    <i class="fas fa-user"></i>
+                    <span>متابعة كضيف</span>
+                </a>
+            </div>
+
+            <!-- Benefits Section -->
+            <div class="info-section">
+                <div class="info-title">
+                    <i class="fas fa-star"></i>
+                    <span>مزايا تسجيل الدخول</span>
+                </div>
+                <div class="benefits-list">
+                    <div class="benefit-item">
+                        <i class="fas fa-check benefit-icon"></i>
+                        <span>تتبع طلباتك بسهولة</span>
+                    </div>
+                    <div class="benefit-item">
+                        <i class="fas fa-check benefit-icon"></i>
+                        <span>حفظ عناوين التوصيل المفضلة</span>
+                    </div>
+                    <div class="benefit-item">
+                        <i class="fas fa-check benefit-icon"></i>
+                        <span>عروض وخصومات حصرية</span>
+                    </div>
+                    <div class="benefit-item">
+                        <i class="fas fa-check benefit-icon"></i>
+                        <span>طلب أسرع في المرات القادمة</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginBtn = document.getElementById('loginBtn');
+
+            // Enhanced login button interaction
+            loginBtn.addEventListener('click', function(e) {
+                // Add loading state
+                const originalContent = this.innerHTML;
+                this.classList.add('btn-loading');
+                this.style.pointerEvents = 'none';
+
+                // Reset after navigation attempt
+                setTimeout(() => {
+                    this.classList.remove('btn-loading');
+                    this.innerHTML = originalContent;
+                    this.style.pointerEvents = '';
+                }, 2000);
+            });
+
+            // Add click ripple effect
+            document.querySelectorAll('.login-btn, .guest-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    const ripple = document.createElement('div');
+                    ripple.style.cssText = `
+                        position: absolute;
+                        width: 4px;
+                        height: 4px;
+                        background: rgba(255, 255, 255, 0.6);
+                        border-radius: 50%;
+                        left: ${x}px;
+                        top: ${y}px;
+                        transform: translate(-50%, -50%);
+                        animation: ripple 0.6s linear;
+                        pointer-events: none;
+                        z-index: 10;
+                    `;
+
+                    this.style.position = 'relative';
+                    this.style.overflow = 'hidden';
+                    this.appendChild(ripple);
+
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // Add floating elements interaction
+            const floatingElements = document.querySelectorAll('.floating-element');
+            floatingElements.forEach((element, index) => {
+                // Stagger the start times
+                element.style.animationDelay = `${index * 4}s`;
+            });
+
+            // Add mouse move parallax effect
+            document.addEventListener('mousemove', function(e) {
+                const mouseX = e.clientX / window.innerWidth;
+                const mouseY = e.clientY / window.innerHeight;
+
+                floatingElements.forEach((element, index) => {
+                    const speed = (index + 1) * 0.5;
+                    const x = (mouseX - 0.5) * speed;
+                    const y = (mouseY - 0.5) * speed;
+
+                    element.style.transform += ` translate(${x}px, ${y}px)`;
+                });
+            });
+        });
+
+        // Guest continue functionality
+        function continueAsGuest() {
+            if (confirm('المتابعة كضيف تعني عدم القدرة على حفظ بياناتك أو تتبع طلباتك. هل تريد المتابعة؟')) {
+                // Set guest mode and redirect
+                sessionStorage.setItem('guestMode', 'true');
+                showNotification('تم تفعيل وضع الضيف', 'info');
+
+                setTimeout(() => {
+                    window.location.href = '/Home/Index';
+                }, 1500);
+            }
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas ${type === 'info' ? 'fa-info-circle' : 'fa-check-circle'}"></i>
+                <span>${message}</span>
+            `;
+
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'info' ? 'var(--info-color)' : 'var(--success-color)'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-weight: 500;
+                z-index: 1001;
+                transform: translateX(100px);
+                opacity: 0;
+                transition: all 0.3s ease;
+                box-shadow: var(--shadow-lg);
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+                notification.style.opacity = '1';
+            }, 100);
+
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100px)';
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Add ripple animation style
+        const style = document.createElement('style');
+        style.textContent = `
+          @@keyframes ripple {
+                to {
+                    width: 300px;
+                    height: 300px;
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

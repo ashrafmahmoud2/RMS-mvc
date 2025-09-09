@@ -480,91 +480,105 @@
             <div style="width: 48px;"></div>
         </div>
     </div>
+    
+    @if (!User.Identity?.IsAuthenticated ?? false)
+    {
+        <partial name="_LoginRequiredView" />
 
-    <!-- Main Container -->
-    <div class="main-container">
-        <!-- Success Message -->
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert-success" id="successAlert">
-                <i class="fas fa-check-circle"></i>
-                <span>@TempData["SuccessMessage"]</span>
-            </div>
-        }
+    }
+    else
+    {
 
-        <!-- Profile Card -->
-        <div class="profile-card">
-            <!-- Profile Header -->
-            <div class="profile-card-header">
-                <div class="profile-avatar">
-                    <i class="fas fa-user"></i>
+        <!-- Main Container -->
+        <div class="main-container">
+            <!-- Success Message -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert-success" id="successAlert">
+                    <i class="fas fa-check-circle"></i>
+                    <span>@TempData["SuccessMessage"]</span>
                 </div>
-                <h1 class="profile-title">@ViewData["Title"]</h1>
-                <p class="profile-subtitle">إدارة معلوماتك الشخصية</p>
-            </div>
+            }
 
-            <!-- Profile Form -->
-            <div class="profile-form">
-                <form asp-action="Index" method="post" id="profileForm">
-                    <!-- Full Name -->
-                    <div class="form-group">
-                        <label asp-for="FullName" class="form-label">
-                            <i class="fas fa-user"></i>
-                            الاسم الكامل
-                        </label>
-                        <div class="input-wrapper">
-                            <input asp-for="FullName" class="form-control" placeholder="أدخل اسمك الكامل" />
-                            <span asp-validation-for="FullName" class="text-danger"></span>
+            <!-- Profile Card -->
+            <div class="profile-card">
+                <!-- Profile Header -->
+                <div class="profile-card-header">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h1 class="profile-title">@ViewData["Title"]</h1>
+                    <p class="profile-subtitle">إدارة معلوماتك الشخصية</p>
+                </div>
+
+                <!-- Profile Form -->
+                <div class="profile-form">
+                    <form asp-action="Index" method="post" id="profileForm">
+                        <!-- Full Name -->
+                        <div class="form-group">
+                            <label asp-for="FullName" class="form-label">
+                                <i class="fas fa-user"></i>
+                                الاسم الكامل
+                            </label>
+                            <div class="input-wrapper">
+                                <input asp-for="FullName" class="form-control" placeholder="أدخل اسمك الكامل" />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Email -->
-                    <div class="form-group">
-                        <label asp-for="Email" class="form-label">
-                            <i class="fas fa-envelope"></i>
-                            البريد الإلكتروني
-                        </label>
-                        <div class="input-wrapper">
-                            <input asp-for="Email" class="form-control" type="email" placeholder="أدخل بريدك الإلكتروني" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label asp-for="Email" class="form-label">
+                                <i class="fas fa-envelope"></i>
+                                البريد الإلكتروني
+                            </label>
+                            <div class="input-wrapper">
+                                <input asp-for="Email" class="form-control" type="email" placeholder="أدخل بريدك الإلكتروني" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Phone Number -->
-                    <div class="form-group">
-                        <label asp-for="PhoneNumber" class="form-label">
-                            <i class="fas fa-phone"></i>
-                            رقم الهاتف الأساسي
-                        </label>
-                        <div class="input-wrapper">
-                            <input asp-for="PhoneNumber" class="form-control" type="tel" placeholder="أدخل رقم هاتفك" />
-                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        <!-- Phone Number -->
+                        <div class="form-group">
+                            <label asp-for="PhoneNumber" class="form-label">
+                                <i class="fas fa-phone"></i>
+                                رقم الهاتف الأساسي
+                            </label>
+                            <div class="input-wrapper">
+                                <input asp-for="PhoneNumber" class="form-control" type="tel" placeholder="أدخل رقم هاتفك" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Secondary Phone -->
-                    <div class="form-group">
-                        <label asp-for="SecondaryPhoneNumber" class="form-label">
-                            <i class="fas fa-mobile-alt"></i>
-                            رقم الهاتف الثانوي
-                        </label>
-                        <div class="input-wrapper">
-                            <input asp-for="SecondaryPhoneNumber" class="form-control" type="tel" placeholder="أدخل رقم هاتف إضافي (اختياري)" />
-                            <span asp-validation-for="SecondaryPhoneNumber" class="text-danger"></span>
+                        <!-- Secondary Phone -->
+                        <div class="form-group">
+                            <label asp-for="SecondaryPhoneNumber" class="form-label">
+                                <i class="fas fa-mobile-alt"></i>
+                                رقم الهاتف الثانوي
+                            </label>
+                            <div class="input-wrapper">
+                                <input asp-for="SecondaryPhoneNumber" class="form-control" type="tel" placeholder="أدخل رقم هاتف إضافي (اختياري)" />
+                                <span asp-validation-for="SecondaryPhoneNumber" class="text-danger"></span>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Submit Button -->
-                    <div class="btn-container">
-                        <button type="submit" class="btn-primary" id="submitBtn">
-                            <i class="fas fa-save"></i>
-                            <span>حفظ التغييرات</span>
-                        </button>
-                    </div>
-                </form>
+                        <!-- Submit Button -->
+                        <div class="btn-container">
+                            <button type="submit" class="btn-primary" id="submitBtn">
+                                <i class="fas fa-save"></i>
+                                <span>حفظ التغييرات</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
+
+    }
+
+
+
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -651,19 +665,34 @@
             });
 
             // Phone number formatting
-            const phoneInputs = document.querySelectorAll('input[type="tel"]');
-            phoneInputs.forEach(input => {
-                input.addEventListener('input', function(e) {
-                    let value = e.target.value.replace(/\D/g, '');
-                    if (value.startsWith('20')) {
-                        value = value.slice(2);
-                    }
-                    if (value.length > 11) {
-                        value = value.slice(0, 11);
-                    }
-                    e.target.value = value;
-                });
+                const phoneInputs = document.querySelectorAll('input[type="tel"]');
+
+        phoneInputs.forEach(input => {
+            input.addEventListener('input', function (e) {
+                let value = e.target.value.replace(/\D/g, ''); // أرقام فقط
+
+                // لو الرقم بيبدأ بـ 20 نحذفه
+                if (value.startsWith('20')) {
+                    value = value.slice(2);
+                }
+
+                // تحديد الطول الأقصى = 11
+                if (value.length > 11) {
+                    value = value.slice(0, 11);
+                }
+
+                e.target.value = value;
             });
+
+            input.addEventListener('blur', function (e) {
+                const regex = /^01[0-9]{9}$/;
+                if (!regex.test(e.target.value)) {
+                    alert("من فضلك أدخل رقم موبايل مصري صحيح (11 رقم ويبدأ بـ 01)");
+                    e.target.focus();
+                }
+            });
+        });
+
 
          
             // Notification system

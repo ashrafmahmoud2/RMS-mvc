@@ -3,6 +3,7 @@
 - add data in ar end in en
 - don't forget to use enum gernallsettings
 - using UtcNow or now 
+- make gologal var like userid , selected branch id , 
 
 
 #Branch

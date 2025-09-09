@@ -2,7 +2,6 @@
 using RMS.Web.Core.ViewModels.Profile;
 
 namespace RMS.Web.Controllers;
-[Authorize]
 public class ProfileController : Controller
 {
     private readonly UserManager<ApplicationUser> _userManager;
@@ -14,14 +13,16 @@ public class ProfileController : Controller
         _context = context;
     }
 
-    // GET: /Profile
     public async Task<IActionResult> Index()
     {
         var user = await _userManager.GetUserAsync(User);
-        if (user == null) return NotFound();
+        if (user == null)
+            return View("LoginRequiredView");
 
         var customer = await _context.Customers
             .FirstOrDefaultAsync(c => c.UserId == user.Id);
+
+
 
         var model = new ProfileViewModel
         {
@@ -29,7 +30,7 @@ public class ProfileController : Controller
             Email = user.Email ?? "",
             PhoneNumber = user.PhoneNumber ?? "",
             SecondaryPhoneNumber = customer?.SecondaryPhoneNumber
-        };
+        };  
 
         return View(model);
     }
@@ -46,6 +47,32 @@ public class ProfileController : Controller
 
         var customer = await _context.Customers
             .FirstOrDefaultAsync(c => c.UserId == user.Id);
+
+        if (await _userManager.Users.AnyAsync(u => u.Email == model.Email && u.Id != user.Id))
+        {
+            ModelState.AddModelError("Email", "هذا البريد الإلكتروني مستخدم بالفعل");
+            return View(model);
+        }
+
+        if (await _userManager.Users.AnyAsync(u => u.PhoneNumber == model.PhoneNumber && u.Id != user.Id))
+        {
+            ModelState.AddModelError("PhoneNumber", "رقم الهاتف هذا مستخدم بالفعل");
+            return View(model);
+        }
+
+        if (!string.IsNullOrEmpty(model.FullName) &&
+            await _userManager.Users.AnyAsync(u => u.FullName == model.FullName && u.Id != user.Id))
+        {
+            ModelState.AddModelError("FullName", "الاسم الكامل مستخدم بالفعل");
+            return View(model);
+        }
+
+        if (!string.IsNullOrEmpty(model.SecondaryPhoneNumber) &&
+            await _context.Customers.AnyAsync(c => c.SecondaryPhoneNumber == model.SecondaryPhoneNumber && c.UserId != user.Id))
+        {
+            ModelState.AddModelError("SecondaryPhoneNumber", "رقم الهاتف الثانوي مستخدم بالفعل");
+            return View(model);
+        }
 
         // Update ApplicationUser
         user.FullName = model.FullName;

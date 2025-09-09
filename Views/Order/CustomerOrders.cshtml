@@ -492,6 +492,7 @@
 
         <!-- Orders List -->
         <div class="orders-list">
+
             @if (!Model.Any())
             {
                 <div class="empty-orders">
@@ -512,7 +513,7 @@
                     var statusText = GetStatusText(status);
                     var statusIcon = GetStatusIcon(status);
 
-              
+
                     <div class="order-card" data-status="@statusClass">
                         <div class="order-card-header">
                             <div class="order-header-top">
@@ -552,7 +553,11 @@
                         </div>
                     </div>
                 }
+                }
+
             }
+          
+        
         </div>
     </div>
 

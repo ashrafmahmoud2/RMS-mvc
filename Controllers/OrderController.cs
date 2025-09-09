@@ -1,4 +1,5 @@
-﻿using Microsoft.Identity.Client;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Identity.Client;
 using RMS.Web.Core.Consts;
 using RMS.Web.Core.Enums;
 using RMS.Web.Core.Models;
@@ -8,28 +9,6 @@ using System.Threading.Tasks;
 
 
 
-//When I click on
-
-//```html
-//<a href="/Support" class= "menu-item" >
-//    < i class= "fa-solid fa-life-ring" ></ i >
-//    < span class= "menu-item-text" > اتصل بالفرع </ span >
-//    < i class= "fa-solid fa-chevron-left menu-item-arrow" ></ i >
-//</ a >
-//```
-
-//I want it to behave like a **collapsible menu** instead of redirecting.
-
-//* On click, it should expand and show two sub-options:
-
-//  * 📞 **اتصال * * → `tel: @branch.PhoneNumber`
-//  * 💬 **واتساب * * → `https://wa.me/@branch.PhoneNumber`
-
-//*Clicking again should collapse/hide the options.
-
-//* Smooth animation for expand/collapse.
-
-//* Keep the main menu item highlighted/active when expanded.
 
 
 
@@ -37,13 +16,13 @@ using System.Threading.Tasks;
 /*
 
  # seps
-
- 6. make regestriation to show his orders(curent or past )
- 7. Implement search , using pakage in mvc project
- 8. add the card layout , with make responsive in it
- 9. make one modal to show error in chekout page   
- 10. Make prail view if no itsm , orders to show in chekout , my orders page and if not login like orders , accout any thing need login 
-    now you are ready to test in real life , so using local host and ngrok
+add _LoginRequiredView view in any place he need , 
+ 7. Implement search , using pakage in mvc project , open in modal like takar
+ 8. add the card layout  , with make responsive in it
+ 9. make one glopal modal to show all  error in him , see section in errors in bookfyi  
+ 10. Make prail view if no itsm , orders to show in chekout ,
+ 11 . integrate wiht otp
+now you are ready to test in real life , so using local host and ngrok
 */
 
 public class OrderController : Controller
@@ -465,6 +444,9 @@ public class OrderController : Controller
     public IActionResult CustomerOrders()  
     {
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+            return View("LoginRequiredView"); 
 
         var orders = _context.Orders
             .Include(o => o.Branch)

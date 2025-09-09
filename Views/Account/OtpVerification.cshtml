@@ -1,0 +1,690 @@
+﻿@using RMS.Web.Core.ViewModels.Account
+@model VerifyOtpViewModel
+
+
+<style>
+
+    :root {
+        --primary-color: #185499;
+        --primary-dark: #0f3d7a;
+        --primary-light: #3e7bb5;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+        --warning-color: #f59e0b;
+        --info-color: #3b82f6;
+        --background: #f8fafc;
+        --surface: #ffffff;
+        --surface-hover: #f1f5f9;
+        --border: #e2e8f0;
+        --border-focus: #3b82f6;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+        --border-radius: 16px;
+        --border-radius-lg: 24px;
+        --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-spring: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+        background: var(--background);
+        color: var(--text-primary);
+        line-height: 1.6;
+        min-height: 100vh;
+        padding-bottom: 120px;
+        margin: 0;
+        -webkit-font-smoothing: antialiased;
+    }
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        z-index: 1000;
+        display:flex;
+       align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease-out;
+      /*   background-image: url('https://t3.ftcdn.net/jpg/13/31/21/24/360_F_1331212451_Cuv1RqmO5XnZmNOzCm90Fnpxkp51XqrU.jpg');
+        background-repeat:no-repeat;
+        background-size:cover; */
+    }
+    
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+    .otp-modal {
+        background: var(--surface);
+        border-radius: var(--border-radius-lg);
+        padding: 32px;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+        position: relative;
+        animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .otp-header {
+        text-align: center;
+        margin-bottom: 24px;
+    }
+
+    .otp-icon {
+        width: 64px;
+        height: 64px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        font-size: 24px;
+        color: white;
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(24, 84, 153, 0.4);
+        }
+
+        70% {
+            box-shadow: 0 0 0 20px rgba(24, 84, 153, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(24, 84, 153, 0);
+        }
+    }
+
+    .otp-title {
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+
+    .otp-description {
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    .phone-display {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    .otp-inputs {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin: 24px 0;
+        direction: ltr;
+    }
+
+    .otp-input {
+        width: 48px;
+        height: 48px;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        text-align: center;
+        font-size: 20px;
+        font-weight: 600;
+        background: var(--surface);
+        color: var(--text-primary);
+        transition: var(--transition);
+    }
+
+        .otp-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(24, 84, 153, 0.1);
+            transform: scale(1.05);
+        }
+
+        .otp-input.error {
+            border-color: var(--danger-color);
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .otp-input.success {
+            border-color: var(--success-color);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+    .otp-timer {
+        text-align: center;
+        margin: 16px 0;
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .timer-text {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    .otp-resend {
+        text-align: center;
+        margin: 16px 0;
+    }
+
+    .resend-btn {
+        background: none;
+        border: none;
+        color: var(--primary-color);
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: underline;
+        transition: var(--transition);
+    }
+
+        .resend-btn:hover:not(:disabled) {
+            color: var(--primary-dark);
+        }
+
+        .resend-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .otp-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+    }
+
+    .otp-btn {
+        flex: 1;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        font-family: inherit;
+    }
+
+    .otp-btn-cancel {
+        background: var(--surface-hover);
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+    }
+
+        .otp-btn-cancel:hover {
+            background: var(--border);
+        }
+
+    .otp-btn-verify {
+        background: var(--primary-color);
+        color: white;
+    }
+
+        .otp-btn-verify:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .otp-btn-verify:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+    .otp-error {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin: 16px 0;
+        font-size: 14px;
+        text-align: center;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .otp-attempts {
+        text-align: center;
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 8px;
+    }
+
+    .blocked-message {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .blocked-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.8;
+    }
+
+    .blocked-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .blocked-description {
+        font-size: 14px;
+        opacity: 0.8;
+    }
+
+    /* Place Order Button */
+    .place-order-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 16px 20px;
+        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.1);
+        z-index: 50;
+        border-top: 1px solid var(--border);
+    }
+
+    .place-order-btn {
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        border: none;
+        border-radius: 16px;
+        padding: 18px 24px;
+        cursor: pointer;
+        transition: var(--transition-spring);
+        box-shadow: var(--shadow);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 16px;
+        font-weight: 600;
+        font-family: inherit;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .place-order-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(24, 84, 153, 0.4);
+        }
+
+        .place-order-btn:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .place-order-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+    .btn-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-price {
+        font-size: 18px;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Loading Spinner */
+    .loading-spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Animations */
+    .fade-in {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .slide-up {
+        animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 480px) {
+        body
+
+    {
+        padding: 16px;
+    }
+
+    .container {
+        max-width: 100%;
+    }
+
+    .header {
+        padding: 24px 20px;
+    }
+
+    .header-icon {
+        width: 64px;
+        height: 64px;
+        font-size: 24px;
+    }
+
+    .header-title {
+        font-size: 20px;
+    }
+
+    .content {
+        padding: 24px 20px;
+    }
+
+    .otp-inputs {
+        gap: 8px;
+    }
+
+    .otp-input {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        padding: 16px 20px;
+    }
+
+    }
+
+    @@media (max-width: 360px) {
+        .otp-inputs
+
+    {
+        gap: 6px;
+    }
+
+    .otp-input {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+    }
+
+    }
+
+
+
+    /* Fade-out animation */
+    .page-exit {
+        animation: fadeOut 0.6s ease forwards;
+    }
+
+    @@keyframes fadeOut {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        to {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+    }
+
+</style>
+
+<!-- OTP Modal -->
+<div class="modal-overlay" id="otpModal">
+    <div class="otp-modal">
+       
+
+<form asp-action="VerifyOtp" asp-controller="Account" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="otp-header">
+        <div class="otp-icon">
+            <i class="fas fa-mobile-alt"></i>
+        </div>
+        <h2 class="otp-title">تأكيد رقم الهاتف</h2>
+        <p class="otp-description">
+            تم إرسال رمز التحقق إلى رقم
+            <span class="phone-display">@Model.PhoneNumber</span>
+        </p>
+    </div>
+
+    <input type="hidden" asp-for="PhoneNumber" />
+
+    <div class="otp-inputs">
+        <input type="text" maxlength="1" class="otp-input" data-index="0">
+        <input type="text" maxlength="1" class="otp-input" data-index="1">
+        <input type="text" maxlength="1" class="otp-input" data-index="2">
+        <input type="text" maxlength="1" class="otp-input" data-index="3">
+    </div>
+
+    <input type="hidden" asp-for="Otp" id="Otp" />
+
+    <span asp-validation-for="Otp" class="text-danger"></span>
+
+    <div class="otp-actions">
+        <button type="button" class="otp-btn otp-btn-cancel" onclick="window.history.back()">إلغاء</button>
+        <button type="submit" class="otp-btn otp-btn-verify" id="verifyOtp" disabled>تحقق</button>
+    </div>
+</form>
+
+
+        <div id="blockedContent" style="display: none;">
+            <div class="blocked-message">
+                <div class="blocked-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="blocked-title">تم إيقاف المحاولات مؤقتاً</div>
+                <div class="blocked-description" id="blockedDescription">
+                    يرجى المحاولة مرة أخرى بعد دقيقة واحدة
+                </div>
+                <div class="otp-timer" id="blockedTimer" style="margin-top: 16px;">
+                    الوقت المتبقي: <span class="timer-text" id="blockedTimeLeft">60</span> ثانية
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+      // ================== OTP JS ==================
+    let otpState = {
+        phoneNumber: null,
+        otp: "1234",//get otp from model
+        attempts: 5,
+        timer: 60,
+        blocked: false,
+        blockedTimer: 60,
+        interval: null,
+        blockedInterval: null
+    };
+
+    // Selectors
+    const otpModal = document.getElementById("otpModal"),
+          otpInputs = document.querySelectorAll(".otp-input"),
+          verifyOtpBtn = document.getElementById("verifyOtp"),
+          resendBtn = document.getElementById("resendBtn"),
+          cancelOtpBtn = document.getElementById("cancelOtp"),
+          otpError = document.getElementById("otpError"),
+          attemptsCount = document.getElementById("attemptsCount"),
+          displayPhone = document.getElementById("displayPhone"),
+          otpTimer = document.getElementById("otpTimer"),
+          blockedContent = document.getElementById("blockedContent"),
+          otpContent = document.getElementById("otpContent"),
+          blockedTimeLeft = document.getElementById("blockedTimeLeft");
+
+    // ================== Helpers ==================
+    const getOtpCode = () => Array.from(otpInputs).map(i => i.value).join("");
+    const showError = msg => { otpError.textContent = msg; otpError.style.display = "block"; };
+    const hideError = () => otpError.style.display = "none";
+
+    function showOtpModal(phoneNumber) {
+        otpState.phoneNumber = phoneNumber;
+        displayPhone.textContent = phoneNumber;
+        otpModal.classList.add("show");
+        resetOtpInputs();
+        startTimer("otp");
+    }
+
+    function hideOtpModal() {
+        otpModal.classList.remove("show");
+        resetOtpState();
+    }
+
+    function resetOtpInputs() {
+        otpInputs.forEach(i => i.value = "");
+        otpInputs[0].focus();
+        verifyOtpBtn.disabled = true;
+    }
+
+    function resetOtpState() {
+        clearInterval(otpState.interval);
+        clearInterval(otpState.blockedInterval);
+        otpState = { phoneNumber: null, otp: null, attempts: 5, timer: 60, blocked: false, blockedTimer: 60 };
+        hideError();
+        attemptsCount.textContent = otpState.attempts;
+        otpContent.style.display = "block";
+        blockedContent.style.display = "none";
+    }
+
+    function startTimer(type) {
+        let time = type === "otp" ? "timer" : "blockedTimer";
+        let target = type === "otp" ? otpTimer : blockedTimeLeft;
+
+        clearInterval(otpState.interval);
+        otpState[time] = 60;
+
+        otpState.interval = setInterval(() => {
+            otpState[time]--;
+            if (type === "otp") {
+                target.innerHTML = otpState.timer > 0
+                    ? `يمكنك طلب رمز جديد خلال <span class="timer-text">${otpState.timer}</span> ثانية`
+                    : "يمكنك طلب رمز جديد الآن";
+                resendBtn.disabled = otpState.timer > 0;
+            } else {
+                target.textContent = otpState.blockedTimer;
+                if (otpState.blockedTimer <= 0) unblockUser();
+            }
+        }, 1000);
+    }
+
+    function blockUser() {
+        otpState.blocked = true;
+        otpContent.style.display = "none";
+        blockedContent.style.display = "block";
+        startTimer("blocked");
+    }
+
+    function unblockUser() {
+        otpState.blocked = false;
+        resetOtpState();
+        showOtpModal(otpState.phoneNumber);
+    }
+
+    function verifyOtpCode() {
+        const code = getOtpCode();
+
+
+        if (code.length < otpInputs.length) return showError("الرجاء إدخال رمز صحيح");
+
+                    console.log(otpState.otp)
+
+
+        if (code === otpState.otp) {
+            hideError();
+            alert("✅ تم التحقق بنجاح");
+            hideOtpModal();
+        } else {
+            otpState.attempts--;
+            attemptsCount.textContent = otpState.attempts;
+            showError("❌ رمز غير صحيح");
+            if (otpState.attempts <= 0) blockUser();
+        }
+    }
+
+    function sendOTP(phoneNumber) {
+        otpState.otp = generateOtp(); // API call ممكن تحط هنا
+        console.log("OTP Sent:", otpState.otp);
+        showOtpModal(phoneNumber);
+    }
+
+    const generateOtp = () => Math.floor(1000 + Math.random() * 9000).toString();
+
+    // ================== Events ==================
+    otpInputs.forEach((input, index) => {
+        input.addEventListener("input", e => {
+            if (e.target.value.length === 1 && index < otpInputs.length - 1) otpInputs[index + 1].focus();
+            verifyOtpBtn.disabled = !Array.from(otpInputs).every(i => i.value);
+        });
+        input.addEventListener("keydown", e => {
+            if (e.key === "Backspace" && !input.value && index > 0) otpInputs[index - 1].focus();
+        });
+    });
+
+    verifyOtpBtn.addEventListener("click", verifyOtpCode);
+    resendBtn.addEventListener("click", () => sendOTP(otpState.phoneNumber));
+    cancelOtpBtn.addEventListener("click", hideOtpModal);
+
+    // Example call
+    // sendOTP("01xxxxxxxxx");
+
+</script>

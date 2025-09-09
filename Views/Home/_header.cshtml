@@ -581,7 +581,8 @@
                     <span class="menu-item-text">الفروع</span>
                     <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
                 </a>
-                <a href="/Profile" class="menu-item">
+
+                <a asp-controller="Profile" asp-action="Index" class="menu-item">
                     <i class="fa-solid fa-user-circle"></i>
                     <span class="menu-item-text">ملفي الشخصي</span>
                     <i class="fa-solid fa-chevron-left menu-item-arrow"></i>
@@ -643,12 +644,24 @@
 
         <!-- Sidebar Footer -->
         <div class="sidebar-footer">
-            <button class="logout-btn" onclick="handleLogout()">
-                <i class="fa-solid fa-sign-out-alt"></i>
-                <span>
-                    @(User.Identity?.IsAuthenticated ?? false ? "تسجيل الخروج" : "تسجيل الدخول")
-                </span>
-            </button>
+
+            @if (User.Identity?.IsAuthenticated ?? false)
+            {
+                <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
+                    <button type="submit" class="logout-btn">
+                        <i class="fa-solid fa-sign-out-alt"></i>
+                        <span>تسجيل الخروج</span>
+                    </button>
+                </form>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login" class="logout-btn">
+                    <i class="fa-solid fa-sign-in-alt"></i>
+                    <span>تسجيل الدخول</span>
+                </a>
+            }
+
 
 
             <div class="powered-by">Powered by Ashraf</div>
