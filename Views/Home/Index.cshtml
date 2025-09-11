@@ -35,12 +35,15 @@
 }
 
 
-@if (Model?.CategoriesItems != null && Model.CategoriesItems.Any())
-{
+<div id="product-grid-container" class="categories-section">
+    <Partial name="_ProductGrid" model="Model.CategoriesItems" />
+</div>
+
+@* 
     <div class="categories-section">
         <Partial name="_ProductGrid" model="Model.CategoriesItems" />
     </div>
-}
+ *@
 
 
 

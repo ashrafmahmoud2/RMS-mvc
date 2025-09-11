@@ -2,36 +2,94 @@
 @using System.Globalization
 @model IEnumerable<CategoryWithItemsViewModel>
 
-
 <style>
-    .products-grid {
-        display: grid;
-        gap: 20px;
+
+    :root {
+        --primary-color: #0052a3;
+
+        --info-color: #3b82f6;
+        --background: #f8fafc;
+        --surface: #ffffff;
+        --surface-hover: #f1f5f9;
+        --border: #e2e8f0;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+        --border-radius: 16px;
+        --border-radius-lg: 24px;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .category {
-        border-bottom: 1px solid #eee;
+    .category:last-child {
+        border-bottom: none;
     }
 
-        .category:last-child {
-            border-bottom: none;
+    .category .title {
+        /* font-family: 'Noto Sans Arabic', Arial, sans-serif; */
+        font-size: 34px;
+        font-weight: bold;
+        color: #415e7e;
+        margin: 20px 0;
+        text-align: start;
+    }
+
+    /* Empty State */
+    .empty-items {
+        margin-top: 100px;
+        text-align: center;
+        padding: 60px 20px;
+        background: var(--surface);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow);
+    }
+
+    .empty-items-icon {
+        font-size: 64px;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .empty-items h2 {
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .empty-items p {
+        color: var(--text-secondary);
+        font-size: 16px;
+        margin-bottom: 24px;
+    }
+
+    .start-ordering-btn {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: var(--border-radius);
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .start-ordering-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 82, 163, 0.3);
         }
 
-        .category .title {
-            /* font-family: 'Noto Sans Arabic', Arial, sans-serif; */
-            font-size: 34px;
-            font-weight: bold;
-            color: #415e7e;
-            margin: 20px 0;
-            text-align: start;
-        }
+</style>
 
-    /* General product-card */
-    .product-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 10px;
-    }
+@* <style>
+
+  
+       
 
     .product-card {
         color: #333;
@@ -174,8 +232,7 @@
         }
     }
 
-
-/*     @@media (max-width: 500px) {
+/    @@media (max-width: 500px) {
         .Rectangle-Item-Layout {
             grid-template-columns: repeat(1, 1fr);
             gap: 15px;
@@ -215,7 +272,7 @@
             .Rectangle-Item-Layout .add-to-cart {
                 display: none;
             }
-    } */
+    } 
 
 
 
@@ -287,55 +344,58 @@
 
         .product-card:nth-child(4) img {
             animation-delay: 0.7s;
-        }
+        } */
 
 </style>
+ *@
 
 
 <div class="products-grid">
     <div class="container">
-        @foreach (var category in Model)
+
+        @if (!Model.Any(c => c.Items.Any()))
         {
-            <section class="category" id="@category.CategoryNameEn" data-category-name="@category.CategoryNameAr">
-                <h3 class="title">
-                    <span class="before"></span>
-                    <i class="fa-solid fa-burger"></i>
-                    @category.CategoryNameAr
-                    <span class="after"></span>
-                </h3>
-                <div class="product-list @category.ItemsCardsLayout">
-                    @if (category.Items != null)
-                    {
-                        foreach (var item in category.Items)
-                        {
-                            switch (category.ItemsCardsLayout)
+            <div class="empty-items">
+                <i class="fas fa-box-open empty-items-icon"></i>
+                <h3 class="empty-state-title">لا توجد أصناف مطابقة لفلترة البحث</h3>
+            </div>
+        }
+        else
+        {
+            @foreach (var category in Model)
+            {
+                // Only render the category section if it contains at least one item after filtering.
+                if (category.Items != null && category.Items.Any())
+                {
+                    <section class="category" id="@category.CategoryNameEn" data-category-name="@category.CategoryNameAr">
+                        <h3 class="title">
+                            <span class="before"></span>
+                            <i class="fa-solid fa-burger"></i>
+                            @category.CategoryNameAr
+                            <span class="after"></span>
+                        </h3>
+                        <div class="product-list @category.ItemsCardsLayout">
+                            @foreach (var item in category.Items)
                             {
-
-                                case "Rectangle-Item-Layout":
-                                    @Html.Partial("_RectangleItemLayout", item)
-                                    break;
-
-                                case "two-Square-Item-Layout":
-                                    @Html.Partial("_TwoSquareItemLayout", item)
-                                    break;
-
-                                case "Square-Item-Layout":
-                                    @Html.Partial("_SquareItemLayout", item)
-                                    break;
-
-                              
-
-                               
-
-                                default:
-                                    <!-- Optionally handle unknown layout -->
-                                    break;
+                                switch (category.ItemsCardsLayout)
+                                {
+                                    case "Rectangle-Item-Layout":
+                                        @Html.Partial("_RectangleCard", item)
+                                        break;
+                                    case "two-Square-Item-Layout":
+                                        @Html.Partial("_TwoSquareCard", item)
+                                        break;
+                                    case "Square-Item-Layout":
+                                        @Html.Partial("_SquareCard", item)
+                                        break;
+                                    default:
+                                        break;
+                                }
                             }
-                        }
-                    }
-                </div>
-
-            </section>
+                        </div>
+                    </section>
+                }
+            }
         }
     </div>
 </div>

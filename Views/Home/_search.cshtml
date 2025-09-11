@@ -1,11 +1,6 @@
-﻿
-<div class="search ">
+﻿<div class="search ">
     <div class="container">
-        <!-- <button class="search__button">
-            <i class="fa-solid fa-magnifying-glass"></i>
-        </button> -->
-        <input type="text" class="search__input" placeholder="ما الذي تبحث عنه؟ ......">
-
+        <input type="text" class="search__input" placeholder="ما الذي تبحث عنه؟ ......" value="">
     </div>
 </div>
 
@@ -67,3 +62,29 @@
     }
 
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.querySelector('.search__input');
+
+        searchInput.addEventListener('keyup', function () {
+            const searchQuery = this.value; // Get the current value of the input field
+            const container = document.getElementById('product-grid-container');
+
+            // Use the Fetch API to make an AJAX request
+            fetch(`/Home/SearchResults?searchQuery=${searchQuery}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text(); // Get the HTML from the partial view
+                })
+                .then(html => {
+                    container.innerHTML = html; // Replace the container's content with the new HTML
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                });
+        });
+    });
+</script>

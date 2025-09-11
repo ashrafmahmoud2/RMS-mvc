@@ -9,16 +9,15 @@ using System.Threading.Tasks;
 
 
 
-
+//moaz alart at 3:30 pm
+//feat : add new card aloyyt wiht fix the confilct in css class and optmize the responsize , 
 
 
 
 /*
 
  # seps
-add _LoginRequiredView view in any place he need , 
  7. Implement search , using pakage in mvc project , open in modal like takar
- 8. add the card layout  , with make responsive in it
  9. make one glopal modal to show all  error in him , see section in errors in bookfyi  
  10. Make prail view if no itsm , orders to show in chekout ,
  11 . integrate wiht otp

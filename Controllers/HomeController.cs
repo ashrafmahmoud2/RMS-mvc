@@ -31,87 +31,145 @@ public class HomeController : Controller
     }
 
 
-    public IActionResult Index()
+    public IActionResult SearchResults(string searchQuery)
     {
         var branchId = 1;
 
+        var query = _context.Categories
+            .Include(c => c.Items)
+            .ThenInclude(i => i.BranchItems)
+            .OrderBy(c => c.CategorySort)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(searchQuery))
+        {
+            query = query.Where(c => c.Items.Any(i =>
+                i.NameEn.Contains(searchQuery) ||
+                i.NameAr.Contains(searchQuery)));
+        }
+
+        var model = new HomeViewModel
+        {
+            CategoriesItems = query
+                .Select(c => new CategoryWithItemsViewModel
+                {
+                    CategoryId = c.Id,
+                    CategoryNameAr = c.NameAr,
+                    CategoryNameEn = c.NameEn,
+                    CategoryExploreBarImage = c.CategoryExploreBarImage,
+                    ItemsCardsLayout = c.ItemsCardsLayout,
+                    Items = c.Items
+                        .Where(i => i.BranchItems.Any(bi => bi.BranchId == branchId))
+                        .Where(i => string.IsNullOrEmpty(searchQuery) ||
+                            i.NameEn.Contains(searchQuery) ||
+                            i.NameAr.Contains(searchQuery))
+                        .OrderBy(i => i.SortInCategory)
+                        .Select(i => new ItemViewModel
+                        {
+                            ItemId = i.Id,
+                            NameAr = i.NameAr,
+                            NameEn = i.NameEn,
+                            DescriptionAr = i.DescriptionAr,
+                            DescriptionEn = i.DescriptionEn,
+                            CardLabelsAr = i.CardLabelsAr,
+                            CardLabelsEn = i.CardLabelsEn,
+                            DeliveryTime = i.DeliveryTime,
+                            ThumbnailUrl = i.ThumbnailUrl,
+                            IsAvailable = i.BranchItems.Any() && i.BranchItems.First().IsAvailable,
+                            BasePrice = i.BranchItems.Any() ? i.BranchItems.First().BasePrice : 0,
+                            PriceWithoutDiscount = i.BranchItems.Any() ? i.BranchItems.First().PriceWithoutDiscount : null
+                        }).ToList()
+                })
+                .ToList()
+        };
+
+        // Return the _ProductGrid partial view with the filtered model
+        return PartialView("_ProductGrid", model.CategoriesItems);
+    }
+
+    public IActionResult Index(string searchQuery)
+    {
+        var branchId = 1;
 
         List<OrderStatusBoxViewModel> currentOrders = new();
 
-
         if (User.Identity?.IsAuthenticated ?? false)
         {
-             currentOrders = GetCurrentOrders();
+            currentOrders = GetCurrentOrders();
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-           var customer = _context.Customers.FirstOrDefault(c => c.UserId == userId);
+            var customer = _context.Customers.FirstOrDefault(c => c.UserId == userId);
             //if (customer != null && customer.DefaultBranchId.HasValue)
             //{
             //    branchId = customer.DefaultBranchId.Value;
             //}
+        }
 
+        var query = _context.Categories
+            .Include(c => c.Items)
+            .ThenInclude(i => i.BranchItems)
+            .OrderBy(c => c.CategorySort)
+            .AsQueryable();
+
+        // Add search filtering if a query is provided
+        if (!string.IsNullOrEmpty(searchQuery))
+        {
+            // Use EF.Functions.Like for more efficient SQL LIKE query
+            query = query.Where(c => c.Items.Any(i =>
+                EF.Functions.Like(i.NameEn, $"%{searchQuery}%") ||
+                EF.Functions.Like(i.NameAr, $"%{searchQuery}%")));
         }
 
         var model = new HomeViewModel
         {
             CategoriesExploreBar = _context.Categories
-    .OrderBy(c => c.CategorySort)
-    .Select(c => new CategoryExploreBarViewModel
-    {
-        NameEn = c.NameEn,
-        NameAr = c.NameAr,
-        CategoryExploreBarImage = c.CategoryExploreBarImage
-    })
-    .ToList(),
+                .OrderBy(c => c.CategorySort)
+                .Select(c => new CategoryExploreBarViewModel
+                {
+                    NameEn = c.NameEn,
+                    NameAr = c.NameAr,
+                    CategoryExploreBarImage = c.CategoryExploreBarImage
+                })
+                .ToList(),
 
-
-            CategoriesItems = _context.Categories
-    .Include(c => c.Items)
-        .ThenInclude(i => i.BranchItems)
-    .OrderBy(c => c.CategorySort)
-    .Select(c => new CategoryWithItemsViewModel
-    {
-        CategoryId = c.Id,
-        CategoryNameAr = c.NameAr,
-        CategoryNameEn = c.NameEn,
-        CategoryExploreBarImage = c.CategoryExploreBarImage,
-        ItemsCardsLayout = c.ItemsCardsLayout,
-        Items = c.Items
-         .Where(i => i.BranchItems.Any(bi => bi.BranchId == branchId))
-            .OrderBy(i => i.SortInCategory)
-            .Select(i => new ItemViewModel
-            {
-                ItemId = i.Id,
-                NameAr = i.NameAr,
-                NameEn = i.NameEn,
-                DescriptionAr = i.DescriptionAr,
-                DescriptionEn = i.DescriptionEn,
-                CardLabelsAr = i.CardLabelsAr,
-                CardLabelsEn = i.CardLabelsEn,
-                DeliveryTime = i.DeliveryTime,
-                ThumbnailUrl = i.ThumbnailUrl,
-                IsAvailable = i.BranchItems.Any() && i.BranchItems.First().IsAvailable,
-                BasePrice = i.BranchItems.Any() ? i.BranchItems.First().BasePrice : 0,
-                PriceWithoutDiscount = i.BranchItems.Any() ? i.BranchItems.First().PriceWithoutDiscount : null
-            }).ToList()
-    })
-    .ToList()
-
-
-    ,
+            CategoriesItems = query
+                .Select(c => new CategoryWithItemsViewModel
+                {
+                    CategoryId = c.Id,
+                    CategoryNameAr = c.NameAr,
+                    CategoryNameEn = c.NameEn,
+                    CategoryExploreBarImage = c.CategoryExploreBarImage,
+                    ItemsCardsLayout = c.ItemsCardsLayout,
+                    Items = c.Items
+                        .Where(i => i.BranchItems.Any(bi => bi.BranchId == branchId))
+                        // Add filtering for items within the category
+                        .Where(i => string.IsNullOrEmpty(searchQuery) ||
+                            i.NameEn.Contains(searchQuery) ||
+                            i.NameAr.Contains(searchQuery))
+                        .OrderBy(i => i.SortInCategory)
+                        .Select(i => new ItemViewModel
+                        {
+                            ItemId = i.Id,
+                            NameAr = i.NameAr,
+                            NameEn = i.NameEn,
+                            DescriptionAr = i.DescriptionAr,
+                            DescriptionEn = i.DescriptionEn,
+                            CardLabelsAr = i.CardLabelsAr,
+                            CardLabelsEn = i.CardLabelsEn,
+                            DeliveryTime = i.DeliveryTime,
+                            ThumbnailUrl = i.ThumbnailUrl,
+                            IsAvailable = i.BranchItems.Any() && i.BranchItems.First().IsAvailable,
+                            BasePrice = i.BranchItems.Any() ? i.BranchItems.First().BasePrice : 0,
+                            PriceWithoutDiscount = i.BranchItems.Any() ? i.BranchItems.First().PriceWithoutDiscount : null
+                        }).ToList()
+                })
+                .ToList(),
 
             CurrentOrders = currentOrders,
             OrderConfirmed = currentOrders.Any()
-
         };
-
-
-
-
-
 
         return View(model);
     }
-
     private List<OrderStatusBoxViewModel> GetCurrentOrders()
     {
 

@@ -1,0 +1,191 @@
+﻿@using RMS.Web.Core.ViewModels.Home
+@using System.Globalization
+@model ItemViewModel
+
+<div class="rectangle-card js-render-modal"
+     asp-controller="Item"
+     asp-action="Detail"
+     asp-route-itemId="@Model.ItemId"
+     data-url="@Url.Action("Detail", "Item", new { itemId = Model.ItemId })"
+     data-id="@Model.ItemId"
+     data-price="@Model.BasePrice.ToString(CultureInfo.InvariantCulture)">
+
+    <!-- Product Image -->
+    <div class="rectangle-card__image">
+        <img src="@Url.Content(@Model.ThumbnailUrl)"
+             alt="@Model.NameAr"
+             loading="lazy"
+             decoding="async" />
+    </div>
+
+    <!-- Product Info -->
+    <div class="rectangle-card__info">
+        <h5 class="rectangle-card__name">@Model.NameAr</h5>
+        <p class="rectangle-card__description">@Model.DescriptionAr</p>
+
+        <div class="rectangle-card__price-actions">
+            <h5 class="rectangle-card__price">@Model.BasePrice ج.م</h5>
+            <button type="button"
+                    class="rectangle-card__btn-add"
+                    data-id="@Model.ItemId"
+                    data-price="@Model.BasePrice"
+                    data-thumbnail-url="@Url.Content(@Model.ThumbnailUrl)">
+                <span>+</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Product List Grid */
+    .Rectangle-Item-Layout {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: 1fr; /* Mobile: single column */
+    }
+
+    /* Card Container */
+    .rectangle-card {
+        display: flex;
+        flex-direction: row; /* row on mobile */
+        background: #fff;
+        border-radius: 32px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        overflow: hidden;
+        transition: transform .2s ease, box-shadow .2s ease;
+        cursor: pointer;
+        max-height: 180px;
+    }
+
+        .rectangle-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+        }
+
+    /* Image */
+    .rectangle-card__image {
+        position: relative;
+        flex-shrink: 0;
+        width: 160px;
+        height: 160px; /* mobile square */
+        margin: 5px 5px 5px 0;
+        border-radius: 28px;
+        overflow: hidden;
+        background: #fff url('https://res.cloudinary.com/dwzq2jxms/image/upload/v1754841367/Copilot_20250607_235033_kmgd2m.png') center/cover no-repeat;
+    }
+
+        .rectangle-card__image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform .3s ease;
+        }
+
+    .rectangle-card:hover .rectangle-card__image img {
+        transform: scale(1.05);
+    }
+
+    /* Info Section */
+    .rectangle-card__info {
+        flex: 1;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .rectangle-card__name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #222;
+        margin-bottom: .25rem;
+    }
+
+    .rectangle-card__description {
+        font-size: .9rem;
+        color: #666;
+        line-height: 1.4;
+        flex-grow: 1;
+        margin-bottom: .5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Price + Button Row */
+    .rectangle-card__price-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .rectangle-card__price {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #333;
+        margin: 0;
+    }
+
+    /* Add Button */
+    .rectangle-card__btn-add {
+        background: #0a5ca8;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.2rem;
+        font-weight: bold;
+        line-height: 1;
+        cursor: pointer;
+        transition: background .3s ease, transform .2s ease;
+    }
+
+        .rectangle-card__btn-add:hover {
+            background: #e63e3f;
+            transform: scale(1.05);
+        }
+
+    /* Tablet & PC → switch to column layout */
+ @@media (min-width: 500px) {
+        .rectangle-card
+
+    {
+        flex-direction: column;
+        max-height: 880px;
+    }
+
+    .rectangle-card__image {
+        margin: 5px;
+        width: inherit;
+        aspect-ratio: 1 / 1; /* ✅ always square */
+        height: auto; /* reset fixed height */
+    }
+
+    }
+
+    /* Tablet → 2 cards */
+ @@media (min-width: 600px) {
+        .Rectangle-Item-Layout
+
+    {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    }
+
+    /* PC → 3 cards */
+ @@media (min-width: 992px) {
+        .Rectangle-Item-Layout
+
+    {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    }
+</style>

@@ -1,0 +1,213 @@
+﻿@using RMS.Web.Core.ViewModels.Home
+@using System.Globalization
+@model ItemViewModel
+
+<div class="two-square-card js-render-modal"
+     asp-controller="Item"
+     asp-action="Detail"
+     asp-route-itemId="@Model.ItemId"
+     data-url="@Url.Action("Detail", "Item", new { itemId = Model.ItemId })"
+     data-id="@Model.ItemId"
+     data-price="@Model.BasePrice.ToString(CultureInfo.InvariantCulture)">
+
+    <!-- Product Image -->
+    <div class="two-square-card__image">
+        <img src="@Url.Content(@Model.ThumbnailUrl)"
+             alt="@Model.NameAr"
+             loading="lazy"
+             decoding="async"
+             style="object-fit: cover; object-position: center;" />
+    </div>
+
+    <!-- Product Info -->
+    <div class="two-square-card__info">
+        <h5 class="two-square-card__name">@Model.NameAr</h5>
+        <p class="two-square-card__description">@Model.DescriptionAr</p>
+
+        <div class="two-square-card__price-actions">
+            <h5 class="two-square-card__price">@Model.BasePrice ج.م</h5>
+            <button type="button"
+                    class="two-square-card__btn-add"
+                    data-id="@Model.ItemId"
+                    data-price="@Model.BasePrice"
+                    data-thumbnail-url="@Url.Content(@Model.ThumbnailUrl)">
+                <span>+</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .two-Square-Item-Layout {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Card Container */
+    .two-square-card {
+        display: flex;
+        flex-direction: column;
+        background: #f8fafc;
+        border-radius: 32px;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+    }
+
+        .two-square-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+        }
+
+    /* Image */
+    .two-square-card__image {
+        position: relative;
+        flex-shrink: 0;
+        width: 100%;
+        height: 185px; /* mobile default */
+        border-radius: 28px;
+        background: #fff url('https://res.cloudinary.com/dwzq2jxms/image/upload/v1754841367/Copilot_20250607_235033_kmgd2m.png') center/cover no-repeat;
+        overflow: hidden;
+        margin: 5px 5px 0 5px;
+    }
+
+        .two-square-card__image img {
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transition: transform 0.3s ease;
+        }
+
+    .two-square-card:hover .two-square-card__image img {
+        transform: scale(1.05);
+    }
+
+    /* Info Section */
+    .two-square-card__info {
+        flex: 1;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .two-square-card__name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #222;
+        margin: 0 0 0.25rem 0;
+    }
+
+    .two-square-card__description {
+        font-size: 0.9rem;
+        color: #666;
+        line-height: 1.4;
+        flex-grow: 1;
+        margin: 0 0 0.5rem 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: none; /* hidden on mobile */
+    }
+
+    /* Price + Button Row */
+    .two-square-card__price-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .two-square-card__price {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #333;
+        margin: 0;
+    }
+
+    /* Add Button */
+    .two-square-card__btn-add {
+        background: #0a5ca8;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.2rem;
+        font-weight: bold;
+        line-height: 1;
+        cursor: pointer;
+        transition: background 0.3s ease, transform 0.2s ease;
+        display: none; /* hidden on mobile */
+    }
+
+        .two-square-card__btn-add:hover {
+            background: #e63e3f;
+            transform: scale(1.05);
+        }
+
+    /* Tablet & PC ≥ 500px */
+ @@media (min-width: 500px) {
+
+      
+
+        .two-square-card
+
+    {
+        flex-direction: column;
+        max-height: 980px;
+            background: #fff;
+            border-radius: 32px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: transform .2s ease, box-shadow .2s ease;
+            cursor: pointer;
+    }
+
+    .two-square-card__description {
+        display: -webkit-box; /* show description */
+    }
+
+    .two-square-card__image {
+        width: inherit;
+        height: auto;
+        aspect-ratio: 1 / 1; 
+        margin: 5px 5px 0 5px;
+    }
+
+    .two-square-card__btn-add {
+        display: flex; /* show add button */
+    }
+
+    }
+
+    /* Two columns ≥ 600px */
+ @@media (min-width: 600px) {
+        .two-Square-Item-Layout
+
+    {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    }
+
+    /* Three columns ≥ 992px */
+ @@media (min-width: 992px) {
+        .two-Square-Item-Layout
+
+    {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    }
+</style>
