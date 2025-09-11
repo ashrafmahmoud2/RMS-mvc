@@ -364,7 +364,6 @@
         {
             @foreach (var category in Model)
             {
-                // Only render the category section if it contains at least one item after filtering.
                 if (category.Items != null && category.Items.Any())
                 {
                     <section class="category" id="@category.CategoryNameEn" data-category-name="@category.CategoryNameAr">
@@ -374,6 +373,7 @@
                             @category.CategoryNameAr
                             <span class="after"></span>
                         </h3>
+
                         <div class="product-list @category.ItemsCardsLayout">
                             @foreach (var item in category.Items)
                             {

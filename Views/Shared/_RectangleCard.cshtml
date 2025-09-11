@@ -20,8 +20,8 @@
 
     <!-- Product Info -->
     <div class="rectangle-card__info">
-        <h5 class="rectangle-card__name">@Model.NameAr</h5>
-        <p class="rectangle-card__description">@Model.DescriptionAr</p>
+        <h5 class="product-title">@Model.NameAr</h5>
+        <p class="description">@Model.DescriptionAr</p>
 
         <div class="rectangle-card__price-actions">
             <h5 class="rectangle-card__price">@Model.BasePrice ج.م</h5>
@@ -94,14 +94,14 @@
         justify-content: space-between;
     }
 
-    .rectangle-card__name {
+    .product-title {
         font-size: 1.2rem;
         font-weight: 600;
         color: #222;
         margin-bottom: .25rem;
     }
 
-    .rectangle-card__description {
+    .description {
         font-size: .9rem;
         color: #666;
         line-height: 1.4;

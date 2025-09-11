@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using RMS.Web.Core.Enums;
+using RMS.Web.Core.Models;
 using RMS.Web.Core.ViewModels.Home;
 using RMS.Web.Core.ViewModels.Order;
 using System.Diagnostics;
@@ -122,14 +123,15 @@ public class HomeController : Controller
         var model = new HomeViewModel
         {
             CategoriesExploreBar = _context.Categories
-                .OrderBy(c => c.CategorySort)
-                .Select(c => new CategoryExploreBarViewModel
-                {
-                    NameEn = c.NameEn,
-                    NameAr = c.NameAr,
-                    CategoryExploreBarImage = c.CategoryExploreBarImage
-                })
-                .ToList(),
+    .Where(c => c.Items.Any(i => i.BranchItems.Any(bi => bi.BranchId == branchId)))
+    .OrderBy(c => c.CategorySort)
+    .Select(c => new CategoryExploreBarViewModel
+    {
+        NameEn = c.NameEn,
+        NameAr = c.NameAr,
+        CategoryExploreBarImage = c.CategoryExploreBarImage
+    })
+    .ToList(),
 
             CategoriesItems = query
                 .Select(c => new CategoryWithItemsViewModel

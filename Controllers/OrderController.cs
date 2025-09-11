@@ -8,20 +8,39 @@ using System;
 using System.Threading.Tasks;
 
 
-
-//moaz alart at 3:30 pm
-//feat : add new card aloyyt wiht fix the confilct in css class and optmize the responsize , 
-
+//fix : description and tilte class confilct when save in local stroge,
 
 
 /*
+# seps
+1. make glopal modal to show erro , suceess meesage , like in bookfiy  do it by clude
+`}
 
- # seps
- 7. Implement search , using pakage in mvc project , open in modal like takar
- 9. make one glopal modal to show all  error in him , see section in errors in bookfyi  
- 10. Make prail view if no itsm , orders to show in chekout ,
- 11 . integrate wiht otp
-now you are ready to test in real life , so using local host and ngrok
+function showSuccessMessage(message = 'Saved successfully!') {
+    Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: message,
+        customClass: {
+            confirmButton: "btn btn-outline btn-outline-dashed btn-outline-primary btn-active-light-primary"
+        }
+    });
+}
+
+function showErrorMessage(message = 'Something went wrong!') {
+    Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: message.responseText = !undefined ? message.responseText : message ,
+        customClass: {
+            confirmButton: "btn btn-outline btn-outline-dashed btn-outline-primary btn-active-light-primary"
+        }
+    });
+}
+`
+2. integrate wiht otp
+3. using local host and ngrok to share
+
 */
 
 public class OrderController : Controller

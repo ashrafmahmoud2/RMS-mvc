@@ -21,8 +21,8 @@
 
     <!-- Product Info -->
     <div class="square-card__info">
-        <h5 class="square-card__name">@Model.NameAr</h5>
-        <p class="square-card__description">@Model.DescriptionAr</p>
+        <h5 class="product-title">@Model.NameAr</h5>
+        <p class="description">@Model.DescriptionAr</p>
 
         <div class="square-card__price-actions">
             <h5 class="square-card__price">@Model.BasePrice ج.م</h5>
@@ -93,14 +93,14 @@
         justify-content: space-between;
     }
 
-    .square-card__name {
+    .product-title {
         font-size: 1.2rem;
         font-weight: 600;
         color: #222;
         margin: 0 0 0.25rem 0;
     }
 
-    .square-card__description {
+    .description {
         font-size: 0.9rem;
         color: #666;
         line-height: 1.4;

@@ -21,8 +21,8 @@
 
     <!-- Product Info -->
     <div class="two-square-card__info">
-        <h5 class="two-square-card__name">@Model.NameAr</h5>
-        <p class="two-square-card__description">@Model.DescriptionAr</p>
+        <h5 class="product-title">@Model.NameAr</h5>
+        <p class="description description-square-card ">@Model.DescriptionAr</p>
 
         <div class="two-square-card__price-actions">
             <h5 class="two-square-card__price">@Model.BasePrice ج.م</h5>
@@ -97,14 +97,14 @@
         justify-content: space-between;
     }
 
-    .two-square-card__name {
+    .product-title {
         font-size: 1.1rem;
         font-weight: 600;
         color: #222;
         margin: 0 0 0.25rem 0;
     }
 
-    .two-square-card__description {
+    .description {
         font-size: 0.9rem;
         color: #666;
         line-height: 1.4;
@@ -115,7 +115,11 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
-        display: none; /* hidden on mobile */
+       /*  display: none;  */
+    }
+
+    .description-square-card{
+        display: none;
     }
 
     /* Price + Button Row */
@@ -174,8 +178,9 @@
             cursor: pointer;
     }
 
-    .two-square-card__description {
+    .description {
         display: -webkit-box; /* show description */
+        display:flex;
     }
 
     .two-square-card__image {
