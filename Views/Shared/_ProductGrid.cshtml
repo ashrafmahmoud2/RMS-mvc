@@ -434,7 +434,7 @@
             window.dispatchEvent(new CustomEvent("cartUpdated"));
         };
 
-        const showMessage = (msg) => alert(msg); // TODO: replace with toast
+        const showMessage = (msg) => alert(msg); 
 
         // Helpers for item & topping data
         const getItemTitle = id =>
@@ -528,7 +528,7 @@
                     Name: getToppingName(optionId)
                 });
             } else {
-                showMessage(`يمكنك اختيار ${maxAllowed} خيار كحد أقصى من هذه المجموعة`);
+                showMessageInToast(`يمكنك اختيار ${maxAllowed} خيار كحد أقصى من هذه المجموعة`);
             }
         };
 
@@ -553,7 +553,7 @@
             for (const g of state.groups) {
                 const selectedCount = state.selectedToppings.get(g.Id)?.size || 0;
                 if (selectedCount < g.MinAllowedOptions) {
-                    showMessage(`يجب اختيار ${g.MinAllowedOptions} على الأقل من ${g.TitleAr}`);
+                    showMessageInToast(`يجب اختيار ${g.MinAllowedOptions} على الأقل من ${g.TitleAr}`,"info");
                     return false;
                 }
             }

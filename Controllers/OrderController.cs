@@ -8,7 +8,6 @@ using System;
 using System.Threading.Tasks;
 
 
-//fix : description and tilte class confilct when save in local stroge,
 
 
 /*
@@ -39,6 +38,7 @@ function showErrorMessage(message = 'Something went wrong!') {
 }
 `
 2. integrate wiht otp
+3. place holder imges in prodect prid and modal
 3. using local host and ngrok to share
 
 */
