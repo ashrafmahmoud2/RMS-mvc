@@ -10,12 +10,9 @@ using System.Threading.Tasks;
 
 
 
-
-
 /*
 # seps
-1.wht vlidation in chekout cart not work , and stok in ui in model , and don't allow orders if branch isopen = false
-2. integrate wiht otp
+2. integrate wiht otp wiht beon 
 3. place holder imges in prodect prid and modal
 3. using local host and ngrok to share
 */

@@ -54,6 +54,7 @@ in resuten ui
 - rebuild this like talabat shifts
 - fix in client ui , and apply vildation when order
 - alart is  branch close like dirikit or jahhaz(apply this when add new table to make shifts like talbat)
+- search to allow isopen & is pasy or what 
 
 
 
