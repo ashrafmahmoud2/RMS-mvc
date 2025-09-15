@@ -20,11 +20,22 @@
 
 
 <style>
+
+  
     /* Categories Explore Bar */
     .categories-explore-bar {
         padding-right: 15px;
-        margin: 20px auto;
+        margin: 0 auto;
         animation: fadeIn 0.8s ease-out;
+        background-color: #f8fafc;
+        padding-top: 20px;
+  
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-bottom-right-radius: 30px;
+        border-bottom-left-radius: 30px;
+      
     }
 
     .category-image-list {
@@ -43,7 +54,10 @@
         flex-direction: column;
         align-items: center;
         animation: bounceIn 0.5s ease-in-out forwards;
+      
+
     }
+   
 
         .category-image-item a {
             display: flex;
@@ -59,8 +73,18 @@
             background: #fff url('https://res.cloudinary.com/dwzq2jxms/image/upload/v1754841367/Copilot_20250607_235033_kmgd2m.png') center/cover no-repeat;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
             transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-            animation: bounceIn 0.5s ease-in-out forwards;
+           animation: bounceIn 0.5s ease-in-out forwards;
+       transform: translateY(20px);
+        animation: slideInUp 0.6s ease-out forwards;
+        scroll-snap-align: center;
         }
+
+    @@keyframes slideInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 
             .category-image-item a:hover {
                 transform: translateY(-5px) scale(1.05);
@@ -157,6 +181,22 @@
         }
     }
 </style>
+
+<script>
+    document.addEventListener("scroll", function () {
+        const section = document.querySelector(".categories-explore-bar");
+        if (!section) return;
+
+        if (window.scrollY > 0) {
+            section.style.borderBottom = "3px solid var(--border)";
+            section.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.05)";
+        } else {
+            section.style.borderBottom = "none";
+            section.style.boxShadow = "none";
+        }
+    });
+</script>
+
 
 
 

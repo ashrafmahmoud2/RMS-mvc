@@ -687,7 +687,7 @@
             input.addEventListener('blur', function (e) {
                 const regex = /^01[0-9]{9}$/;
                 if (!regex.test(e.target.value)) {
-                    alert("من فضلك أدخل رقم موبايل مصري صحيح (11 رقم ويبدأ بـ 01)");
+                    showMessageInToast("من فضلك أدخل رقم موبايل مصري صحيح (11 رقم ويبدأ بـ 01)");
                     e.target.focus();
                 }
             });

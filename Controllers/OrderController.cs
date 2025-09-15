@@ -10,37 +10,14 @@ using System.Threading.Tasks;
 
 
 
+
+
 /*
 # seps
-1. make glopal modal to show erro , suceess meesage , like in bookfiy  do it by clude
-`}
-
-function showSuccessMessage(message = 'Saved successfully!') {
-    Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: message,
-        customClass: {
-            confirmButton: "btn btn-outline btn-outline-dashed btn-outline-primary btn-active-light-primary"
-        }
-    });
-}
-
-function showErrorMessage(message = 'Something went wrong!') {
-    Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: message.responseText = !undefined ? message.responseText : message ,
-        customClass: {
-            confirmButton: "btn btn-outline btn-outline-dashed btn-outline-primary btn-active-light-primary"
-        }
-    });
-}
-`
+1.wht vlidation in chekout cart not work , and stok in ui in model , and don't allow orders if branch isopen = false
 2. integrate wiht otp
 3. place holder imges in prodect prid and modal
 3. using local host and ngrok to share
-
 */
 
 public class OrderController : Controller

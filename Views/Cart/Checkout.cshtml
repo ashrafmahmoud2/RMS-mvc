@@ -1751,7 +1751,7 @@
                 const cart = JSON.parse(localStorage.getItem("food_ecom_cart")) || [];
 
                 if (cart.length === 0) {
-                    showAlert("سلة التسوق فارغة", "error");
+                    showErrorMessage("سلة التسوق فارغة", "error");
                     return;
                 }
 
@@ -1815,12 +1815,13 @@
                     }, 600);
                 } else {
                     // ❌ Show server error
-                    showAlert(result.message || "فشل إنشاء الطلب", "error");
+                    showErrorMessage(result.message);
                 }
 
             } catch (error) {
-                console.error("Order placement error:", error);
-                showAlert("حدث خطأ في معالجة الطلب. حاول مرة أخرى", "error");
+                                    showErrorMessage(error);
+
+                // showErrorMessage("حدث خطأ في معالجة الطلب. حاول مرة أخرى", "error");
             } finally {
                 // ✅ Reset button state
                 btnText.textContent = originalText;

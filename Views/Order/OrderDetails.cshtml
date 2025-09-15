@@ -1301,7 +1301,7 @@
             setTimeout(() => {
                 callBtn.innerHTML = originalContent;
                 callBtn.style.transform = '';
-                alert('جاري الاتصال بأحمد حسن...\n+20 123 456 7890');
+                showMessageInToast('جاري الاتصال بأحمد حسن...\n+20 123 456 7890');
             }, 1500);
         }
 
@@ -1309,7 +1309,7 @@
         function contactBranch() {
             closeModal('supportModal');
             setTimeout(() => {
-                alert('جاري الاتصال بالمطعم...\nفرع ماكدونالدز سموحة\n+20 3 123 4567');
+                showMessageInToast('جاري الاتصال بالمطعم...\nفرع ماكدونالدز سموحة\n+20 3 123 4567');
             }, 300);
         }
 
@@ -1317,7 +1317,7 @@
             closeModal('supportModal');
             setTimeout(() => {
                 if (confirm('هل أنت متأكد من إلغاء هذا الطلب؟\n\nلا يمكن التراجع عن هذا الإجراء.')) {
-                    alert('تم تقديم طلب الإلغاء.\nستتلقى تأكيداً قريباً.\n\nرقم المرجع: CAN-2024-001523');
+                    showMessageInToast('تم تقديم طلب الإلغاء.\nستتلقى تأكيداً قريباً.\n\nرقم المرجع: CAN-2024-001523');
                 }
             }, 300);
         }
@@ -1325,7 +1325,7 @@
         function reportDelay() {
             closeModal('supportModal');
             setTimeout(() => {
-                alert('تم تقديم بلاغ التأخير.\nسيقوم فريقنا بالتحقيق وتحديثك قريباً.\n\nرقم المرجع: DEL-2024-001523');
+                showMessageInToast('تم تقديم بلاغ التأخير.\nسيقوم فريقنا بالتحقيق وتحديثك قريباً.\n\nرقم المرجع: DEL-2024-001523');
             }, 300);
         }
 

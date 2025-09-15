@@ -13,6 +13,17 @@ function showSuccessMessage(message) {
     });
 }
 
+
+function showErrorMessage(message) {
+    Swal.fire({
+        icon: 'error',
+        title: 'خطأ...',
+        text: message,
+        customClass:
+            { confirmButton: "btn btn-outline btn-outline-dashed btn-outline-primary btn-active-light-primary" }
+    });
+}
+
 function showMessageInToast(message, type = "info") {
     // Prevent duplicate messages
     if (activeToasts.has(message)) return;

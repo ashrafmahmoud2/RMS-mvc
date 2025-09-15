@@ -595,21 +595,21 @@
         // Track order functionality
         function trackOrder(orderNumber) {
             // Implementation for order tracking
-            alert(`تتبع الطلب ${orderNumber}\nسيتم فتح خريطة التتبع...`);
+            showMessageInToast(`تتبع الطلب ${orderNumber}\nسيتم فتح خريطة التتبع...`);
             // In real implementation, this would open a tracking modal or page
         }
 
         // Reorder functionality
         function reorder(orderNumber) {
             if (confirm(`هل تريد إعادة طلب نفس العناصر من الطلب ${orderNumber}؟`)) {
-                alert('جاري إضافة العناصر إلى السلة...');
+                showMessageInToast('جاري إضافة العناصر إلى السلة...');
                 // In real implementation, this would add items to cart
             }
         }
 
         // Contact branch functionality
         function contactBranch(branchName) {
-            alert(`الاتصال بـ ${branchName}\nرقم الهاتف: 050-123-4567`);
+            showMessageInToast(`الاتصال بـ ${branchName}\nرقم الهاتف: 050-123-4567`);
             // In real implementation, this would initiate a phone call
         }
 

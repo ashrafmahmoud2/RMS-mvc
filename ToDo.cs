@@ -45,4 +45,18 @@
 - handel if add more then order like show 2 progress box , and add in kds 
 
 
+
+
+----------------------------------------------------------------------------------
+in resuten ui
+----------------------------------------------------------------------------------
+#branch working hwour
+- rebuild this like talabat shifts
+- fix in client ui , and apply vildation when order
+- alart is  branch close like dirikit or jahhaz(apply this when add new table to make shifts like talbat)
+
+
+
+
+
 */
