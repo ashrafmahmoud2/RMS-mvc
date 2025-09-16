@@ -1,168 +1,117 @@
 ﻿<footer id="footer" class="footer">
     <div class="container">
         <div class="footer-container">
-            <div class="logo-section">
-                <a href="/ar"><img src="" alt=" Logo"></a>
-            </div>
-            <div class="contact-info">
-                <div class="contact-item">
-                    <img src="https://webordfrontdoor-g0c4anayhqexabcx.a01.azurefd.net/content/images/icons/call-us-icon.svg"
-                         alt="Call">
-                    <a href="tel:920008080">92 000 8080</a>
-                </div>
-                <div class="contact-item">
-                    <img src="https://webordfrontdoor-g0c4anayhqexabcx.a01.azurefd.net/content/images/icons/email-us-icon.svg"
-                         alt="Email">
-                    <a href="Email">info@Email.com</a>
-                </div>
-            </div>
+
+            <!-- السوشيال ميديا -->
             <div class="social-links">
-                <a href="https://www.instagram.com/instagram/">
-                    <img src="https://webordfrontdoor-g0c4anayhqexabcx.a01.azurefd.net/content/images/social/instagram.svg"
-                         alt="Instagram">
+                <a href="https://www.instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.facebook.com" target="_blank"><i class="fab fa-facebook"></i></a>
+                <a href="https://www.tiktok.com" target="_blank"><i class="fab fa-tiktok"></i></a>
+                <a href="https://www.youtube.com" target="_blank"><i class="fab fa-youtube"></i></a>
+            </div>
+
+            <!-- واتساب / تليفون -->
+            <div class="contact-links">
+                <a href="https://wa.me/201234567890" target="_blank">
+                    <i class="fab fa-whatsapp"></i> واتساب
                 </a>
-                <a href="https://www.facebook.com/instagram/">
-                    <img src="https://webordfrontdoor-g0c4anayhqexabcx.a01.azurefd.net/content/images/social/facebook.svg"
-                         alt="Facebook">
-                </a>
-                <a href="https://www.tiktok.com/instagram">
-                    <img src="https://webordfrontdoor-g0c4anayhqexabcx.a01.azurefd.net/content/images/social/tiktok.svg"
-                         alt="Tiktok">
-                </a>
-                <a href="https://www.youtube.com/instagram">
-                    <img src="https://webordfrontdoor-g0c4anayhqexabcx.a01.azurefd.net/content/images/social/youtube.svg"
-                         alt="Youtube">
+                <a href="tel:+201234567890">
+                    <i class="fas fa-phone-alt"></i> اتصل بنا
                 </a>
             </div>
-        </div>
-        <div class="sub-footer">
-            <span>© <span class="text-white">شاورمر</span> جميع الحقوق محفوظة.</span>
-            <div class="footer-links">
-                <a href="https://career.instagram.com/ar">وظائف</a>
-                <a href="#">الأسئلة الشائعة</a>
-                <a href="/terms">الشروط والأحكام</a>
-                <a href="/privacy">سياسة الخصوصية</a>
+
+            <!-- روابط أخرى -->
+            <div class="extra-links">
+                <a href="/Branch"><i class="fas fa-map-marker-alt"></i> الفروع</a>
+                <a href="/Order/CustomerOrders"><i class="fas fa-shopping-bag"></i> طلباتي</a>
             </div>
+
+            <!-- النص -->
+            <p class="footer-credit">Powered by: <span>Div Ashraf</span></p>
         </div>
     </div>
 </footer>
 
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-                <style>
-
-
-    /* footer */
+<style>
     #footer {
         background-color: #185499;
         color: white;
         margin-top: 50px;
-        padding: 20px;
+        padding: 30px 15px;
+        text-align: center;
     }
 
     .footer-container {
         display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    .logo-section img {
-        width: 180px;
-    }
-
-    .contact-info {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 10px;
-    }
-
-    .contact-item {
-        display: flex;
+        flex-direction: column;
         align-items: center;
+        gap: 20px;
     }
 
-        .contact-item img {
-            width: 36px;
-            height: 36px;
-            margin-left: 5px;
+    /* أيقونات السوشيال */
+    .social-links a {
+        color: white;
+        font-size: 22px;
+        margin: 0 8px;
+        transition: transform 0.3s, color 0.3s;
+    }
+
+        .social-links a:hover {
+            color: #ffd700;
+            transform: scale(1.2);
         }
 
-        .contact-item a {
-            color: #ccc;
+    /* واتساب وتليفون */
+    .contact-links, .extra-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+    }
+
+        .contact-links a, .extra-links a {
+            color: #eee;
             text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
         }
 
-            .contact-item a:hover {
-                color: white;
+            .contact-links a:hover, .extra-links a:hover {
+                color: #ffd700;
             }
 
-    .social-links {
-        display: flex;
-        gap: 10px;
-        align-items: center;
+        .contact-links i, .extra-links i {
+            margin-left: 6px;
+        }
+
+    /* نص الفوتر */
+    .footer-credit {
+        font-size: 14px;
+        color: #ddd;
     }
 
-        .social-links img {
-            width: 36px;
-            height: 36px;
-            transition: transform 0.3s;
+        .footer-credit span {
+            font-weight: bold;
+            color: #fff;
         }
 
-        .social-links a:hover img {
-            transform: scale(1.1);
-        }
-
-    .sub-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        padding-top: 20px;
-        border-top: 1px solid #414042;
-    }
-
-        .sub-footer .footer-links {
-            display: flex;
-            gap: 10px;
-        }
-
-            .sub-footer .footer-links a {
-                color: #ccc;
-                text-decoration: none;
-                padding: 2px 0;
-            }
-
-                .sub-footer .footer-links a:hover {
-                    color: white;
-                }
-
+    /* Responsive */
     @@media (max-width: 768px) {
         .footer-container
 
     {
-        flex-direction: column;
-        text-align: center;
+        gap: 15px;
     }
 
-    .contact-info {
-        justify-content: center;
+    .contact-links a, .extra-links a {
+        font-size: 14px;
     }
 
-    .social-links {
-        justify-content: center;
+    .social-links a {
+        font-size: 20px;
     }
 
-    .sub-footer {
-        flex-direction: column;
-        text-align: center;
-    }
-
-        .sub-footer .footer-links {
-            flex-direction: column;
-            align-items: center;
-        }
-
-    }
-</style>
+    }</style>

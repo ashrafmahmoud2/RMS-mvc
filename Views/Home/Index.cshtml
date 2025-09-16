@@ -5,23 +5,15 @@
     ViewData["Title"] = "Home Page";
 }
 
-
 <Partial name="_header" />
-
 
 <Partial name="_search" />
 
-
-
-
-
 @if (Model?.CategoriesExploreBar != null && Model.CategoriesExploreBar.Any())
 {
-  @*   <div class="categories-section"> *@
         <Partial name="_CategoriesExploreBar" model="Model.CategoriesExploreBar" />
-@* 
-    </div> *@
 }
+
 
 @if (Model.OrderConfirmed && Model.CurrentOrders.Any())
 {
@@ -39,30 +31,8 @@
     <Partial name="_ProductGrid" model="Model.CategoriesItems" />
 </div>
 
-@* 
-    <div class="categories-section">
-        <Partial name="_ProductGrid" model="Model.CategoriesItems" />
-    </div>
- *@
-
-
-
-
-
-
-@*  <div class="banner-slider">
-    <div class="container">
-      <img src="~/images/burgers.png" />
-    </div>
-</div> *@
-
-
-
-
-
-
-
 <Partial name="_CartAccessBtn" />
+
 <Partial name="_Footer" />
 
 

@@ -9,13 +9,27 @@ using System.Threading.Tasks;
 
 
 
-
 /*
-# seps
-2. integrate wiht otp wiht beon 
-3. place holder imges in prodect prid and modal
-3. using local host and ngrok to share
+# Steps
+
+1. don't using localstroge in otp using identity , fix js code in chekout and login and varifiyotp
+2. Add placeholder images in product grid and modal
+3. Use localhost with ngrok for sharing
+4. Insert real demo data for clarity in showcases
+6. otp in login btn don't take otp from local stroge
+5. Apply UI (Arabic & English):
+   - Start with restaurant side:
+     • Menu (items, categories, toppings)
+     • Branches
+     • Analytics
+     • Orders
+     • KDS
+     • Customers
+     • Settings
+     • Reports
 */
+
+
 
 public class OrderController : Controller
 {

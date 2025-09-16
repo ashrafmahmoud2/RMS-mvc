@@ -1,6 +1,5 @@
 ﻿@using RMS.Web.Core.ViewModels.Account
-@model VerifyOtpViewModel
-
+@model VerifyOtpRequest
 
 <style>
 
@@ -546,145 +545,196 @@
 </div>
 
 <script>
-      // ================== OTP JS ==================
-    let otpState = {
-        phoneNumber: null,
-        otp: "1234",//get otp from model
-        attempts: 5,
-        timer: 60,
-        blocked: false,
-        blockedTimer: 60,
-        interval: null,
-        blockedInterval: null
-    };
 
-    // Selectors
-    const otpModal = document.getElementById("otpModal"),
-          otpInputs = document.querySelectorAll(".otp-input"),
-          verifyOtpBtn = document.getElementById("verifyOtp"),
-          resendBtn = document.getElementById("resendBtn"),
-          cancelOtpBtn = document.getElementById("cancelOtp"),
-          otpError = document.getElementById("otpError"),
-          attemptsCount = document.getElementById("attemptsCount"),
-          displayPhone = document.getElementById("displayPhone"),
-          otpTimer = document.getElementById("otpTimer"),
-          blockedContent = document.getElementById("blockedContent"),
-          otpContent = document.getElementById("otpContent"),
-          blockedTimeLeft = document.getElementById("blockedTimeLeft");
+    document.addEventListener('DOMContentLoaded', () => {
+        // Constants
+        const OTP_TOKEN_KEY = 'otp_token';
+        const OTP_PHONE_KEY = 'otp_phone';
 
-    // ================== Helpers ==================
-    const getOtpCode = () => Array.from(otpInputs).map(i => i.value).join("");
-    const showError = msg => { otpError.textContent = msg; otpError.style.display = "block"; };
-    const hideError = () => otpError.style.display = "none";
+        // DOM Elements
+        const otpInputs = document.querySelectorAll('.otp-input');
+        const hiddenOtpInput = document.getElementById('Otp');
+        const verifyBtn = document.getElementById('verifyOtp');
+        const phoneNumber = document.querySelector('input[name="PhoneNumber"]').value;
 
-    function showOtpModal(phoneNumber) {
-        otpState.phoneNumber = phoneNumber;
-        displayPhone.textContent = phoneNumber;
-        otpModal.classList.add("show");
-        resetOtpInputs();
-        startTimer("otp");
-    }
+        // State
+        let otpCode = '';
 
-    function hideOtpModal() {
-        otpModal.classList.remove("show");
-        resetOtpState();
-    }
+        // Initialize
+        setupOTPInputs();
 
-    function resetOtpInputs() {
-        otpInputs.forEach(i => i.value = "");
-        otpInputs[0].focus();
-        verifyOtpBtn.disabled = true;
-    }
+        function setupOTPInputs() {
+            otpInputs.forEach((input, index) => {
+                // Input handling
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    e.target.value = value;
 
-    function resetOtpState() {
-        clearInterval(otpState.interval);
-        clearInterval(otpState.blockedInterval);
-        otpState = { phoneNumber: null, otp: null, attempts: 5, timer: 60, blocked: false, blockedTimer: 60 };
-        hideError();
-        attemptsCount.textContent = otpState.attempts;
-        otpContent.style.display = "block";
-        blockedContent.style.display = "none";
-    }
+                    if (value && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
 
-    function startTimer(type) {
-        let time = type === "otp" ? "timer" : "blockedTimer";
-        let target = type === "otp" ? otpTimer : blockedTimeLeft;
+                    updateOTPCode();
+                });
 
-        clearInterval(otpState.interval);
-        otpState[time] = 60;
+                // Backspace handling
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                });
 
-        otpState.interval = setInterval(() => {
-            otpState[time]--;
-            if (type === "otp") {
-                target.innerHTML = otpState.timer > 0
-                    ? `يمكنك طلب رمز جديد خلال <span class="timer-text">${otpState.timer}</span> ثانية`
-                    : "يمكنك طلب رمز جديد الآن";
-                resendBtn.disabled = otpState.timer > 0;
-            } else {
-                target.textContent = otpState.blockedTimer;
-                if (otpState.blockedTimer <= 0) unblockUser();
-            }
-        }, 1000);
-    }
+                // Paste handling
+                input.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const paste = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4);
 
-    function blockUser() {
-        otpState.blocked = true;
-        otpContent.style.display = "none";
-        blockedContent.style.display = "block";
-        startTimer("blocked");
-    }
+                    otpInputs.forEach((inp, i) => {
+                        inp.value = paste[i] || '';
+                    });
 
-    function unblockUser() {
-        otpState.blocked = false;
-        resetOtpState();
-        showOtpModal(otpState.phoneNumber);
-    }
+                    updateOTPCode();
 
-    function verifyOtpCode() {
-        const code = getOtpCode();
+                    // Focus next empty input or last input
+                    const nextEmpty = Array.from(otpInputs).findIndex(inp => !inp.value);
+                    if (nextEmpty !== -1 && nextEmpty < otpInputs.length) {
+                        otpInputs[nextEmpty].focus();
+                    } else {
+                        otpInputs[otpInputs.length - 1].focus();
+                    }
+                });
+            });
 
+            // Form submission with AJAX to store OTP token
+            const form = document.querySelector('form');
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
 
-        if (code.length < otpInputs.length) return showError("الرجاء إدخال رمز صحيح");
+                if (otpCode.length !== 4) {
+                    showError('يرجى إدخال رمز التحقق كاملاً');
+                    return;
+                }
 
-                    console.log(otpState.otp)
+                // Set loading state
+                const originalText = verifyBtn.textContent;
+                verifyBtn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid transparent;border-top:2px solid currentColor;border-radius:50%;animation:spin 1s linear infinite;margin-left:8px;"></span> جاري التحقق...';
+                verifyBtn.disabled = true;
 
+                try {
+                    const formData = new FormData(form);
+                    formData.set('Otp', otpCode);
 
-        if (code === otpState.otp) {
-            hideError();
-            alert("✅ تم التحقق بنجاح");
-            hideOtpModal();
-        } else {
-            otpState.attempts--;
-            attemptsCount.textContent = otpState.attempts;
-            showError("❌ رمز غير صحيح");
-            if (otpState.attempts <= 0) blockUser();
+                    const response = await fetch('/Account/VerifyOtp', {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': form.querySelector('input[name="__RequestVerificationToken"]').value
+                        },
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        // Generate and store OTP token for future use
+                        const otpToken = generateOtpToken(phoneNumber);
+                        localStorage.setItem(OTP_TOKEN_KEY, otpToken);
+                        localStorage.setItem(OTP_PHONE_KEY, phoneNumber);
+
+                        // Smooth transition
+                        document.body.style.transition = "opacity 0.5s ease";
+                        document.body.style.opacity = "0";
+
+                        setTimeout(() => {
+                            window.location.href = '/Home/Index';
+                        }, 500);
+                    } else {
+                        const errorText = await response.text();
+                        showError('رمز التحقق غير صحيح أو منتهي الصلاحية');
+                        clearOTPInputs();
+                        markInputsError();
+                    }
+                } catch (error) {
+                    console.error('Error verifying OTP:', error);
+                    showError('حدث خطأ في التحقق. حاول مرة أخرى');
+                } finally {
+                    verifyBtn.textContent = originalText;
+                    verifyBtn.disabled = false;
+                }
+            });
         }
-    }
 
-    function sendOTP(phoneNumber) {
-        otpState.otp = generateOtp(); // API call ممكن تحط هنا
-        console.log("OTP Sent:", otpState.otp);
-        showOtpModal(phoneNumber);
-    }
+        function updateOTPCode() {
+            otpCode = Array.from(otpInputs).map(input => input.value).join('');
+            hiddenOtpInput.value = otpCode;
+            verifyBtn.disabled = otpCode.length !== 4;
 
-    const generateOtp = () => Math.floor(1000 + Math.random() * 9000).toString();
+            // Clear any existing errors
+            clearError();
+        }
 
-    // ================== Events ==================
-    otpInputs.forEach((input, index) => {
-        input.addEventListener("input", e => {
-            if (e.target.value.length === 1 && index < otpInputs.length - 1) otpInputs[index + 1].focus();
-            verifyOtpBtn.disabled = !Array.from(otpInputs).every(i => i.value);
-        });
-        input.addEventListener("keydown", e => {
-            if (e.key === "Backspace" && !input.value && index > 0) otpInputs[index - 1].focus();
-        });
+        function clearOTPInputs() {
+            otpInputs.forEach(input => {
+                input.value = '';
+                input.classList.remove('error');
+            });
+            otpCode = '';
+            hiddenOtpInput.value = '';
+            verifyBtn.disabled = true;
+        }
+
+        function markInputsError() {
+            otpInputs.forEach(input => input.classList.add('error'));
+            setTimeout(() => {
+                otpInputs.forEach(input => input.classList.remove('error'));
+            }, 2000);
+        }
+
+        function showError(message) {
+            // Create or update error message
+            let errorEl = document.querySelector('.otp-error');
+            if (!errorEl) {
+                errorEl = document.createElement('div');
+                errorEl.className = 'otp-error';
+                errorEl.style.cssText = 'color: #e74c3c; font-size: 0.9rem; margin-top: 1rem; text-align: center;';
+                document.querySelector('.otp-inputs').parentNode.insertBefore(errorEl, document.querySelector('.otp-actions'));
+            }
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+
+        function clearError() {
+            const errorEl = document.querySelector('.otp-error');
+            if (errorEl) {
+                errorEl.style.display = 'none';
+            }
+        }
+
+        function generateOtpToken(phoneNumber) {
+            // Simple token generation - matches the C# implementation
+            const timestamp = Math.floor(Date.now() / 1000);
+            const data = `${phoneNumber}:${timestamp}`;
+            return btoa(data); // Base64 encode
+        }
+
+        // Focus first input on load
+        if (otpInputs.length > 0) {
+            otpInputs[0].focus();
+        }
+
+        // Add CSS for spinner animation
+        const style = document.createElement('style');
+        style.textContent = `
+    @@keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+            .otp-input.error {
+                border-color: #e74c3c !important;
+                animation: shake 0.5s ease-in-out;
+            }
+    @@keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
     });
-
-    verifyOtpBtn.addEventListener("click", verifyOtpCode);
-    resendBtn.addEventListener("click", () => sendOTP(otpState.phoneNumber));
-    cancelOtpBtn.addEventListener("click", hideOtpModal);
-
-    // Example call
-    // sendOTP("01xxxxxxxxx");
-
 </script>

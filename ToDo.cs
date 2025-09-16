@@ -18,7 +18,6 @@
 #item
 - add fucntion and hangfire for make wakely update to ItemStatus in en and ar , allow to have to status in same card 
 - first iamges cant be loading="lazy"
-- add paritl view for item layou out , and make it responsvie
 - add CardLabelsAr in ui
 
 
@@ -50,6 +49,10 @@
 ----------------------------------------------------------------------------------
 in resuten ui
 ----------------------------------------------------------------------------------
+#General
+- Applay ui in ar en 
+
+
 #branch working hwour
 - rebuild this like talabat shifts
 - fix in client ui , and apply vildation when order

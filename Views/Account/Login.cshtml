@@ -739,9 +739,11 @@
                     إلغاء
                 </button>
                 <button type="submit" class="phone-btn phone-btn-continue">
-                    <span class="continue-text">إرسال الرمز</span>
+                    <span class="continue-text">استمر</span>
                 </button>
             </div>
+
+            
         </form>
 
     </div>
@@ -750,121 +752,363 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
 
 <script>
-    // ================== Phone Input JS ==================
-    let phoneState = {
-        isValid: false,
-        isSubmitting: false,
-        phoneNumber: ''
-    };
+    document.addEventListener('DOMContentLoaded', () => {
+        // Constants
+        const OTP_TOKEN_KEY = 'otp_token';
+        const OTP_PHONE_KEY = 'otp_phone';
 
-    // Selectors
-    const phoneInput = document.getElementById("phoneInput");
-    const phoneInputWrapper = document.getElementById("phoneInputWrapper");
-    const continuePhoneBtn = document.getElementById("continuePhone");
-    const phoneError = document.getElementById("phoneError");
-    const loadingSpinner = document.getElementById("loadingSpinner");
-    const continueText = document.querySelector(".continue-text");
+        // DOM Elements
+        const phoneInput = document.getElementById('phoneInput');
+        const phoneInputWrapper = document.getElementById('phoneInputWrapper');
+        const phoneError = document.getElementById('phoneError');
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginText = document.getElementById('loginText');
 
-    // ================== Helpers ==================
-    const showError = (msg) => {
-        phoneError.textContent = msg;
-        phoneError.style.display = "block";
-        phoneInputWrapper.classList.add("error");
-        phoneInputWrapper.classList.remove("success");
-    };
+        // OTP Modal elements
+        const otpModal = document.getElementById('otpModal');
+        const otpInputs = document.querySelectorAll('.otp-input');
+        const displayPhone = document.getElementById('displayPhone');
+        const otpTimer = document.getElementById('otpTimer');
+        const resendBtn = document.getElementById('resendBtn');
+        const cancelOtp = document.getElementById('cancelOtp');
+        const verifyOtp = document.getElementById('verifyOtp');
+        const otpError = document.getElementById('otpError');
+        const attemptsCount = document.getElementById('attemptsCount');
 
-    const hideError = () => {
-        phoneError.style.display = "none";
-        phoneInputWrapper.classList.remove("error");
-    };
+        // State
+        let currentPhone = '';
+        let otpCode = '';
+        let timer = 60;
+        let timerInterval = null;
+        let attempts = 5;
 
-    const validateEgyptianPhone = (phone) => {
-        const regex = /^01[0125][0-9]{8}$/; // نفس اللي عندك
-        if (!regex.test(phone)) {
-            return { valid: false, message: "رقم الهاتف يجب أن يبدأ بـ 010 أو 011 أو 012 أو 015 ويكون 11 رقم" };
+        // Initialize
+        init();
+
+        function init() {
+            setupPhoneInput();
+            setupFormHandler();
+            setupOTPHandlers();
+            checkExistingOTP();
         }
-        return { valid: true, message: "" };
-    };
 
-    const updateButtonState = () => {
-        continuePhoneBtn.disabled = !phoneState.isValid || phoneState.isSubmitting;
-    };
+        function setupPhoneInput() {
+            phoneInput.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 11) value = value.slice(0, 11);
+                e.target.value = value;
 
-    const setLoadingState = (loading) => {
-        phoneState.isSubmitting = loading;
-        continueText.style.display = loading ? "none" : "block";
-        loadingSpinner.style.display = loading ? "block" : "none";
-        updateButtonState();
-    };
+                clearError();
+                validatePhone(value);
+            });
+        }
 
-    async function sendOtp(phone) {
-        try {
-            setLoadingState(true);
+        function setupFormHandler() {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
 
-            const response = await fetch('@Url.Action("SendOtp", "Account")', {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
-                },
-                body: JSON.stringify({ phoneNumber: phone })
+                const phone = phoneInput.value.trim();
+                if (!validatePhone(phone)) return;
+
+                currentPhone = phone;
+
+                // Check if OTP token exists
+                const existingToken = localStorage.getItem(OTP_TOKEN_KEY);
+                const existingPhone = localStorage.getItem(OTP_PHONE_KEY);
+
+                if (existingToken && existingPhone === phone) {
+                    // Auto sign in
+                    await autoSignIn(phone, existingToken);
+                } else {
+                    // Show OTP modal and send SMS
+                    await sendOTP(phone);
+                }
+            });
+        }
+
+        function validatePhone(phone) {
+            if (!phone) return false;
+
+            if (!/^01[0125][0-9]{8}$/.test(phone)) {
+                showError('رقم الهاتف يجب أن يبدأ بـ 010 أو 011 أو 012 أو 015 ويكون 11 رقم');
+                return false;
+            }
+
+            phoneInputWrapper.classList.remove('error');
+            phoneInputWrapper.classList.add('success');
+            return true;
+        }
+
+        function showError(message) {
+            phoneError.textContent = message;
+            phoneError.classList.add('show');
+            phoneInputWrapper.classList.add('error');
+            phoneInputWrapper.classList.remove('success');
+        }
+
+        function clearError() {
+            phoneError.classList.remove('show');
+            phoneInputWrapper.classList.remove('error');
+        }
+
+        async function sendOTP(phone) {
+            setLoading(true, 'جاري الإرسال...');
+
+            try {
+                const response = await fetch('/Account/SendOtp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ phoneNumber: phone })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayPhone.textContent = maskPhone(phone);
+                    showOTPModal();
+                    startTimer();
+                } else {
+                    showError(result.message || 'فشل إرسال رمز التحقق');
+                }
+            } catch (error) {
+                console.error('Error sending OTP:', error);
+                showError('حدث خطأ في إرسال رمز التحقق');
+            } finally {
+                setLoading(false, 'تسجيل الدخول');
+            }
+        }
+
+        async function autoSignIn(phone, token) {
+            setLoading(true, 'جاري تسجيل الدخول...');
+
+            try {
+                const response = await fetch('/Account/AutoSignIn', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ phoneNumber: phone, otpToken: token })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    window.location.href = '/Home/Index';
+                } else {
+                    // Clear invalid token
+                    localStorage.removeItem(OTP_TOKEN_KEY);
+                    localStorage.removeItem(OTP_PHONE_KEY);
+                    showError(result.message || 'انتهت صلاحية الجلسة، يرجى المحاولة مرة أخرى');
+                }
+            } catch (error) {
+                console.error('Error auto signing in:', error);
+                localStorage.removeItem(OTP_TOKEN_KEY);
+                localStorage.removeItem(OTP_PHONE_KEY);
+                showError('حدث خطأ، يرجى المحاولة مرة أخرى');
+            } finally {
+                setLoading(false, 'تسجيل الدخول');
+            }
+        }
+
+        function setLoading(loading, text) {
+            loginBtn.disabled = loading;
+            if (loading) {
+                loginText.innerHTML = `<span class="loading-spinner"></span> ${text}`;
+            } else {
+                loginText.textContent = text;
+            }
+        }
+
+        function maskPhone(phone) {
+            return phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1****$3');
+        }
+
+        function checkExistingOTP() {
+            const existingToken = localStorage.getItem(OTP_TOKEN_KEY);
+            const existingPhone = localStorage.getItem(OTP_PHONE_KEY);
+
+            if (existingToken && existingPhone) {
+                phoneInput.value = existingPhone;
+                phoneInputWrapper.classList.add('success');
+                loginText.textContent = 'تسجيل الدخول التلقائي';
+            }
+        }
+
+        // OTP Modal Functions
+        function setupOTPHandlers() {
+            // OTP input handling
+            otpInputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    e.target.value = value;
+
+                    if (value && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
+
+                    updateOTPCode();
+                    clearOTPError();
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                });
+
+                input.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const paste = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+                    otpInputs.forEach((inp, i) => {
+                        inp.value = paste[i] || '';
+                    });
+                    updateOTPCode();
+                });
             });
 
-            if (response.ok) {
-                // const html = await response.text();
-                // document.getElementById("otpContainer").innerHTML = html;
-            } else {
-                const error = await response.text();
-                showError(error || "تعذر إرسال الرمز");
+            // Resend OTP
+            resendBtn.addEventListener('click', async () => {
+                await sendOTP(currentPhone);
+                clearOTPInputs();
+                clearOTPError();
+            });
+
+            // Verify OTP
+            verifyOtp.addEventListener('click', async () => {
+                if (otpCode.length !== 6) {
+                    showOTPError('يرجى إدخال رمز التحقق كاملاً');
+                    return;
+                }
+
+                await verifyOTPCode(currentPhone, otpCode);
+            });
+
+            // Cancel OTP
+            cancelOtp.addEventListener('click', () => {
+                hideOTPModal();
+            });
+
+            // Close modal on overlay click
+            otpModal.addEventListener('click', (e) => {
+                if (e.target === otpModal) {
+                    hideOTPModal();
+                }
+            });
+        }
+
+        async function verifyOTPCode(phone, code) {
+            const verifyText = verifyOtp.querySelector('.verify-text');
+            const originalText = verifyText.textContent;
+            verifyText.innerHTML = '<span class="loading-spinner"></span> جاري التحقق...';
+            verifyOtp.disabled = true;
+
+            try {
+                const response = await fetch('/Account/VerifyOtp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ phoneNumber: phone, otp: code })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Store OTP token
+                    localStorage.setItem(OTP_TOKEN_KEY, result.otpToken);
+                    localStorage.setItem(OTP_PHONE_KEY, phone);
+
+                    hideOTPModal();
+                    window.location.href = '/Home/Index';
+                } else {
+                    attempts--;
+                    attemptsCount.textContent = attempts;
+
+                    if (attempts <= 0) {
+                        showOTPError('تم تجاوز الحد الأقصى للمحاولات');
+                        verifyOtp.disabled = true;
+                        return;
+                    }
+
+                    showOTPError(result.message || 'رمز التحقق غير صحيح');
+                    markOTPInputsError();
+                    clearOTPInputs();
+                }
+            } catch (error) {
+                console.error('Error verifying OTP:', error);
+                showOTPError('حدث خطأ في التحقق');
+            } finally {
+                verifyText.textContent = originalText;
+                verifyOtp.disabled = false;
             }
-        } catch (err) {
-            console.error("Error sending OTP:", err);
-            showError("حدث خطأ أثناء إرسال الرمز.");
-        } finally {
-            setLoadingState(false);
-        }
-    }
-
-    // ================== Event Handlers ==================
-    phoneInput.addEventListener("input", (e) => {
-        let value = e.target.value.replace(/\D/g, ''); // Only digits
-
-        if (value.length > 11) {
-            value = value.substring(0, 11);
         }
 
-        e.target.value = value;
-        phoneState.phoneNumber = value;
-
-        hideError();
-
-        if (value.length === 0) {
-            phoneState.isValid = false;
-            phoneInputWrapper.classList.remove("success", "error");
-        } else {
-            const validation = validateEgyptianPhone(value);
-            phoneState.isValid = validation.valid;
-
-            if (validation.valid) {
-                phoneInputWrapper.classList.add("success");
-                phoneInputWrapper.classList.remove("error");
-            } else if (value.length >= 10) {
-                showError(validation.message);
-            }
+        function updateOTPCode() {
+            otpCode = Array.from(otpInputs).map(input => input.value).join('');
+            verifyOtp.disabled = otpCode.length !== 6;
         }
 
-        updateButtonState();
-    });
+        function clearOTPInputs() {
+            otpInputs.forEach(input => {
+                input.value = '';
+                input.classList.remove('error');
+            });
+            otpCode = '';
+            verifyOtp.disabled = true;
+        }
 
-    continuePhoneBtn.addEventListener("click", async () => {
-        if (!phoneState.isValid || phoneState.isSubmitting) return;
+        function markOTPInputsError() {
+            otpInputs.forEach(input => input.classList.add('error'));
+            setTimeout(() => {
+                otpInputs.forEach(input => input.classList.remove('error'));
+            }, 2000);
+        }
 
-        // ابعت الرقم زي ما هو من غير +20
-        await sendOtp(phoneState.phoneNumber);
+        function clearOTPError() {
+            otpError.style.display = 'none';
+        }
+
+        function showOTPError(message) {
+            otpError.textContent = message;
+            otpError.style.display = 'block';
+        }
+
+        function showOTPModal() {
+            otpModal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => otpInputs[0].focus(), 100);
+        }
+
+        function hideOTPModal() {
+            otpModal.classList.remove('show');
+            document.body.style.overflow = '';
+            clearInterval(timerInterval);
+            clearOTPInputs();
+            clearOTPError();
+            attempts = 5;
+            attemptsCount.textContent = attempts;
+        }
+
+        function startTimer() {
+            timer = 60;
+            resendBtn.disabled = true;
+
+            timerInterval = setInterval(() => {
+                timer--;
+                otpTimer.querySelector('.timer-text').textContent = timer;
+
+                if (timer <= 0) {
+                    clearInterval(timerInterval);
+                    otpTimer.textContent = 'انتهت صلاحية الرمز';
+                    resendBtn.disabled = false;
+                }
+            }, 1000);
+        }
     });
 </script>
-
-@* 
-        stop in make vaildation in number using regigex in bookfyi
-        add new anmtion in otp varfaction
-        get the new part on js in clude *@
