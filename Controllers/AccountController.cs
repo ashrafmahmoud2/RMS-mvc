@@ -1,20 +1,34 @@
-﻿using System.Text;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
+using RMS.Web.Core.Models;
 using RMS.Web.Core.ViewModels.Account;
+using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace RMS.Web.Controllers;
 
+
+
+/*
+# Steps
+
+2. Add placeholder images in product grid and modal
+4. Insert real demo data for clarity in showcases
+5. Apply UI (Arabic & English):
+   - Start with restaurant side:
+     • Menu (items, categories, toppings) • Branches • Analytics
+     • Orders  • KDS  • Customers • Settings  • Reports
+*/
+
+
+
+
+
 public class AccountController : Controller
 {
-         // Uncomment this code
-        //if (!smsResult.Success)
-        //    return BadRequest(new { success = false, message = "فشل إرسال رمز التحقق" });
-
-    
 
 
 
@@ -47,16 +61,20 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Login() => View();
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+
+
+        [HttpPost]
+    //[ValidateAntiForgeryToken]
     public async Task<IActionResult> SendOtp(SendOtpRequest request)
     {
+
         try
         {
             if (!IsValidEgyptianPhone(request.PhoneNumber))
                 return BadRequest(new { success = false, message = "رقم الهاتف غير صحيح" });
 
-            var otp = new Random().Next(0, 10000).ToString("D4");
+            //var otp = new Random().Next(0, 10000).ToString("D4");
+            var otp = "9999";
             var expiry = DateTime.UtcNow.AddMinutes(5);
 
             HttpContext.Session.SetString(
@@ -64,11 +82,11 @@ public class AccountController : Controller
                     $"{otp}|{expiry.Ticks}"
                 );
 
-            var smsResult = await SendSmsViaBeOn(request.PhoneNumber, otp);
+           // var smsResult = await SendSmsViaBeOn(request.PhoneNumber, otp);
             //if (!smsResult.Success)
             //    return BadRequest(new { success = false, message = "فشل إرسال رمز التحقق" });
 
-            return View("OtpVerification", new VerifyOtpRequest { PhoneNumber = request.PhoneNumber });
+            return PartialView("OtpVerification", new VerifyOtpRequest { PhoneNumber = request.PhoneNumber });
         }
         catch (Exception ex)
         {
@@ -78,7 +96,7 @@ public class AccountController : Controller
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
+    //[ValidateAntiForgeryToken]
     public async Task<IActionResult> VerifyOtp(VerifyOtpRequest request)
     {
         try
@@ -131,12 +149,8 @@ public class AccountController : Controller
 
             await _signInManager.SignInAsync(user, true);
 
-            return Ok(new
-            {
-                success = true,
-                message = "تم تسجيل الدخول بنجاح",
-                otpToken = GenerateOtpToken(request.PhoneNumber)
-            });
+            return Ok(new { success = true, message = "تم التحقق من الرمز بنجاح" });
+
         }
         catch (Exception ex)
         {

@@ -3,31 +3,14 @@ using Microsoft.Identity.Client;
 using RMS.Web.Core.Consts;
 using RMS.Web.Core.Enums;
 using RMS.Web.Core.Models;
+using RMS.Web.Core.ViewModels.GovernateAreaBranch;
 using RMS.Web.Core.ViewModels.Order;
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 
 
-/*
-# Steps
-
-1. don't using localstroge in otp using identity , fix js code in chekout and login and varifiyotp
-2. Add placeholder images in product grid and modal
-3. Use localhost with ngrok for sharing
-4. Insert real demo data for clarity in showcases
-6. otp in login btn don't take otp from local stroge
-5. Apply UI (Arabic & English):
-   - Start with restaurant side:
-     • Menu (items, categories, toppings)
-     • Branches
-     • Analytics
-     • Orders
-     • KDS
-     • Customers
-     • Settings
-     • Reports
-*/
 
 
 
@@ -75,135 +58,198 @@ public class OrderController : Controller
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateOrder([FromBody] CreateOrderViewModel model)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(new { success = false, message = Errors.RequiredField });
-
-        if (model.Items == null || !model.Items.Any())
-            return BadRequest(new { success = false, message = Errors.OrderMustContainItems });
-
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-
+    //[ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateOrder(CheckoutViewModel model, string ItemsJson)
+     {
         try
         {
+            _logger.LogInformation("CreateOrder called with model: {@Model}, ItemsJson: {ItemsJson}",
+                model, ItemsJson?.Substring(0, Math.Min(ItemsJson?.Length ?? 0, 200)));
 
-            // 1. Ensure customer exists
-            var customer = await EnsureCustomerExistsAsync(model);
+            var newOrder = model.Order;
 
-            // 2. Ensure address exists
-            var address = await EnsureAddressExistsAsync(customer.Id, model);
-
-            // 3. Validate branch
-            var branch = await _context.Branches.FindAsync(model.BranchId);
-            if (branch == null)
-                return BadRequest(new { success = false, message = Errors.BranchNotFound });
-
-            if (branch.IsBusy)
-                return BadRequest(new { success = false, message = Errors.BranchBusy });
-
-            var todayOrdersCount = await _context.Orders
-                .CountAsync(o => o.BranchId == branch.Id && o.CreatedOn.Date == DateTime.UtcNow.Date);
-
-            if (branch.MaxAllowedOrdersInDay.HasValue &&
-                todayOrdersCount >= branch.MaxAllowedOrdersInDay.Value)
-                return BadRequest(new { success = false, message = Errors.BranchDailyLimitReached });
-
-            // 4. Validate governorate / area / branch mapping
-            if (!await _context.Areas.AnyAsync(a => a.Id == model.AreaId && a.GovernorateId == model.GovernrateId))
-                return BadRequest(new { success = false, message = Errors.InvalidAreaGovernorate });
-
-            if (branch.AreaId != model.AreaId || branch.GovernorateId != model.GovernrateId)
-                return BadRequest(new { success = false, message = Errors.BranchAreaGovernorateMismatch });
-
-            // 5. Validate items and toppings
-            var orderItems = await ValidateOrderItemsAsync(model.Items, model.BranchId);
-
-            // 6. Calculate totals
-            decimal subTotal = orderItems.Sum(i =>
-                (i.PriceAtOrderTime * i.Quantity) +
-                i.ToppingGroups.Sum(g =>
-                    g.ToppingOptions.Sum(o => o.PriceAtOrderTime * o.Quantity)
-                )
-            );
-            decimal deliveryFee = branch.DeliveryFee;
-            decimal grandTotal = subTotal + deliveryFee;
-
-            if (grandTotal <= 0)
-                return BadRequest(new { success = false, message = Errors.OrderInvalidTotal });
-
-            if (grandTotal > branch.MaxCashOnDeliveryAllowed)
-                return BadRequest(new { success = false, message = Errors.OrderExceedsCODLimit });
-
-            // 7. Create order
-            var order = new Order
+            if (!string.IsNullOrEmpty(ItemsJson))
             {
-                CustomerId = customer.Id,
-                CustomerAddressId = address.Id,
-                BranchId = branch.Id,
-                SubTotal = subTotal,
-                DeliveryFees = deliveryFee,
-                DiscountAmount = 0,
-                CashbackUsedAmount = 0,
-                GrandTotal = grandTotal,
-                //LastStatus = OrderStatusEnum.Received, 
-                CustomerIdentifier = User?.Identity?.Name ?? HttpContext.Session.Id,
-                Items = orderItems,
-                OrderNumber = Guid.NewGuid().ToString("N")[..8].ToUpper(),
-                CreatedOn = DateTime.UtcNow
-            };
+                try
+                {
+                    newOrder.Items = JsonSerializer.Deserialize<List<OrderItemViewModel>>(ItemsJson)!;
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogError(ex, "Failed to deserialize ItemsJson: {ItemsJson}", ItemsJson);
+                    return JsonError("خطأ في بيانات المنتجات", StatusCodes.Status400BadRequest);
+                }
+            }
 
-            var orderStatus = new OrderStatus
+            // Validate ModelState
+            if (!ModelState.IsValid)
             {
-                Status = OrderStatusEnum.Received,
-                Timestamp = DateTime.UtcNow
-            };
+                var errors = ModelState
+                    .Where(x => x.Value.Errors.Count > 0)
+                    .Select(x => new { Field = x.Key, Errors = x.Value.Errors.Select(e => e.ErrorMessage) })
+                    .ToList();
 
+                _logger.LogWarning("ModelState invalid: {@Errors}", errors);
 
-            // 8. Create payment
-            var payment = new Payment
+                var firstError = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .FirstOrDefault()?.ErrorMessage ?? "بيانات غير صحيحة";
+
+                return JsonError(firstError, StatusCodes.Status400BadRequest);
+            }
+
+            if (newOrder.Items == null || !newOrder.Items.Any())
+                return JsonError("يجب أن يحتوي الطلب على منتجات", StatusCodes.Status400BadRequest);
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
             {
-                Order = order,
-                Amount = model.Payment.Amount > 0 ? model.Payment.Amount : grandTotal, // fallback
-                PaymentMethod = model.Payment.PaymentMethod,
-                PaymentStatus = model.Payment.PaymentStatus,
-                TransactionId = model.Payment.TransactionId,
-                PaymentReference = model.Payment.PaymentReference,
-                PaymentDate = model.Payment.PaymentDate == default ? DateTime.Now : model.Payment.PaymentDate
-            };
+                // 1. Ensure customer exists
+                var customer = await EnsureCustomerExistsAsync(newOrder);
 
+                // 2. Ensure address exists
+                var address = await EnsureAddressExistsAsync(customer.Id, newOrder);
 
+                // 3. Validate branch
+                var branch = await _context.Branches.FindAsync(newOrder.BranchId);
+                if (branch == null)
+                    return JsonError("الفرع المحدد غير موجود", StatusCodes.Status400BadRequest);
 
-            order.StatusHistory.Add(orderStatus);
+                if (branch.IsBusy)
+                    return JsonError("الفرع مشغول حالياً، يرجى المحاولة لاحقاً", StatusCodes.Status400BadRequest);
 
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
+                var todayOrdersCount = await _context.Orders
+                    .CountAsync(o => o.BranchId == branch.Id && o.CreatedOn.Date == DateTime.UtcNow.Date);
 
-            _context.Payments.Add(payment);
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
+                if (branch.MaxAllowedOrdersInDay.HasValue &&
+                    todayOrdersCount >= branch.MaxAllowedOrdersInDay.Value)
+                    return JsonError("تم الوصول للحد الأقصى للطلبات اليومية في هذا الفرع", StatusCodes.Status400BadRequest);
 
-            return Ok(new { success = true, orderId = order.Id, orderNumber = order.OrderNumber });
+                // 4. Validate governorate / area / branch mapping
+                if (!await _context.Areas.AnyAsync(a =>
+                        a.Id == newOrder.AreaId && a.GovernorateId == newOrder.GovernrateId))
+                    return JsonError("المنطقة والمحافظة غير متطابقتان", StatusCodes.Status400BadRequest);
+
+                if (branch.AreaId != newOrder.AreaId || branch.GovernorateId != newOrder.GovernrateId)
+                    return JsonError("الفرع المحدد لا يخدم هذه المنطقة", StatusCodes.Status400BadRequest);
+
+                // 5. Validate items and toppings
+                var orderItems = await ValidateOrderItemsAsync(newOrder.Items, newOrder.BranchId);
+
+                // 6. Calculate totals
+                decimal subTotal = orderItems.Sum(i =>
+                    (i.PriceAtOrderTime * i.Quantity) +
+                    i.ToppingGroups.Sum(g =>
+                        g.ToppingOptions.Sum(o => o.PriceAtOrderTime * o.Quantity)
+                    )
+                );
+                decimal deliveryFee = branch.DeliveryFee;
+                decimal grandTotal = subTotal + deliveryFee;
+
+                if (grandTotal <= 0)
+                    return JsonError("إجمالي الطلب غير صحيح", StatusCodes.Status400BadRequest);
+
+                if (grandTotal > branch.MaxCashOnDeliveryAllowed)
+                    return JsonError($"يتجاوز الطلب الحد الأقصى للدفع عند الاستلام ({branch.MaxCashOnDeliveryAllowed:F2} جنيه)", StatusCodes.Status400BadRequest);
+
+                // 7. Create order
+                var order = new Order
+                {
+                    CustomerId = customer.Id,
+                    CustomerAddressId = address.Id,
+                    BranchId = branch.Id,
+                    SubTotal = subTotal,
+                    DeliveryFees = deliveryFee,
+                    DiscountAmount = 0,
+                    CashbackUsedAmount = 0,
+                    GrandTotal = grandTotal,
+                    CustomerIdentifier = User?.Identity?.Name ?? HttpContext.Session.Id,
+                    Items = orderItems,
+                    OrderNumber = Guid.NewGuid().ToString("N")[..8].ToUpper(),
+                    CreatedOn = DateTime.UtcNow
+                };
+
+                var orderStatus = new OrderStatus
+                {
+                    Status = OrderStatusEnum.Received,
+                    Timestamp = DateTime.UtcNow
+                };
+                order.StatusHistory.Add(orderStatus);
+
+                _context.Orders.Add(order);
+                await _context.SaveChangesAsync();
+
+                // 8. Create payment
+                var payment = new Payment
+                {
+                    Order = order,
+                    Amount = newOrder.Payment?.Amount > 0 ? newOrder.Payment.Amount : grandTotal,
+                    PaymentMethod = newOrder.Payment?.PaymentMethod ?? PaymentMethodEnum.Cash,
+                    PaymentStatus = newOrder.Payment?.PaymentStatus ?? PaymentStatusEnum.Pending,
+                    TransactionId = newOrder.Payment?.TransactionId,
+                    PaymentReference = newOrder.Payment?.PaymentReference,
+                    PaymentDate = newOrder.Payment?.PaymentDate == default
+                        ? DateTime.Now
+                        : newOrder.Payment.PaymentDate
+                };
+
+                _context.Payments.Add(payment);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("Order created successfully: OrderId={OrderId}, OrderNumber={OrderNumber}",
+                    order.Id, order.OrderNumber);
+
+                return JsonSuccess(new
+                {
+                    orderId = order.Id,
+                    orderNumber = order.OrderNumber,
+                    redirectUrl = Url.Action("Index", "Home")
+                });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error while creating order");
+
+                // Return specific error messages for known issues
+                var errorMessage = ex.Message.Contains("is not available in this branch") ||
+                                   ex.Message.Contains("out of stock") ||
+                                   ex.Message.Contains("Invalid topping group") ||
+                                   ex.Message.Contains("Topping option")
+                                       ? ex.Message
+                                       : "حدث خطأ أثناء معالجة الطلب";
+
+                return JsonError(errorMessage, StatusCodes.Status500InternalServerError);
+            }
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
-
-            if (ex.Message.Contains("is not available in this branch") ||
-          ex.Message.Contains("out of stock") ||
-          ex.Message.Contains("Invalid topping group") ||
-          ex.Message.Contains("Topping option"))
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-
-
-            _logger.LogError(ex, "Error while creating order");
-            return StatusCode(500, new { success = false, message = Errors.UnexpectedError });
+            _logger.LogError(ex, "Unexpected error in CreateOrder");
+            return JsonError("حدث خطأ غير متوقع", StatusCodes.Status500InternalServerError);
         }
     }
 
+
+    private JsonResult JsonError(string message, int statusCode) =>
+    new JsonResult(new { success = false, message })
+    {
+        StatusCode = statusCode,
+        ContentType = "application/json"
+    };
+
+
+    /// <summary>
+    /// Helper for success responses (always JSON).
+    /// </summary>
+    private JsonResult JsonSuccess(object data) =>
+        new JsonResult(new { success = true, data })
+        {
+            StatusCode = StatusCodes.Status200OK,
+            ContentType = "application/json"
+        };
 
     private async Task<Customer> EnsureCustomerExistsAsync(CreateOrderViewModel model)
     {
@@ -216,8 +262,11 @@ public class OrderController : Controller
             await _signInManager.SignInAsync(customer.User, isPersistent: true);
             return customer;
         }
+
         if (string.IsNullOrWhiteSpace(model.PhoneNumber))
             throw new InvalidOperationException("Phone number is required.");
+
+
 
         var user = new ApplicationUser
         {
@@ -407,8 +456,8 @@ public class OrderController : Controller
     }
 
 
-    [HttpGet] 
-    public IActionResult ChangeStatus(int orderId, OrderStatusEnum newStatus )
+    [HttpGet]
+    public IActionResult ChangeStatus(int orderId, OrderStatusEnum newStatus)
     {
         var order = _context.Orders
             .Include(o => o.StatusHistory)
@@ -443,16 +492,16 @@ public class OrderController : Controller
 
         var viewModel = _mapper.Map<OrderStatusBoxViewModel>(order);
 
-        return RedirectToAction("Index", "Home") ;
+        return RedirectToAction("Index", "Home");
     }
 
     [HttpGet]
-    public IActionResult CustomerOrders()  
+    public IActionResult CustomerOrders()
     {
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
         if (string.IsNullOrEmpty(userId))
-            return View("LoginRequiredView"); 
+            return View("LoginRequiredView");
 
         var orders = _context.Orders
             .Include(o => o.Branch)
@@ -461,10 +510,10 @@ public class OrderController : Controller
             .OrderBy(o => o.OrderDate)
             .ToList();
 
-       
+
 
         var viewModel = _mapper.Map<IEnumerable<OrderDetailsViewModel>>(orders);
-        
+
         return View(viewModel);
     }
 

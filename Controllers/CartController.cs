@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using RMS.Web.Core.ViewModels.GovernateAreaBranch;
 
 
@@ -7,24 +8,32 @@ public class CartController : Controller
 {
 
     private readonly ApplicationDbContext _context;
-    public CartController(ApplicationDbContext context)
+    private readonly UserManager<ApplicationUser> _userManager;
+    public CartController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     public IActionResult Index() => View();
 
     public IActionResult Checkout()
     {
+        var user = _userManager.GetUserAsync(User).Result;
         var model = new CheckoutViewModel
         {
             Governorates = GetGovernoratesData(),
             Areas = new List<Area>(),
-            Branches = new List<Branch>()
+            Branches = new List<Branch>(),
+         
+
         };
+        ViewBag.CustomerPhone = user?.PhoneNumber ?? "";
 
         return View(model);
     }
+
+ 
 
     [HttpGet]
     public IActionResult GetGovernorates()
@@ -59,6 +68,20 @@ public class CartController : Controller
 
         return Ok(data);
     }
+
+  
+    [HttpGet]
+    public IActionResult GetDeliveryFeeOfBranch(int branchId)
+    {
+        var deliveryFee = _context.Branches
+            .Where(b => b.Id == branchId)
+            .Select(b => b.DeliveryFee)
+            .FirstOrDefault(); // returns 0 if not found for numeric types
+
+        return Ok( deliveryFee );
+    }
+
+
 
     private List<Governorate> GetGovernoratesData()
     {

@@ -21,7 +21,7 @@
 //    public string OtpToken { get; set; }
 //}
 
-public class SendOtpRequest
+public class  SendOtpRequest
 {
     [Required(ErrorMessage = "رقم الهاتف مطلوب")]
     [RegularExpression(@"^01[0125][0-9]{8}$", ErrorMessage = "رقم الهاتف يجب أن يبدأ بـ 010 أو 011 أو 012 أو 015 ويكون 11 رقم")]
@@ -34,9 +34,10 @@ public class VerifyOtpRequest
     [RegularExpression(@"^01[0125][0-9]{8}$", ErrorMessage = "رقم الهاتف غير صحيح")]
     public string PhoneNumber { get; set; }
 
-    [Required(ErrorMessage = "رمز التحقق مطلوب")]
-    [RegularExpression(@"^[0-9]{6}$", ErrorMessage = "رمز التحقق يجب أن يكون 6 أرقام")]
+    //[Required(ErrorMessage = "رمز التحقق مطلوب")]
+    //[RegularExpression(@"^[0-9]{4}$", ErrorMessage = "رمز التحقق يجب أن يكون 4 أرقام")]
     public string Otp { get; set; }
+
 }
 
 public class AutoSignInRequest

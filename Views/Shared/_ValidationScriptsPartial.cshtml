@@ -1,10 +1,23 @@
-﻿﻿<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.min.js"></script>
+﻿<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- jQuery Validation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+
+<!-- jQuery Validation Unobtrusive -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+
+<!-- jQuery Unobtrusive Ajax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ajax-unobtrusive/3.2.6/jquery.unobtrusive-ajax.min.js"></script>
+
+<!-- Expressive Annotations Validate (لازم تحطه محلي في wwwroot/js) -->
+<script src="~/js/expressive.annotations.validate.min.js"></script>
+
+<!-- Custom validation styling -->
 <script src="~/js/validation-styling.js"></script>
-e<script src="~/lib/expressive-annotations-validate/expressive.annotations.validate.min.js"></script>
+
 <script>
-	$.validator.setDefaults({
-		ignore:[]
-	})
+    $.validator.setDefaults({
+        ignore: []
+    });
 </script>

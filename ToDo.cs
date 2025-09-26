@@ -27,8 +27,7 @@
 
 
 #cart
-- Add box contain totle price and delivery fees(get from db)
-
+- 
 
 #OrderStatus
 - timestamp to creaton 

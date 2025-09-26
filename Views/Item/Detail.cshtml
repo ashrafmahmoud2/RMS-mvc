@@ -1,6 +1,10 @@
 ﻿@using Newtonsoft.Json
 @model ItemDetailsViewModel
 
+@* 
+1. OPTMIZE RESPONSIZE
+2. if not selected requed faild go to him and make colore red ,
+ *@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -156,6 +160,7 @@
         .topping {
             margin-bottom: 25px;
             animation: slideInUp 0.8s ease-out calc(0.7s + var(--delay, 0s)) both;
+            margin-bottom:120px;
         }
 
             .topping:nth-child(n+3) {
@@ -186,16 +191,21 @@
                 color: var(--text-dark);
                 padding: 4px 8px;
                 border-radius: 8px;
-                white-space: nowrap;
+            white-space: nowrap;
             }
 
         /* Topping Options */
         .topping-options {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 12px;
             margin-bottom: 16px;
         }
+
+         /*    .topping-options > :last-child {
+                margin-bottom: 96px;
+            }
+ */
 
         .topping-item {
             position: relative;
@@ -311,9 +321,10 @@
             padding: 15px 20px;
             box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
             border-top: 1px solid #e0e0e0;
-            position: sticky;
+            position: fixed;
+            width:100%;
             bottom: 0;
-            animation: slideUpFooter 0.4s ease-out 0.4s both;
+          /*   animation: slideUpFooter 0.4s ease-out 0.4s both; */
         }
 
         .footer-content {

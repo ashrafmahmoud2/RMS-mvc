@@ -1,10 +1,19 @@
-
+﻿
 /* Global Styles */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+   /* outline: none;*/
+   
 }
+
+/**focus {
+    outline: none*/ /*!important*//*;*/
+    /*box-shadow: none !important;*/ /* لو فيه Bootstrap أو CSS بيضيف ظل */
+/*}*/
+
+
 
 html {
     scroll-behavior: smooth;

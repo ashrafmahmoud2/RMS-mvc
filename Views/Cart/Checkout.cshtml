@@ -2,6 +2,22 @@
 @model CheckoutViewModel
 
 
+
+@*    
+    refactor: restructure OTP modal and optimize checkout flow
+- Rebuilt OTP modal logic for cleaner state handling (open/close/reset)
+- Simplified checkout form submission and data flow to action
+- Optimized OTP verification and order completion steps
+- Ensured completeOrder() only executes after successful OTP validation
+ *@
+
+@* 
+
+        // 3. Handdel js of otp model and split to useiing in every where
+ *@
+
+
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -9,67 +25,110 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الدفع وتأكيد الطلب</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            /* Enhanced Color Palette */
+            --primary-color: #185499;
+            --primary-dark: #0f3d7a;
+            --primary-light: #3e7bb5;
+            --primary-ultra-light: rgba(24, 84, 153, 0.05);
+            --success-color: #10b981;
+            --success-light: rgba(16, 185, 129, 0.1);
+            --danger-color: #ef4444;
+            --danger-light: rgba(239, 68, 68, 0.1);
+            --warning-color: #f59e0b;
+            --warning-light: rgba(245, 158, 11, 0.1);
+            --info-color: #3b82f6;
+            --info-light: rgba(59, 130, 246, 0.1);
+            /* Surface Colors */
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --surface-hover: #f1f5f9;
+            --surface-active: #e2e8f0;
+            --surface-elevated: #ffffff;
+            /* Border & Text */
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --border-focus: #3b82f6;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --text-disabled: #cbd5e1;
+            /* Shadows */
+            --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+            --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.2);
+            /* Border Radius */
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --radius-full: 9999px;
+            /* Transitions */
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-bounce: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            --transition-smooth: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space: 12px;
+            --space-md: 16px;
+            --space-lg: 20px;
+            --space-xl: 24px;
+            --space-2xl: 32px;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        :root {
-            --primary-color: #185499;
-            --primary-dark: #0f3d7a;
-            --primary-light: #3e7bb5;
-            --success-color: #10b981;
-            --danger-color: #ef4444;
-            --warning-color: #f59e0b;
-            --info-color: #3b82f6;
-            --background: #f8fafc;
-            --surface: #ffffff;
-            --surface-hover: #f1f5f9;
-            --border: #e2e8f0;
-            --border-focus: #3b82f6;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --text-muted: #94a3b8;
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
-            --border-radius: 16px;
-            --border-radius-lg: 24px;
-            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-spring: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            *::before,
+            *::after {
+                box-sizing: border-box;
+            }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
             background: var(--background);
             color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
             padding-bottom: 120px;
-            margin: 0;
-            -webkit-font-smoothing: antialiased;
+            font-feature-settings: "kern" 1;
+            text-rendering: optimizeLegibility;
         }
 
-        /* Header */
+        /* Enhanced Header */
         .checkout-header {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            padding: 16px 0;
-            box-shadow: var(--shadow);
+            padding: var(--space-md) 0;
+            box-shadow: var(--shadow-lg);
             position: sticky;
             top: 0;
             z-index: 100;
-            backdrop-filter: blur(10px);
-            border-bottom-right-radius: 30px;
-            border-bottom-left-radius: 30px;
+            backdrop-filter: blur(20px);
+            border-bottom-left-radius: var(--radius-2xl);
+            border-bottom-right-radius: var(--radius-2xl);
         }
 
         .header-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 20px;
+            padding: 0 var(--space-lg);
             max-width: 1200px;
             margin: 0 auto;
         }
@@ -80,44 +139,81 @@
             color: white;
             font-size: 20px;
             cursor: pointer;
-            padding: 12px;
-            transition: var(--transition);
-            border-radius: 50%;
+            padding: var(--space);
+            transition: var(--transition-bounce);
+            border-radius: var(--radius-full);
             width: 44px;
             height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
             backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
         }
 
-            .header-btn:hover {
+            .header-btn::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
                 background: rgba(255, 255, 255, 0.2);
-                transform: scale(1.05);
+                border-radius: inherit;
+                opacity: 0;
+                transform: scale(0.8);
+                transition: var(--transition);
+            }
+
+            .header-btn:hover::before {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            .header-btn:hover {
+                transform: translateY(-2px);
+            }
+
+            .header-btn:active {
+                transform: translateY(0);
             }
 
         .header-title {
             color: white;
             font-size: 18px;
             font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        /* Main Container */
+        /* Enhanced Main Container */
         .main-container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 20px;
+            padding: var(--space-lg);
         }
 
-        /* Progress Steps */
+        /* Enhanced Progress Steps */
         .progress-container {
-            background: var(--surface);
-            border-radius: var(--border-radius-lg);
-            padding: 24px;
-            margin-bottom: 24px;
+            background: var(--surface-elevated);
+            border-radius: var(--radius-xl);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-xl);
             box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-light);
+            position: relative;
+            overflow: hidden;
         }
+
+            .progress-container::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+            }
 
         .progress-steps {
             display: flex;
@@ -134,7 +230,7 @@
             height: 3px;
             background: var(--border);
             z-index: 1;
-            border-radius: 2px;
+            border-radius: var(--radius-sm);
         }
 
         .progress-line-active {
@@ -142,7 +238,8 @@
             background: linear-gradient(90deg, var(--primary-color), var(--success-color));
             width: 50%;
             transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 2px;
+            border-radius: var(--radius-sm);
+            box-shadow: 0 0 20px rgba(24, 84, 153, 0.3);
         }
 
         .step {
@@ -157,7 +254,7 @@
         .step-circle {
             width: 48px;
             height: 48px;
-            border-radius: 50%;
+            border-radius: var(--radius-full);
             background: var(--surface);
             border: 3px solid var(--border);
             display: flex;
@@ -165,8 +262,10 @@
             justify-content: center;
             font-weight: 600;
             color: var(--text-muted);
-            transition: var(--transition-spring);
+            transition: var(--transition-bounce);
             font-size: 16px;
+            position: relative;
+            overflow: hidden;
         }
 
         .step.active .step-circle {
@@ -174,17 +273,32 @@
             border-color: var(--primary-color);
             color: white;
             transform: scale(1.1);
-            box-shadow: 0 0 0 4px rgba(24, 84, 153, 0.2);
+            box-shadow: 0 0 0 4px var(--primary-ultra-light), var(--shadow);
+            animation: pulse-ring 2s infinite;
         }
 
         .step.completed .step-circle {
             background: var(--success-color);
             border-color: var(--success-color);
             color: white;
-            animation: checkmark 0.6s ease-out;
+            animation: success-bounce 0.6s ease-out;
         }
 
-        @@keyframes checkmark {
+        @@keyframes pulse-ring {
+            0% {
+                box-shadow: 0 0 0 0 rgba(24, 84, 153, 0.4), var(--shadow);
+            }
+
+            70% {
+                box-shadow: 0 0 0 20px rgba(24, 84, 153, 0), var(--shadow);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(24, 84, 153, 0), var(--shadow);
+            }
+        }
+
+        @@keyframes success-bounce {
             0% {
                 transform: scale(0.8);
             }
@@ -199,7 +313,7 @@
         }
 
         .step-label {
-            margin-top: 12px;
+            margin-top: var(--space);
             font-size: 13px;
             font-weight: 500;
             color: var(--text-muted);
@@ -213,14 +327,48 @@
             font-weight: 600;
         }
 
-        /* Order Summary */
-        .order-summary {
-            background: var(--surface);
-            border-radius: var(--border-radius-lg);
-            padding: 24px;
-            margin-bottom: 24px;
+        /* Enhanced Cards */
+        .card {
+            background: var(--surface-elevated);
+            border-radius: var(--radius-xl);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-xl);
             box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-light);
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+            .card:hover {
+                box-shadow: var(--shadow);
+                transform: translateY(-2px);
+            }
+
+            .card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+                opacity: 0;
+                transition: var(--transition);
+            }
+
+            .card:hover::before {
+                opacity: 1;
+            }
+
+        /* Order Summary Card */
+        .order-summary {
+            background: var(--surface-elevated);
+            border-radius: var(--radius-xl);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-xl);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
             position: relative;
             overflow: hidden;
         }
@@ -238,8 +386,8 @@
         .summary-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: var(--space);
+            margin-bottom: var(--space-lg);
             color: var(--primary-color);
             font-size: 18px;
             font-weight: 600;
@@ -249,17 +397,18 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
+            padding: var(--space) 0;
+            border-bottom: 1px solid var(--border-light);
             transition: var(--transition);
+            position: relative;
         }
 
             .summary-item:hover {
                 background: var(--surface-hover);
                 margin: 0 -12px;
-                padding-left: 12px;
-                padding-right: 12px;
-                border-radius: 8px;
+                padding-left: var(--space);
+                padding-right: var(--space);
+                border-radius: var(--radius);
             }
 
             .summary-item:last-child {
@@ -267,22 +416,40 @@
                 font-weight: 600;
                 font-size: 18px;
                 color: var(--primary-color);
-                background: rgba(24, 84, 153, 0.05);
-                margin: 12px -12px -12px;
-                padding: 16px 12px 12px;
-                border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+                background: var(--primary-ultra-light);
+                margin: var(--space) -12px -12px;
+                padding: var(--space-md) var(--space) var(--space);
+                border-radius: 0 0 var(--radius-xl) var(--radius-xl);
             }
 
-        /* Form Styles */
+        /* Enhanced Form Styles */
         .form-section {
-            background: var(--surface);
-            border-radius: var(--border-radius-lg);
-            padding: 28px;
+            background: var(--surface-elevated);
+            border-radius: var(--radius-xl);
+            padding: var(--space-2xl);
             box-shadow: var(--shadow-sm);
-            margin-bottom: 24px;
-            border: 1px solid var(--border);
+            margin-bottom: var(--space-xl);
+            border: 1px solid var(--border-light);
             transition: var(--transition);
+            position: relative;
+            overflow: hidden;
         }
+
+            .form-section::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+                opacity: 0;
+                transition: var(--transition);
+            }
+
+            .form-section:hover::before {
+                opacity: 1;
+            }
 
             .form-section:hover {
                 box-shadow: var(--shadow);
@@ -291,8 +458,8 @@
         .form-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 24px;
+            gap: var(--space);
+            margin-bottom: var(--space-xl);
             color: var(--primary-color);
             font-size: 20px;
             font-weight: 600;
@@ -301,8 +468,8 @@
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
+            gap: var(--space-lg);
+            margin-bottom: var(--space-lg);
         }
 
         .form-group {
@@ -315,7 +482,7 @@
 
         .form-label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: var(--space-sm);
             font-weight: 500;
             color: var(--text-primary);
             font-size: 14px;
@@ -333,12 +500,13 @@
             width: 100%;
             padding: 14px 16px;
             border: 2px solid var(--border);
-            border-radius: 12px;
+            border-radius: var(--radius);
             font-size: 15px;
             transition: var(--transition);
             background: var(--surface);
             color: var(--text-primary);
             font-family: inherit;
+            position: relative;
         }
 
             .form-input:focus,
@@ -346,7 +514,7 @@
             .form-textarea:focus {
                 outline: none;
                 border-color: var(--primary-color);
-                box-shadow: 0 0 0 4px rgba(24, 84, 153, 0.1);
+                box-shadow: 0 0 0 4px var(--primary-ultra-light);
                 transform: translateY(-1px);
             }
 
@@ -354,7 +522,7 @@
             .form-select.error,
             .form-textarea.error {
                 border-color: var(--danger-color);
-                box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+                box-shadow: 0 0 0 4px var(--danger-light);
                 animation: shake 0.4s ease-in-out;
             }
 
@@ -395,15 +563,15 @@
                 transform: translateY(0);
             }
 
-        /* Payment Options */
+        /* Enhanced Payment Options */
         .payment-option {
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 20px;
+            gap: var(--space-md);
+            padding: var(--space-lg);
             border: 2px solid var(--border);
-            border-radius: 16px;
-            margin-bottom: 16px;
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-md);
             cursor: pointer;
             transition: var(--transition);
             background: var(--surface);
@@ -411,17 +579,32 @@
             overflow: hidden;
         }
 
+            .payment-option::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: var(--primary-ultra-light);
+                opacity: 0;
+                transition: var(--transition);
+            }
+
+            .payment-option:hover:not(.disabled)::before {
+                opacity: 1;
+            }
+
             .payment-option:hover:not(.disabled) {
                 border-color: var(--primary-color);
-                background: rgba(24, 84, 153, 0.02);
                 transform: translateY(-2px);
                 box-shadow: var(--shadow);
             }
 
             .payment-option.selected {
                 border-color: var(--primary-color);
-                background: rgba(24, 84, 153, 0.05);
-                box-shadow: 0 0 0 4px rgba(24, 84, 153, 0.1);
+                background: var(--primary-ultra-light);
+                box-shadow: 0 0 0 4px var(--primary-ultra-light);
             }
 
             .payment-option.disabled {
@@ -434,10 +617,14 @@
             width: 20px;
             height: 20px;
             accent-color: var(--primary-color);
+            position: relative;
+            z-index: 1;
         }
 
         .payment-info {
             flex: 1;
+            position: relative;
+            z-index: 1;
         }
 
         .payment-title {
@@ -446,7 +633,7 @@
             margin-bottom: 4px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: var(--space-sm);
         }
 
         .payment-description {
@@ -454,7 +641,17 @@
             font-size: 14px;
         }
 
-        /* OTP Modal */
+        .coming-soon-badge {
+            background: var(--warning-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        /* Enhanced Modal */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -468,6 +665,7 @@
             align-items: center;
             justify-content: center;
             animation: fadeIn 0.3s ease-out;
+            padding: var(--space-lg);
         }
 
             .modal-overlay.show {
@@ -475,31 +673,31 @@
             }
 
         .otp-modal {
-            background: var(--surface);
-            border-radius: var(--border-radius-lg);
-            padding: 32px;
+            background: var(--surface-elevated);
+            border-radius: var(--radius-xl);
+            padding: var(--space-2xl);
             max-width: 400px;
-            width: 90%;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border);
+            width: 100%;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border-light);
             position: relative;
             animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .otp-header {
             text-align: center;
-            margin-bottom: 24px;
+            margin-bottom: var(--space-xl);
         }
 
         .otp-icon {
             width: 64px;
             height: 64px;
             background: var(--primary-color);
-            border-radius: 50%;
+            border-radius: var(--radius-full);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 16px;
+            margin: 0 auto var(--space-md);
             font-size: 24px;
             color: white;
             animation: pulse 2s infinite;
@@ -523,7 +721,7 @@
             font-size: 22px;
             font-weight: 600;
             color: var(--text-primary);
-            margin-bottom: 8px;
+            margin-bottom: var(--space-sm);
         }
 
         .otp-description {
@@ -538,9 +736,9 @@
 
         .otp-inputs {
             display: flex;
-            gap: 12px;
+            gap: var(--space);
             justify-content: center;
-            margin: 24px 0;
+            margin: var(--space-xl) 0;
             direction: ltr;
         }
 
@@ -548,7 +746,7 @@
             width: 48px;
             height: 48px;
             border: 2px solid var(--border);
-            border-radius: 8px;
+            border-radius: var(--radius);
             text-align: center;
             font-size: 20px;
             font-weight: 600;
@@ -560,7 +758,7 @@
             .otp-input:focus {
                 outline: none;
                 border-color: var(--primary-color);
-                box-shadow: 0 0 0 4px rgba(24, 84, 153, 0.1);
+                box-shadow: 0 0 0 4px var(--primary-ultra-light);
                 transform: scale(1.05);
             }
 
@@ -571,143 +769,21 @@
 
             .otp-input.success {
                 border-color: var(--success-color);
-                background: rgba(16, 185, 129, 0.05);
+                background: var(--success-light);
             }
 
-        .otp-timer {
-            text-align: center;
-            margin: 16px 0;
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        .timer-text {
-            color: var(--primary-color);
-            font-weight: 600;
-        }
-
-        .otp-resend {
-            text-align: center;
-            margin: 16px 0;
-        }
-
-        .resend-btn {
-            background: none;
-            border: none;
-            color: var(--primary-color);
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: underline;
-            transition: var(--transition);
-        }
-
-            .resend-btn:hover:not(:disabled) {
-                color: var(--primary-dark);
-            }
-
-            .resend-btn:disabled {
-                opacity: 0.5;
-                cursor: not-allowed;
-            }
-
-        .otp-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-        }
-
-        .otp-btn {
-            flex: 1;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            font-family: inherit;
-        }
-
-        .otp-btn-cancel {
-            background: var(--surface-hover);
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-        }
-
-            .otp-btn-cancel:hover {
-                background: var(--border);
-            }
-
-        .otp-btn-verify {
-            background: var(--primary-color);
-            color: white;
-        }
-
-            .otp-btn-verify:hover:not(:disabled) {
-                background: var(--primary-dark);
-                transform: translateY(-1px);
-            }
-
-            .otp-btn-verify:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-            }
-
-        .otp-error {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger-color);
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin: 16px 0;
-            font-size: 14px;
-            text-align: center;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-
-        .otp-attempts {
-            text-align: center;
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 8px;
-        }
-
-        .blocked-message {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger-color);
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-
-        .blocked-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.8;
-        }
-
-        .blocked-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .blocked-description {
-            font-size: 14px;
-            opacity: 0.8;
-        }
-
-        /* Place Order Button */
+        /* Enhanced Button */
         .place-order-container {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 16px 20px;
+            backdrop-filter: blur(20px);
+            padding: var(--space-md) var(--space-lg);
             box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.1);
             z-index: 50;
-            border-top: 1px solid var(--border);
+            border-top: 1px solid var(--border-light);
         }
 
         .place-order-btn {
@@ -717,10 +793,10 @@
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
-            border-radius: 16px;
+            border-radius: var(--radius-lg);
             padding: 18px 24px;
             cursor: pointer;
-            transition: var(--transition-spring);
+            transition: var(--transition-bounce);
             box-shadow: var(--shadow);
             display: flex;
             justify-content: space-between;
@@ -732,9 +808,25 @@
             overflow: hidden;
         }
 
+            .place-order-btn::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
+                opacity: 0;
+                transition: var(--transition);
+            }
+
+            .place-order-btn:hover:not(:disabled)::before {
+                opacity: 1;
+            }
+
             .place-order-btn:hover:not(:disabled) {
                 transform: translateY(-3px);
-                box-shadow: 0 12px 40px rgba(24, 84, 153, 0.4);
+                box-shadow: var(--shadow-xl);
             }
 
             .place-order-btn:active:not(:disabled) {
@@ -750,7 +842,7 @@
         .btn-content {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: var(--space);
             position: relative;
             z-index: 1;
         }
@@ -768,7 +860,7 @@
             height: 20px;
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-top: 2px solid white;
-            border-radius: 50%;
+            border-radius: var(--radius-full);
             animation: spin 1s linear infinite;
         }
 
@@ -782,7 +874,7 @@
             }
         }
 
-        /* Animations */
+        /* Enhanced Animations */
         .fade-in {
             animation: fadeIn 0.6s ease-out;
         }
@@ -815,55 +907,6 @@
             }
         }
 
-        /* Responsive Design */
-        @@media (max-width: 768px) {
-            .main-container {
-                padding: 16px;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-
-            .progress-steps {
-                gap: 8px;
-            }
-
-            .step-label {
-                font-size: 11px;
-            }
-
-            .step-circle {
-                width: 40px;
-                height: 40px;
-                font-size: 14px;
-            }
-
-            .form-section {
-                padding: 20px;
-            }
-
-            .header-title {
-                font-size: 16px;
-            }
-
-            .otp-modal {
-                padding: 24px;
-            }
-
-            .otp-inputs {
-                gap: 8px;
-            }
-
-            .otp-input {
-                width: 40px;
-                height: 40px;
-            }
-        }
-
-
-        /* Fade-out animation */
         .page-exit {
             animation: fadeOut 0.6s ease forwards;
         }
@@ -880,6 +923,156 @@
             }
         }
 
+        .is-invalid {
+            border: 2px solid red !important;
+            background-color: #ffe6e6;
+            animation: shake 0.3s;
+        }
+
+        @@keyframes shake {
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-4px);
+            }
+
+            50% {
+                transform: translateX(4px);
+            }
+
+            75% {
+                transform: translateX(-4px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+
+        /* Enhanced Responsive Design */
+        @@media (max-width: 768px) {
+            .main-container {
+                padding: var(--space-md);
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: var(--space-md);
+            }
+
+            .progress-steps {
+                gap: var(--space-sm);
+            }
+
+            .step-label {
+                font-size: 11px;
+            }
+
+            .step-circle {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
+            }
+
+            .form-section {
+                padding: var(--space-lg);
+            }
+
+            .header-title {
+                font-size: 16px;
+            }
+
+            .otp-modal {
+                padding: var(--space-xl);
+                margin: var(--space-lg);
+            }
+
+            .otp-inputs {
+                gap: var(--space-sm);
+            }
+
+            .otp-input {
+                width: 40px;
+                height: 40px;
+            }
+
+            .place-order-btn {
+                padding: var(--space-md) var(--space-lg);
+            }
+
+            .btn-content {
+                gap: var(--space-sm);
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .header-container {
+                padding: 0 var(--space-md);
+            }
+
+            .main-container {
+                padding: var(--space);
+            }
+
+            .progress-container,
+            .form-section,
+            .order-summary {
+                padding: var(--space-lg);
+                margin-bottom: var(--space-lg);
+            }
+
+            .otp-modal {
+                margin: var(--space);
+            }
+        }
+
+        /* Enhanced Focus States */
+        .form-input:focus-visible,
+        .form-select:focus-visible,
+        .form-textarea:focus-visible,
+        .otp-input:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        /* Enhanced Selection States */
+        ::selection {
+            background: var(--primary-ultra-light);
+            color: var(--primary-dark);
+        }
+
+        /* Accessibility Improvements */
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* High contrast mode support */
+        @@media (prefers-contrast: high) {
+            : root {
+                --border: #000000;
+                --text-primary: #000000;
+                --text-secondary: #000000;
+            }
+        }
+
+        /* Reduced motion support */
+        @@media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
         }
     </style>
 </head>
@@ -887,875 +1080,440 @@
 <body>
     <header class="checkout-header">
         <div class="header-container">
-            <button class="header-btn" onclick="window.history.back()" aria-label="العودة">
-                <i class="fa-solid fa-chevron-right"></i>
+            <button class="header-btn" onclick="window.history.back()" aria-label="العودة للصفحة السابقة">
+                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
             </button>
             <h1 class="header-title">تأكيد الطلب والدفع</h1>
-            <div></div>
+            <div aria-hidden="true"></div>
         </div>
     </header>
 
-    <main class="main-container">
+    <main class="main-container" role="main">
         <!-- Progress Steps -->
-        <div class="progress-container fade-in">
-            <div class="progress-steps">
+        <section class="progress-container fade-in" aria-labelledby="progress-title">
+            <h2 id="progress-title" class="visually-hidden">مراحل إتمام الطلب</h2>
+            <div class="progress-steps" role="progressbar" aria-valuenow="2" aria-valuemin="1" aria-valuemax="3">
                 <div class="progress-line">
                     <div class="progress-line-active"></div>
                 </div>
-                <div class="step completed">
+                <div class="step completed" aria-label="مرحلة مكتملة">
                     <div class="step-circle">
-                        <i class="fas fa-check"></i>
+                        <i class="fas fa-check" aria-hidden="true"></i>
                     </div>
                     <div class="step-label">السلة</div>
                 </div>
-                <div class="step active">
+                <div class="step active" aria-label="المرحلة الحالية">
                     <div class="step-circle">2</div>
                     <div class="step-label">العنوان والتوصيل</div>
                 </div>
-                <div class="step">
+                <div class="step" aria-label="مرحلة قادمة">
                     <div class="step-circle">3</div>
                     <div class="step-label">الدفع</div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- ملخص الطلب -->
-        <div class="order-summary fade-in">
+        <!-- Order Summary -->
+        <section class="order-summary fade-in" aria-labelledby="summary-title">
             <div class="summary-header">
-                <i class="fas fa-receipt"></i>
-                <span>ملخص الطلب</span>
+                <i class="fas fa-receipt" aria-hidden="true"></i>
+                <h2 id="summary-title">ملخص الطلب</h2>
             </div>
             <div class="summary-item">
                 <span>المجموع الفرعي</span>
-                <span class="subtotal">0.00 جنيه</span>
+                <span class="subtotal" aria-label="المجموع الفرعي">0.00 جنيه</span>
             </div>
             <div class="summary-item">
+
                 <span>رسوم التوصيل</span>
-                <span class="delivery-fee">@Model. جنيه</span>
+                <span class="delivery-fee" aria-label="رسوم التوصيل">15.00 جنيه</span>
             </div>
             <div class="summary-item">
                 <span>الإجمالي</span>
-                <span class="total-amount"> جنيه</span>
+                <span class="total-amount" aria-label="المبلغ الإجمالي">15.00 جنيه</span>
             </div>
-        </div>
+        </section>
 
-        <!-- عنوان التوصيل -->
-        <form class="form-section fade-in" id="addressForm">
-            @Html.AntiForgeryToken()
+        <!-- Delivery Address Form -->
+        <section class="form-section fade-in" aria-labelledby="address-title">
+            <form asp-controller="Order" asp-action="CreateOrder" id="addressForm" novalidate>
+                @*    @Html.AntiForgeryToken(); *@
 
+                @*                 <input type="hidden" id="ItemsJson"  asp-for="Order.Items" />
+ *@                <input type="hidden" id="ItemsJson" name="ItemsJson" />
+
+
+                <div class="form-header">
+                    <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                    <h2 id="address-title">عنوان التوصيل</h2>
+                </div>
+
+                <!-- Phone Number -->
+                <div class="form-group full-width">
+                    <label class="form-label required" asp-for="Order.PhoneNumber">رقم الهاتف</label>
+                    <input asp-for="Order.PhoneNumber"
+                           class="form-input"
+                           placeholder="01xxxxxxxxx"
+                           maxlength="11"
+                           required
+                           inputmode="tel"
+                           autocomplete="tel"
+                           aria-describedby="phone-help phone-error" />
+                    <div id="phone-help" class="visually-hidden">أدخل رقم هاتف مصري صحيح يبدأ بـ 01</div>
+                    <span id="phone-error" asp-validation-for="Order.PhoneNumber" class="error-message text-danger" role="alert"></span>
+                </div>
+
+                <!-- Governorate -->
+                <div class="form-group full-width">
+                    <label class="form-label required" asp-for="Order.GovernrateId">المحافظة</label>
+                    <select asp-for="Order.GovernrateId"
+                            asp-items="@(new SelectList(Model.Governorates, "Id", "NameAr"))"
+                            class="form-select"
+                            required
+                            aria-describedby="governorate-error">
+                        <option value="">اختر المحافظة</option>
+                    </select>
+                    <span id="governorate-error" asp-validation-for="Order.GovernrateId" class="error-message text-danger" role="alert"></span>
+                </div>
+
+                <!-- Area -->
+                <div class="form-group full-width">
+                    <label class="form-label required" asp-for="Order.AreaId">المنطقة</label>
+                    <select asp-for="Order.AreaId" class="form-select" required aria-describedby="area-error">
+                        <option value="">اختر المنطقة</option>
+                    </select>
+                    <span id="area-error" asp-validation-for="Order.AreaId" class="error-message text-danger" role="alert"></span>
+                </div>
+
+                <!-- Branch -->
+                <div class="form-group full-width">
+                    <label class="form-label required" asp-for="Order.BranchId">أقرب فرع</label>
+                    <select asp-for="Order.BranchId" class="form-select" required aria-describedby="branch-error">
+                        <option value="">اختر الفرع</option>
+                    </select>
+                    <span id="branch-error" asp-validation-for="Order.BranchId" class="error-message text-danger" role="alert"></span>
+                </div>
+
+                <!-- Street Address -->
+                <div class="form-group full-width">
+                    <label class="form-label required" asp-for="Order.Address">الشارع</label>
+                    <input asp-for="Order.Address"
+                           class="form-input" required
+                           placeholder="مثل: شارع النخلة"
+                           autocomplete="street-address"
+                           aria-describedby="address-error" />
+                    <span id="address-error" asp-validation-for="Order.Address" class="error-message text-danger" role="alert"></span>
+                </div>
+
+                <!-- Building Details -->
+                <div class="form-group full-width">
+                    <label class="form-label required" asp-for="Order.BuildingDetails">تفاصيل المبنى</label>
+                    <input asp-for="Order.BuildingDetails"
+                           class="form-input"
+                           required
+                           placeholder="مثل: برج النور تحته ماركت بيم"
+                           aria-describedby="building-error" />
+                    <span id="building-error" asp-validation-for="Order.BuildingDetails" class="error-message text-danger" role="alert"></span>
+                </div>
+
+                <div class="form-row">
+                    <!-- Floor -->
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Order.Floor">الدور</label>
+                        <input asp-for="Order.Floor"
+                               class="form-input"
+                               placeholder="مثال: الأول علوي"
+                               aria-describedby="floor-error" />
+                        <span @* id="floor-error" *@ asp-validation-for="Order.Floor" class="error-message text-danger" role="alert"></span>
+                    </div>
+
+                    <!-- Flat Number -->
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Order.FlatNumber">رقم الشقة</label>
+                        <input asp-for="Order.FlatNumber"
+                               class="form-input"
+                               placeholder="مثال: شقة 3 يمين السلم"
+                               aria-describedby="flat-error" />
+                        <span id="flat-error" asp-validation-for="Order.FlatNumber" class="error-message text-danger" role="alert"></span>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="form-group full-width">
+                    <label class="form-label" asp-for="Order.Notes">ملاحظات</label>
+                    <textarea asp-for="Order.Notes"
+                              class="form-textarea"
+                              placeholder="مثال: اخبط على الباب من غير ما ترن الجرس"
+                              aria-describedby="notes-error"></textarea>
+                    <span id="notes-error" asp-validation-for="Order.Notes" class="error-message text-danger" role="alert"></span>
+                </div>
+            </form>
+        </section>
+
+        <!-- Payment Methods -->
+        <section class="form-section fade-in" aria-labelledby="payment-title">
             <div class="form-header">
-                <i class="fas fa-map-marker-alt"></i>
-                <span>عنوان التوصيل</span>
+                <i class="fas fa-credit-card" aria-hidden="true"></i>
+                <h2 id="payment-title">طرق الدفع</h2>
             </div>
 
-            <!-- رقم الهاتف -->
-            <div class="form-group full-width">
-                <label class="form-label required" for="phone">رقم الهاتف</label>
-                <input type="tel" id="phone" name="phone" class="form-input"
-                       placeholder="01xxxxxxxxx" maxlength="11">
-                <div class="error-message" id="phoneError">يرجى إدخال رقم هاتف صحيح</div>
-            </div>
+            <fieldset>
+                <legend class="visually-hidden">اختر طريقة الدفع</legend>
 
-            <!-- المحافظة -->
-            <div class="form-group full-width">
-                <label class="form-label required" for="governorate">المحافظة</label>
-                <select id="governorate" name="governorate" class="form-select">
-                    <option value="">اختر المحافظة</option>
-                    @foreach (var gov in Model.Governorates)
-                    {
-                        <option value="@gov.Id">@gov.NameAr</option>
-                    }
-                </select>
-                <div class="error-message" id="governorateError">يرجى اختيار المحافظة</div>
-            </div>
-
-            <!-- المنطقة -->
-            <div class="form-group full-width">
-                <label class="form-label required" for="area">المنطقة</label>
-                <select id="area" name="area" class="form-select">
-                    <option value="">اختر المنطقة</option>
-                </select>
-                <div class="error-message" id="areaError">يرجى اختيار المنطقة</div>
-            </div>
-
-            <!-- أقرب فرع -->
-            <div class="form-group full-width">
-                <label class="form-label required" for="branch">أقرب فرع</label>
-                <select id="branch" name="branch" class="form-select">
-                    <option value="">اختر الفرع</option>
-                </select>
-                <div class="error-message" id="branchError">يرجى اختيار الفرع</div>
-            </div>
-
-            <!-- الشارع -->
-            <div class="form-group full-width">
-                <label class="form-label required" for="street">الشارع</label>
-                <input type="text" id="street" name="street" class="form-input"
-                       placeholder="مثل: شارع النخلة">
-                <div class="error-message" id="streetError">يرجى إدخال اسم الشارع</div>
-            </div>
-
-            <!-- تفاصيل المبنى -->
-            <div class="form-group full-width">
-                <label class="form-label required" for="buildingDetails">تفاصيل المبنى</label>
-                <input type="text" id="buildingDetails" name="buildingDetails" class="form-input"
-                       placeholder="مثل:برج النور تحته ماركت بيم">
-                <div class="error-message" id="buildingDetailsError">يرجى إدخال تفاصيل المبنى</div>
-            </div>
-
-            <div class="form-row">
-                <!-- الدور -->
-                <div class="form-group">
-                    <label class="form-label" for="floor">الدور</label>
-                    <input type="text" id="floor" name="floor" class="form-input" placeholder="مثال: الأول علوي">
+                <!-- Cash on Delivery -->
+                <div class="payment-option selected">
+                    <input type="radio"
+                           name="payment"
+                           value="cod"
+                           checked
+                           class="payment-radio"
+                           id="payment-cod"
+                           aria-describedby="cod-description">
+                    <label for="payment-cod" class="payment-info">
+                        <div class="payment-title">الدفع عند الاستلام</div>
+                        <div id="cod-description" class="payment-description">يمكنك الدفع نقدًا عند استلام الطلب</div>
+                    </label>
                 </div>
 
-                <!-- رقم الشقة -->
-                <div class="form-group">
-                    <label class="form-label" for="flatNumber">رقم الشقة</label>
-                    <input type="text" id="flatNumber" name="flatNumber" class="form-input" placeholder="مثال: شقة 3 يمين السلم">
+                <!-- Visa/Mastercard -->
+                <div class="payment-option disabled">
+                    <input type="radio"
+                           name="payment"
+                           value="card"
+                           disabled
+                           class="payment-radio"
+                           id="payment-card"
+                           aria-describedby="card-description">
+                    <label for="payment-card" class="payment-info">
+                        <div class="payment-title">
+                            بطاقات فيزا / ماستركارد
+                            <span class="coming-soon-badge">قريباً</span>
+                        </div>
+                        <div id="card-description" class="payment-description">ستتوفر قريبًا</div>
+                    </label>
                 </div>
-            </div>
 
-            <!-- ملاحظات -->
-            <div class="form-group full-width">
-                <label class="form-label" for="notes">ملاحظات إضافية</label>
-                <textarea id="notes" name="notes" class="form-textarea" placeholder="مثال: اخبط على الباب من غير ما ترن الجرس"></textarea>
-            </div>
-        </form>
-
-        <!-- طرق الدفع -->
-        <div class="form-section fade-in">
-            <div class="form-header">
-                <i class="fas fa-credit-card"></i>
-                <span>طرق الدفع</span>
-            </div>
-
-            <!-- الدفع عند الاستلام -->
-            <div class="payment-option selected">
-                <input type="radio" name="payment" value="cod" checked class="payment-radio">
-                <div class="payment-info">
-                    <div class="payment-title">الدفع عند الاستلام</div>
-                    <div class="payment-description">يمكنك الدفع نقدًا عند استلام الطلب</div>
+                <!-- Vodafone Cash -->
+                <div class="payment-option disabled">
+                    <input type="radio"
+                           name="payment"
+                           value="vodafone"
+                           disabled
+                           class="payment-radio"
+                           id="payment-vodafone"
+                           aria-describedby="vodafone-description">
+                    <label for="payment-vodafone" class="payment-info">
+                        <div class="payment-title">
+                            فودافون كاش
+                            <span class="coming-soon-badge">قريباً</span>
+                        </div>
+                        <div id="vodafone-description" class="payment-description">ستتوفر قريبًا</div>
+                    </label>
                 </div>
-            </div>
 
-            <!-- فيزا / ماستركارد -->
-            <div class="payment-option disabled">
-                <input type="radio" name="payment" value="card" disabled class="payment-radio">
-                <div class="payment-info">
-                    <div class="payment-title">بطاقات فيزا / ماستركارد <span class="coming-soon-badge">قريباً</span></div>
-                    <div class="payment-description">ستتوفر قريبًا</div>
+                <!-- Meeza -->
+                <div class="payment-option disabled">
+                    <input type="radio"
+                           name="payment"
+                           value="meeza"
+                           disabled
+                           class="payment-radio"
+                           id="payment-meeza"
+                           aria-describedby="meeza-description">
+                    <label for="payment-meeza" class="payment-info">
+                        <div class="payment-title">
+                            ميزة
+                            <span class="coming-soon-badge">قريباً</span>
+                        </div>
+                        <div id="meeza-description" class="payment-description">ستتوفر قريبًا</div>
+                    </label>
                 </div>
-            </div>
-
-            <!-- فودافون كاش -->
-            <div class="payment-option disabled">
-                <input type="radio" name="payment" value="vodafone" disabled class="payment-radio">
-                <div class="payment-info">
-                    <div class="payment-title">فودافون كاش <span class="coming-soon-badge">قريباً</span></div>
-                    <div class="payment-description">ستتوفر قريبًا</div>
-                </div>
-            </div>
-
-            <!-- ميزة -->
-            <div class="payment-option disabled">
-                <input type="radio" name="payment" value="meeza" disabled class="payment-radio">
-                <div class="payment-info">
-                    <div class="payment-title">ميزة <span class="coming-soon-badge">قريباً</span></div>
-                    <div class="payment-description">ستتوفر قريبًا</div>
-                </div>
-            </div>
-        </div>
+            </fieldset>
+        </section>
     </main>
+
 
     <!-- Place Order Button -->
     <div class="place-order-container">
-        <button class="place-order-btn" id="placeOrderBtn">
+        <button type="button" @* form="addressForm" *@ class="place-order-btn" id="placeOrderBtn" aria-describedby="order-total">
             <div class="btn-content">
-                <i class="fas fa-shopping-bag"></i>
+                <i class="fas fa-shopping-bag" aria-hidden="true"></i>
                 <span>تأكيد الطلب</span>
             </div>
-            <div class="btn-price total-amount">15.00 جنيه</div>
+            <div id="order-total" class="btn-price total-amount">15.00 جنيه</div>
         </button>
     </div>
 
     <!-- OTP Modal -->
-    <div class="modal-overlay" id="otpModal">
+    <div id="otpModal" class="modal-overlay" role="dialog" aria-labelledby="otp-title" aria-modal="true" style="display:none;">
         <div class="otp-modal">
-            <div class="otp-header">
-                <div class="otp-icon">
-                    <i class="fas fa-mobile-alt"></i>
-                </div>
-                <h2 class="otp-title">تأكيد رقم الهاتف</h2>
-                <p class="otp-description">
-                    تم إرسال رمز التحقق إلى رقم
-                    <span class="phone-display" id="displayPhone">01xxxxxxxxx</span>
-                </p>
-            </div>
-
             <div id="otpContent">
-                <div class="otp-inputs">
-                    <input type="text" class="otp-input" maxlength="1" data-index="0">
-                    <input type="text" class="otp-input" maxlength="1" data-index="1">
-                    <input type="text" class="otp-input" maxlength="1" data-index="2">
-                    <input type="text" class="otp-input" maxlength="1" data-index="3">
-                </div>
-
-                <div class="otp-timer" id="otpTimer">
-                    يمكنك طلب رمز جديد خلال <span class="timer-text">60</span> ثانية
-                </div>
-
-                <div class="otp-resend">
-                    <button class="resend-btn" id="resendBtn" disabled>إعادة الإرسال</button>
-                </div>
-
-                <div class="otp-error" id="otpError" style="display: none;"></div>
-
-                <div class="otp-attempts" id="otpAttempts">
-                    المحاولات المتبقية: <span id="attemptsCount">5</span>
-                </div>
-
-                <div class="otp-actions">
-                    <button class="otp-btn otp-btn-cancel" id="cancelOtp">إلغاء</button>
-                    <button class="otp-btn otp-btn-verify" id="verifyOtp" disabled>
-                        <span class="verify-text">تحقق</span>
-                    </button>
-                </div>
-            </div>
-
-            <div id="blockedContent" style="display: none;">
-                <div class="blocked-message">
-                    <div class="blocked-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="blocked-title">تم إيقاف المحاولات مؤقتاً</div>
-                    <div class="blocked-description" id="blockedDescription">
-                        يرجى المحاولة مرة أخرى بعد دقيقة واحدة
-                    </div>
-                    <div class="otp-timer" id="blockedTimer" style="margin-top: 16px;">
-                        الوقت المتبقي: <span class="timer-text" id="blockedTimeLeft">60</span> ثانية
-                    </div>
-                </div>
+                <!-- OTP content will be loaded here -->
             </div>
         </div>
     </div>
 
+    <!-- Enhanced JavaScript -->
+
+
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const CART_KEY = "food_ecom_cart";
-            const OTP_ATTEMPTS_KEY = "otp_attempts";
-            const OTP_DAILY_ATTEMPTS_KEY = "otp_daily_attempts";
-            const OTP_BLOCK_UNTIL_KEY = "otp_block_until";
-                    const VERIFIED_PHONE_KEY = "otp_verified_phone";
-        const FORM_DATA_KEY = "checkout_form_data";
+                document.addEventListener("DOMContentLoaded", () => {
+                    const CART_KEY = "food_ecom_cart";
+                    const FORM_DATA_KEY = "checkout_form_data";
+
+                    window.isCustomerLoggedIn = @User.Identity.IsAuthenticated.ToString().ToLower();
+                    window.customerId = '@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value';
+
+                    // DOM Elements
+                    const form = document.getElementById('addressForm');
+                    const placeOrderBtn = document.getElementById('placeOrderBtn');
+                    const phoneInput = document.getElementById("Order_PhoneNumber");
+                    const governorateSelect = document.getElementById("Order_GovernrateId");
+                    const areaSelect = document.getElementById("Order_AreaId");
+                    const branchSelect = document.getElementById("Order_BranchId");
 
 
-            // DOM Elements
-            const form = document.getElementById('addressForm');
-            const placeOrderBtn = document.getElementById('placeOrderBtn');
-            const otpModal = document.getElementById('otpModal');
-            const otpInputs = document.querySelectorAll('.otp-input');
-            const displayPhone = document.getElementById('displayPhone');
-            const otpTimer = document.getElementById('otpTimer');
-            const resendBtn = document.getElementById('resendBtn');
-            const cancelOtp = document.getElementById('cancelOtp');
-            const verifyOtp = document.getElementById('verifyOtp');
-            const otpError = document.getElementById('otpError');
-            const attemptsCount = document.getElementById('attemptsCount');
-            const otpContent = document.getElementById('otpContent');
-            const blockedContent = document.getElementById('blockedContent');
-            const blockedTimer = document.getElementById('blockedTimer');
-            const blockedTimeLeft = document.getElementById('blockedTimeLeft');
-            const blockedDescription = document.getElementById('blockedDescription');
+                    const antiForgeryTokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                    const antiForgeryToken = antiForgeryTokenInput?.value || "";
 
-            // Form elements
-            const governorateSelect = document.getElementById('governorate');
-            const areaSelect = document.getElementById('area');
-            const branchSelect = document.getElementById('branch');
-            const phoneInput = document.getElementById('phone');
+                            let customerPhone;
 
-                     const antiForgeryTokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-        const antiForgeryToken = antiForgeryTokenInput?.value || "";
+                    // Init
+                    loadCartSummary();
+                    setupFormHandlers();
+                    restoreFormData();
 
+                    // Make completeOrder available globally
+                    window.completeOrder = completeOrder;
 
-            // OTP State
-            let otpState = {
-                phone: '',
-                code: '',
-                timer: 60,
-                timerInterval: null,
-                attempts: 5,
-                dailyAttempts: 0,
-                isBlocked: false,
-                blockTimer: 0,
-                blockInterval: null
-            };
+                    // Restore saved form data
+                    async function restoreFormData() {
+                        const saved = JSON.parse(localStorage.getItem(FORM_DATA_KEY) || "{}");
+                        if (!saved) return;
 
-            // Initialize
-            loadCartSummary();
-            setupFormHandlers();
-            setupOTPHandlers();
-            checkOTPBlocked();
-                restoreFormData();
+                        if (saved.phone) phoneInput.value = saved.phone;
 
-              async function restoreFormData() {
-            const saved = JSON.parse(localStorage.getItem(FORM_DATA_KEY) || "{}");
-            if (!saved) return;
+                        if (saved.governorate) {
+                            governorateSelect.value = saved.governorate;
+                            try {
+                                const areasRes = await fetch(`/Cart/GetAreas?governorateId=${saved.governorate}`);
+                                const areas = await areasRes.json();
+                                areaSelect.innerHTML = '<option value="">اختر المنطقة</option>';
+                                areas.forEach(a => areaSelect.add(new Option(a.nameAr, a.id)));
 
-            if (saved.phone) phoneInput.value = saved.phone;
+                                if (saved.area) {
+                                    areaSelect.value = saved.area;
+                                    const branchesRes = await fetch(`/Cart/GetBranches?areaId=${saved.area}`);
+                                    const branches = await branchesRes.json();
+                                    branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
+                                    branches.forEach(b => branchSelect.add(new Option(b.nameAr, b.id)));
+                branchSelect.addEventListener("change", updateDeliveryFee);
+                                  if (saved.branch) {
+    branchSelect.value = saved.branch;
+    await updateDeliveryFee(); 
+}
 
-            if (saved.governorate) {
-                governorateSelect.value = saved.governorate;
-
-                // 🔹 Load areas for this governorate
-                try {
-                    const areasRes = await fetch(`/Cart/GetAreas?governorateId=${saved.governorate}`);
-                    const areas = await areasRes.json();
-                    areaSelect.innerHTML = '<option value="">اختر المنطقة</option>';
-                    areas.forEach(a => areaSelect.add(new Option(a.nameAr, a.id)));
-
-                    if (saved.area) {
-                        areaSelect.value = saved.area;
-
-                        // 🔹 Load branches for this area
-                        const branchesRes = await fetch(`/Cart/GetBranches?areaId=${saved.area}`);
-                        const branches = await branchesRes.json();
-                        branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
-                        branches.forEach(b => branchSelect.add(new Option(b.nameAr, b.id)));
-
-                        if (saved.branch) {
-                            branchSelect.value = saved.branch;
-                        }
-                    }
-                } catch (err) {
-                    console.error("Error restoring area/branch:", err);
-                }
-            }
-
-            if (saved.street) document.getElementById("street").value = saved.street;
-            if (saved.buildingDetails) document.getElementById("buildingDetails").value = saved.buildingDetails;
-            if (saved.floor) document.getElementById("floor").value = saved.floor;
-            if (saved.flatNumber) document.getElementById("flatNumber").value = saved.flatNumber;
-            if (saved.notes) document.getElementById("notes").value = saved.notes;
-        }
-
-
-
-
-                form.addEventListener("input", () => {
-            const formData = {
-                phone: phoneInput.value,
-                governorate: governorateSelect.value,
-                area: areaSelect.value,
-                branch: branchSelect.value,
-                street: document.getElementById("street").value,
-                buildingDetails: document.getElementById("buildingDetails").value,
-                floor: document.getElementById("floor").value,
-                flatNumber: document.getElementById("flatNumber").value,
-                notes: document.getElementById("notes").value
-            };
-            localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formData));
-        });
-
-
-            // 🔹 Load governorates, areas, branches
-            function setupFormHandlers() {
-                // Load governorates
-                fetch("/Cart/GetGovernorates")
-                    .then(res => res.json())
-                    .then(governorates => {
-                        governorates.forEach(g => governorateSelect.add(new Option(g.nameAr, g.id)));
-                    })
-                    .catch(err => console.error("Error loading governorates:", err));
-
-                // Load areas when governorate changes
-                governorateSelect.addEventListener("change", async () => {
-                    areaSelect.innerHTML = '<option value="">اختر المنطقة</option>';
-                    branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
-
-                    if (!governorateSelect.value) return;
-
-                    try {
-                        const res = await fetch(`/Cart/GetAreas?governorateId=${governorateSelect.value}`);
-                        const areas = await res.json();
-                        areas.forEach(a => areaSelect.add(new Option(a.nameAr, a.id)));
-                    } catch (err) {
-                        console.error("Error loading areas:", err);
-                    }
-                });
-
-                // Load branches when area changes
-                areaSelect.addEventListener("change", async () => {
-                    branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
-
-                    if (!areaSelect.value) return;
-
-                    try {
-                        const res = await fetch(`/Cart/GetBranches?areaId=${areaSelect.value}`);
-                        const branches = await res.json();
-                        branches.forEach(b => branchSelect.add(new Option(b.nameAr, b.id)));
-                    } catch (err) {
-                        console.error("Error loading branches:", err);
-                    }
-                });
-
-                // Phone validation
-                phoneInput.addEventListener('input', (e) => {
-                    let value = e.target.value.replace(/\D/g, '');
-                    if (value.length > 11) value = value.slice(0, 11);
-                    e.target.value = value;
-
-                    if (value.length === 11 && value.startsWith('01')) {
-                        e.target.classList.remove('error');
-                        document.getElementById('phoneError').classList.remove('show');
-                    }
-                });
-
-                // Clear errors on input
-                form.addEventListener('input', (e) => {
-                    if (e.target.classList.contains('error')) {
-                        e.target.classList.remove('error');
-                        const errorEl = document.getElementById(e.target.name + 'Error');
-                        if (errorEl) errorEl.classList.remove('show');
-                    }
-                });
-            }
-
-            // 🔹 Load cart summary
-            function loadCartSummary() {
-                try {
-                    const cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
-                    let subtotal = 0;
-
-                    cart.forEach(item => {
-                        const toppingsTotal = (item.SelectedToppingGroups || []).reduce((sum, group) =>
-                            sum + group.SelectedToppingOptions.reduce((optSum, opt) =>
-                                optSum + (opt.PriceAtOrderTime * opt.Quantity), 0), 0);
-
-                        subtotal += (item.PriceAtOrderTime + toppingsTotal) * item.Quantity;
-                    });
-
-                    const deliveryFee = 15;
-                    const total = subtotal + deliveryFee;
-
-                    document.querySelector('.subtotal').textContent = `${subtotal.toFixed(2)} جنيه`;
-                    document.querySelector('.delivery-fee').textContent = `${deliveryFee.toFixed(2)} جنيه`;
-                    document.querySelectorAll('.total-amount').forEach(el => {
-                        el.textContent = `${total.toFixed(2)} جنيه`;
-                    });
-
-                } catch (error) {
-                    console.error('Error loading cart:', error);
-                }
-            }
-
-            // 🔹 Form validation
-            function validateForm() {
-                const required = ['phone', 'governorate', 'area', 'branch', 'street','floor','flatNumber', 'buildingDetails'];
-                let isValid = true;
-
-                required.forEach(field => {
-                    const input = document.querySelector(`[name="${field}"]`);
-                    const errorEl = document.getElementById(field + 'Error');
-
-                    if (!input.value.trim()) {
-                        input.classList.add('error');
-                        if (errorEl) errorEl.classList.add('show');
-                        isValid = false;
-                    } else if (field === 'phone') {
-                        const phoneValid = /^01[0-9]{9}$/.test(input.value);
-                        if (!phoneValid) {
-                            input.classList.add('error');
-                            if (errorEl) {
-                                errorEl.classList.add('show');
-                                errorEl.textContent = 'رقم الهاتف يجب أن يبدأ بـ 01 ويحتوي على 11 رقم';
+                                }
+                            } catch (err) {
+                                console.error("Error restoring area/branch:", err);
                             }
-                            isValid = false;
-                        } else {
-                            input.classList.remove('error');
-                            if (errorEl) errorEl.classList.remove('show');
-                        }
-                    } else {
-                        input.classList.remove('error');
-                        if (errorEl) errorEl.classList.remove('show');
-                    }
-                });
-
-                return isValid;
-            }
-
-            // 🔹 Check if OTP is blocked
-            function checkOTPBlocked() {
-                const blockUntil = localStorage.getItem(OTP_BLOCK_UNTIL_KEY);
-                if (blockUntil) {
-                    const blockTime = new Date(blockUntil);
-                    if (new Date() < blockTime) {
-                        otpState.isBlocked = true;
-                        const remainingTime = Math.ceil((blockTime - new Date()) / 1000);
-
-                        if (remainingTime > 3600) { // More than 1 hour = daily block
-                            blockedDescription.textContent = 'تم تجاوز الحد الأقصى للمحاولات اليومية. يرجى المحاولة غداً';
-                            blockedTimer.style.display = 'none';
-                        } else {
-                            otpState.blockTimer = remainingTime;
-                            startBlockTimer();
-                        }
-                        return true;
-                    } else {
-                        localStorage.removeItem(OTP_BLOCK_UNTIL_KEY);
-                    }
-                }
-
-                // Check daily attempts
-                const dailyKey = `${OTP_DAILY_ATTEMPTS_KEY}_${new Date().toDateString()}`;
-                const dailyAttempts = parseInt(localStorage.getItem(dailyKey) || '0');
-                otpState.dailyAttempts = dailyAttempts;
-
-                return false;
-            }
-
-            // 🔹 Setup OTP handlers
-            function setupOTPHandlers() {
-                // Place order button click
-                placeOrderBtn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-
-                    if (!validateForm()) return;
-
-                        const savedVerifiedPhone = localStorage.getItem(VERIFIED_PHONE_KEY);
-        if (savedVerifiedPhone === phoneInput.value) {
-            await completeOrder();
-            return;
-        }
-
-                    if (checkOTPBlocked()) {
-                        showOTPModal();
-                        return;
-                    }
-
-                    if (otpState.dailyAttempts >= 10) {
-                        blockUntilTomorrow();
-                        return;
-                    }
-
-                    // Show loading
-                    const btnText = placeOrderBtn.querySelector('.btn-content span');
-                    const originalText = btnText.textContent;
-                    btnText.innerHTML = '<div class="loading-spinner"></div> جاري الإرسال...';
-                    placeOrderBtn.disabled = true;
-
-                    try {
-                        // Simulate sending OTP
-                        await sendOTP();
-
-                        otpState.phone = phoneInput.value;
-                        displayPhone.textContent = maskPhone(otpState.phone);
-
-                        // Reset attempts for new session
-                        otpState.attempts = 5;
-                        attemptsCount.textContent = otpState.attempts;
-
-                        showOTPModal();
-                        startOTPTimer();
-
-                    } catch (error) {
-                        console.error('Error sending OTP:', error);
-                        showToast('حدث خطأ في إرسال رمز التحقق. حاول مرة أخرى', 'error');
-                    } finally {
-                        btnText.textContent = originalText;
-                        placeOrderBtn.disabled = false;
-                    }
-                });
-
-                // OTP input handling
-                otpInputs.forEach((input, index) => {
-                    input.addEventListener('input', (e) => {
-                        const value = e.target.value.replace(/\D/g, '');
-                        e.target.value = value;
-
-                        if (value && index < otpInputs.length - 1) {
-                            otpInputs[index + 1].focus();
                         }
 
-                        updateOTPCode();
-                        clearOTPError();
+                        if (saved.street) document.getElementById("Order_Address").value = saved.street;
+                        if (saved.buildingDetails) document.getElementById("Order_BuildingDetails").value = saved.buildingDetails;
+                        if (saved.floor) document.getElementById("Order_Floor").value = saved.floor;
+                        if (saved.flatNumber) document.getElementById("Order_FlatNumber").value = saved.flatNumber;
+                        if (saved.notes) document.getElementById("Order_Notes").value = saved.notes;
+                    }
+
+                    // Save form data on input
+                    form.addEventListener("input", () => {
+                        const formData = {
+                            phone: phoneInput.value,
+                            governorate: governorateSelect.value,
+                            area: areaSelect.value,
+                            branch: branchSelect.value,
+                            street: document.getElementById("Order_Address").value,
+                            buildingDetails: document.getElementById("Order_BuildingDetails").value,
+                            floor: document.getElementById("Order_Floor").value,
+                            flatNumber: document.getElementById("Order_FlatNumber").value,
+                            notes: document.getElementById("Order_Notes").value
+                        };
+                        localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formData));
                     });
 
-                    input.addEventListener('keydown', (e) => {
-                        if (e.key === 'Backspace' && !e.target.value && index > 0) {
-                            otpInputs[index - 1].focus();
-                        }
-                    });
+                    // Form handlers
+                    function setupFormHandlers() {
+                        fetch("/Cart/GetGovernorates")
+                            .then(res => res.json())
+                            .then(governorates => governorates.forEach(g => governorateSelect.add(new Option(g.nameAr, g.id))))
+                            .catch(err => console.error("Error loading governorates:", err));
 
-                    input.addEventListener('paste', (e) => {
-                        e.preventDefault();
-                        const paste = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4);
+                        governorateSelect.addEventListener("change", async () => {
+                            areaSelect.innerHTML = '<option value="">اختر المنطقة</option>';
+                            branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
+                            if (!governorateSelect.value) return;
 
-                        otpInputs.forEach((inp, i) => {
-                            inp.value = paste[i] || '';
+                            try {
+                                const res = await fetch(`/Cart/GetAreas?governorateId=${governorateSelect.value}`);
+                                const areas = await res.json();
+                                areas.forEach(a => areaSelect.add(new Option(a.nameAr, a.id)));
+                            } catch (err) {
+                                console.error("Error loading areas:", err);
+                            }
                         });
 
-                        updateOTPCode();
-                    });
-                });
+                        areaSelect.addEventListener("change", async () => {
+                            branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
+                            if (!areaSelect.value) return;
 
-                // Resend OTP
-                resendBtn.addEventListener('click', async () => {
-                    if (otpState.dailyAttempts >= 10) {
-                        blockUntilTomorrow();
-                        return;
-                    }
-
-                    resendBtn.disabled = true;
-                    const originalText = resendBtn.textContent;
-                    resendBtn.textContent = 'جاري الإرسال...';
-
-                    try {
-                        await sendOTP();
-                        clearOTPInputs();
-                        clearOTPError();
-                        startOTPTimer();
-                        showToast('تم إرسال رمز جديد', 'success');
-                    } catch (error) {
-                        showToast('حدث خطأ في الإرسال', 'error');
-                    } finally {
-                        resendBtn.textContent = originalText;
-                    }
-                });
-
-                // Verify OTP
-                verifyOtp.addEventListener('click', async () => {
-                    if (!otpState.code || otpState.code.length !== 4) {
-                        showOTPError('يرجى إدخال رمز التحقق كاملاً');
-                        return;
-                    }
-
-                    const verifyText = verifyOtp.querySelector('.verify-text');
-                    const originalText = verifyText.textContent;
-                    verifyText.innerHTML = '<div class="loading-spinner"></div> جاري التحقق...';
-                    verifyOtp.disabled = true;
-
-                    try {
-                        const isValid = await verifyOTPCode(otpState.code);
-
-                        if (isValid) {
-                            // Success - proceed with order
-                            hideOTPModal();
-                                localStorage.setItem("otp_verified_phone", otpState.phone);
-                            await completeOrder();
-                        } else {
-                            // Failed verification
-                            otpState.attempts--;
-                            attemptsCount.textContent = otpState.attempts;
-
-                            if (otpState.attempts <= 0) {
-                                blockFor1Minute();
-                                return;
+                            try {
+                                const res = await fetch(`/Cart/GetBranches?areaId=${areaSelect.value}`);
+                                const branches = await res.json();
+                                branches.forEach(b => branchSelect.add(new Option(b.nameAr, b.id)));
+                            } catch (err) {
+                                console.error("Error loading branches:", err);
                             }
+                        });
 
-                            showOTPError(`رمز التحقق غير صحيح. المحاولات المتبقية: ${otpState.attempts}`);
-                            clearOTPInputs();
-                            markOTPInputsError();
-                        }
 
-                    } catch (error) {
-                        showOTPError('حدث خطأ في التحقق. حاول مرة أخرى');
-                    } finally {
-                        verifyText.textContent = originalText;
-                        verifyOtp.disabled = false;
+                        phoneInput.addEventListener('input', (e) => {
+                            let value = e.target.value.replace(/\D/g, '');
+                            if (value.length > 11) value = value.slice(0, 11);
+                            e.target.value = value;
+
+                            if (value.length === 11 && value.startsWith('01')) {
+                                e.target.classList.remove('error');
+                                document.getElementById('phoneError').classList.remove('show');
+                            }
+                        });
+
+                        form.addEventListener('input', (e) => {
+                            if (e.target.classList.contains('error')) {
+                                e.target.classList.remove('error');
+                                const errorEl = document.getElementById(e.target.name + 'Error');
+                                if (errorEl) errorEl.classList.remove('show');
+                            }
+                        });
                     }
-                });
 
-                // Cancel OTP
-                cancelOtp.addEventListener('click', () => {
-                    hideOTPModal();
-                });
-
-                // Close modal on overlay click
-                otpModal.addEventListener('click', (e) => {
-                    if (e.target === otpModal) {
-                        hideOTPModal();
-                    }
-                });
-            }
-
-            // 🔹 OTP Functions
-            async function sendOTP() {
-                // Simulate API call
-                return new Promise((resolve) => {
-                    setTimeout(() => {
-                        otpState.code = '1234'; // In real app, this comes from backend
-                        console.log('OTP sent:', otpState.code); // For testing
-
-                        // Increment daily attempts
-                        const dailyKey = `${OTP_DAILY_ATTEMPTS_KEY}_${new Date().toDateString()}`;
-                        const dailyAttempts = parseInt(localStorage.getItem(dailyKey) || '0') + 1;
-                        localStorage.setItem(dailyKey, dailyAttempts.toString());
-                        otpState.dailyAttempts = dailyAttempts;
-
-                        resolve();
-                    }, 1500);
-                });
-            }
-
-            async function verifyOTPCode(code) {
-                // Simulate API call
-                return new Promise((resolve) => {
-                    setTimeout(() => {
-                        resolve(code === '1234'); // In real app, verify with backend
-                    }, 1000);
-                });
-            }
-
-            function updateOTPCode() {
-                otpState.code = Array.from(otpInputs).map(input => input.value).join('');
-                verifyOtp.disabled = otpState.code.length !== 4;
-            }
-
-            function clearOTPInputs() {
-                otpInputs.forEach(input => {
-                    input.value = '';
-                    input.classList.remove('error', 'success');
-                });
-                otpState.code = '';
-                verifyOtp.disabled = true;
-            }
-
-            function markOTPInputsError() {
-                otpInputs.forEach(input => input.classList.add('error'));
-                setTimeout(() => {
-                    otpInputs.forEach(input => input.classList.remove('error'));
-                }, 2000);
-            }
-
-            function clearOTPError() {
-                otpError.style.display = 'none';
-                otpError.textContent = '';
-            }
-
-            function showOTPError(message) {
-                otpError.textContent = message;
-                otpError.style.display = 'block';
-            }
-
-            function maskPhone(phone) {
-                return phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1****$3');
-            }
-
-            function showOTPModal() {
-                if (otpState.isBlocked) {
-                    otpContent.style.display = 'none';
-                    blockedContent.style.display = 'block';
-                } else {
-                    otpContent.style.display = 'block';
-                    blockedContent.style.display = 'none';
-                }
-
-                otpModal.classList.add('show');
-                document.body.style.overflow = 'hidden';
-
-                setTimeout(() => {
-                    if (!otpState.isBlocked) {
-                        otpInputs[0].focus();
-                    }
-                }, 100);
-            }
-
-            function hideOTPModal() {
-                otpModal.classList.remove('show');
-                document.body.style.overflow = '';
-                clearInterval(otpState.timerInterval);
-                clearInterval(otpState.blockInterval);
-                clearOTPInputs();
-                clearOTPError();
-            }
-
-            function startOTPTimer() {
-                otpState.timer = 60;
-                resendBtn.disabled = true;
-
-                otpState.timerInterval = setInterval(() => {
-                    otpState.timer--;
-                    otpTimer.querySelector('.timer-text').textContent = otpState.timer;
-
-                    if (otpState.timer <= 0) {
-                        clearInterval(otpState.timerInterval);
-                        otpTimer.textContent = 'انتهت صلاحية الرمز';
-                        resendBtn.disabled = false;
-                    }
-                }, 1000);
-            }
-
-            function blockFor1Minute() {
-                otpState.isBlocked = true;
-                otpState.blockTimer = 60;
-
-                const blockUntil = new Date();
-                blockUntil.setMinutes(blockUntil.getMinutes() + 1);
-                localStorage.setItem(OTP_BLOCK_UNTIL_KEY, blockUntil.toISOString());
-
-                otpContent.style.display = 'none';
-                blockedContent.style.display = 'block';
-                blockedDescription.textContent = 'تم إيقاف المحاولات مؤقتاً لتجاوز الحد الأقصى';
-                blockedTimer.style.display = 'block';
-
-                startBlockTimer();
-            }
-
-            function blockUntilTomorrow() {
-                otpState.isBlocked = true;
-
-                const blockUntil = new Date();
-                blockUntil.setDate(blockUntil.getDate() + 1);
-                blockUntil.setHours(0, 0, 0, 0);
-                localStorage.setItem(OTP_BLOCK_UNTIL_KEY, blockUntil.toISOString());
-
-                otpContent.style.display = 'none';
-                blockedContent.style.display = 'block';
-                blockedDescription.textContent = 'تم تجاوز الحد الأقصى للمحاولات اليومية (10 محاولات). يرجى المحاولة غداً';
-                blockedTimer.style.display = 'none';
-
-                showOTPModal();
-            }
-
-            function startBlockTimer() {
-                blockedTimeLeft.textContent = otpState.blockTimer;
-
-                otpState.blockInterval = setInterval(() => {
-                    otpState.blockTimer--;
-                    blockedTimeLeft.textContent = otpState.blockTimer;
-
-                    if (otpState.blockTimer <= 0) {
-                        clearInterval(otpState.blockInterval);
-                        localStorage.removeItem(OTP_BLOCK_UNTIL_KEY);
-                        otpState.isBlocked = false;
-                        otpState.attempts = 5;
-                        hideOTPModal();
-                        showToast('يمكنك الآن المحاولة مرة أخرى', 'success');
-                    }
-                }, 1000);
-            }
-
-                         // Replace the completeOrder function with this:
-        async function completeOrder() {
-            const btnText = placeOrderBtn.querySelector('.btn-content span');
-            const originalText = btnText.textContent;
-
-            // Show loading state
-            btnText.innerHTML = '<div class="loading-spinner"></div> جاري المعالجة...';
-            placeOrderBtn.disabled = true;
+                    async function updateDeliveryFee() {
+            const branchId = branchSelect.value;
+            if (!branchId) return;
 
             try {
-                // ✅ Get cart from localStorage
-                const cart = JSON.parse(localStorage.getItem("food_ecom_cart")) || [];
+                        const res = await fetch(`/Cart/GetDeliveryFeeOfBranch?branchId=${branchId}`);
+                const data = await res.json();
 
-                if (cart.length === 0) {
-                    showErrorMessage("سلة التسوق فارغة", "error");
-                    return;
-                }
+                     const deliveryFee = data || 0;
 
-                // ✅ Calculate totals
+
+                       
+                                      
+
+
+                // حساب subtotal
+                const cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
                 let subtotal = 0;
                 cart.forEach(item => {
                     const toppingsTotal = (item.SelectedToppingGroups || []).reduce((sum, group) =>
@@ -1764,100 +1522,629 @@
                     subtotal += (item.PriceAtOrderTime + toppingsTotal) * item.Quantity;
                 });
 
-                const deliveryFees = 15;
-                const grandTotal = subtotal + deliveryFees;
+                const total = subtotal + deliveryFee;
 
-                // ✅ Build payload
-                const payload = {
-                    phoneNumber: document.getElementById('phone').value,
-                    governrateId: +document.getElementById('governorate').value,
-                    areaId: +document.getElementById('area').value,
-                    branchId: +document.getElementById('branch').value,
-                    address: document.getElementById('street').value,
-                    buildingDetails: document.getElementById('buildingDetails').value,
-                    floor: document.getElementById('floor').value || '',
-                    flatNumber: document.getElementById('flatNumber').value || '',
-                    notes: document.getElementById('notes').value || '',
-                    subTotal: subtotal,
-                    deliveryFees: deliveryFees,
-                    grandTotal: grandTotal,
-                    items: cart, // ✅ already array
-                    payment: {
-                        amount: grandTotal,
-                        paymentMethod: 1, // CashOnDelivery
-                        paymentStatus: 1  // Pending
-                    }
-                };
+                // تحديث الـ UI
+                document.querySelector('.subtotal').textContent = `${subtotal.toFixed(2)} جنيه`;
+                document.querySelector('.delivery-fee').textContent = `${deliveryFee.toFixed(2)} جنيه`;
+                document.querySelectorAll('.total-amount').forEach(el => {
+                    el.textContent = `${total.toFixed(2)} جنيه`;
+                });
+            } catch (err) {
+                console.error("Error fetching branch fee:", err);
+            }
+        }
 
-                // ✅ Send request
-                const response = await fetch('/Order/CreateOrder', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': antiForgeryToken // CSRF
-                    },
-                    body: JSON.stringify(payload)
+
+                    // Cart summary
+                 async function loadCartSummary() {
+            try {
+                const cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
+                let subtotal = 0;
+
+                cart.forEach(item => {
+                    const toppingsTotal = (item.SelectedToppingGroups || []).reduce((sum, group) =>
+                        sum + group.SelectedToppingOptions.reduce((optSum, opt) =>
+                            optSum + (opt.PriceAtOrderTime * opt.Quantity), 0), 0);
+                    subtotal += (item.PriceAtOrderTime + toppingsTotal) * item.Quantity;
                 });
 
-                const result = await response.json();
-
-                if (result.success) {
-                    localStorage.removeItem("food_ecom_cart");
-
-                    // ✅ Smooth transition before redirect
-                    document.body.style.transition = "opacity 0.6s ease, transform 0.6s ease";
-                    document.body.style.opacity = "0";
-                    document.body.style.transform = "translateY(20px)";
-
-                    setTimeout(() => {
-                        // window.location.href = '/Home/Index?orderConfirmed=true&orderId=' + result.orderId;
-                        window.location.href = '/Home/Index' ;
-                    }, 600);
+                if (branchSelect.value) {
+                    await updateDeliveryFee();
                 } else {
-                    // ❌ Show server error
-                    showErrorMessage(result.message);
+                    const deliveryFee = 0;
+                    const total = subtotal + deliveryFee;
+
+                    document.querySelector('.subtotal').textContent = `${subtotal.toFixed(2)} جنيه`;
+                    document.querySelector('.delivery-fee').textContent = `${deliveryFee.toFixed(2)} جنيه`;
+                    document.querySelectorAll('.total-amount').forEach(el => {
+                        el.textContent = `${total.toFixed(2)} جنيه`;
+                    });
                 }
-
             } catch (error) {
-                                    showErrorMessage(error);
-
-                // showErrorMessage("حدث خطأ في معالجة الطلب. حاول مرة أخرى", "error");
-            } finally {
-                // ✅ Reset button state
-                btnText.textContent = originalText;
-                placeOrderBtn.disabled = false;
+                console.error('Error loading cart:', error);
             }
         }
 
-        // 🔹 Reusable alert (toast / modal / fallback to alert)
-        function showAlert(message, type = "info") {
-            if (window.Swal) {
-                // SweetAlert2 if available
-                Swal.fire({
-                    icon: type,
-                    title: message,
-                    confirmButtonText: "موافق"
-                });
+                 
+        placeOrderBtn.addEventListener("click", async (e) => {
+            e.preventDefault();
+
+            console.log("window.isCustomerLoggedIn", window.isCustomerLoggedIn);
+
+            if (!validateRequiredFields()) {
+                return;
+            }
+
+            // User input phone
+            const phone = phoneInput.value.trim();
+
+            // Server stored phone (from ViewBag)
+            if (typeof window.customerPhone === "undefined") {
+                window.customerPhone = '@ViewBag.CustomerPhone' || "";
+            }
+
+            console.log("Input phone:", phone);
+            console.log("Stored customerPhone:", window.customerPhone);
+
+            if (window.isCustomerLoggedIn) {
+               
+                if (window.customerPhone === phone) {
+                    console.log("case 1: logged in & same phone");
+                    await completeOrder();
+                    return;
+                }
+                console.log("Error");
+                console.log("case 2: logged in & another phone");
+                await sendOtp(phoneInput, placeOrderBtn);
+
             } else {
-                alert(message);
-            }
-        }
-                        function showToast(message, type = 'success') {
-                const toast = document.createElement('div');
-                toast.className = `toast ${type} show`;
-                toast.innerHTML = `
-                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-                    <span>${message}</span>
-                `;
 
-                document.body.appendChild(toast);
-
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                    setTimeout(() => toast.remove(), 300);
-                }, 4000);
+                console.log("case 3: new guest");
+                await sendOtp(phoneInput, placeOrderBtn);
             }
         });
+
+
+
+                function validateRequiredFields() {
+                    const form = document.getElementById("addressForm");
+                    const requiredInputs = form.querySelectorAll("[required]");
+                    let invalidFields = [];
+
+                    requiredInputs.forEach(input => {
+                        if (!input.value.trim()) {
+                            input.classList.add("is-invalid");
+
+                            // إعادة تشغيل الأنيميشن
+                            input.style.animation = "none";
+                            input.offsetHeight; // reflow
+                            input.style.animation = null;
+
+                            invalidFields.push(input);
+
+                            // متابعة live: أول ما يكتب يشيل الكلاس
+                            input.addEventListener("input", () => {
+                                if (input.value.trim()) {
+                                    input.classList.remove("is-invalid");
+                                }
+                            }, { once: true });
+                        } else {
+                            input.classList.remove("is-invalid");
+                        }
+                    });
+
+                    if (invalidFields.length > 0) {
+                        let firstInvalid = invalidFields[0];
+                        firstInvalid.focus();
+
+                        let label = form.querySelector(`label[for="${firstInvalid.id}"]`);
+                        let fieldName = label ? label.textContent.trim() : firstInvalid.name || firstInvalid.id;
+                        fieldName = fieldName.replace("*", "").trim();
+
+                        if (invalidFields.length === 1) {
+                            showAlert(`⚠️ يرجى ملء ${fieldName}`, "error");
+                        } else {
+                            showAlert("⚠️ يرجى ملء جميع الحقول المطلوبة", "error");
+                        }
+
+                        return false;
+                    }
+
+                    return true;
+                }
+
+
+
+
+
+
+                    async function sendOtp(phoneInput, placeOrderBtn) {
+                        const phoneNumber = phoneInput.value;
+                        if (!phoneNumber || phoneNumber.length !== 11 || !phoneNumber.match(/^01[0125][0-9]{8}$/)) {
+                            showAlert("يرجى إدخال رقم هاتف صحيح", "error");
+                            phoneInput.focus();
+                            return;
+                        }
+                        try {
+                            const formData = new FormData();
+                            formData.append("PhoneNumber", phoneNumber);
+
+                            const btnText = placeOrderBtn.querySelector('.btn-content span');
+                            const originalText = btnText.textContent;
+                            btnText.innerHTML = '<div class="loading-spinner"></div> جاري الإرسال...';
+                            placeOrderBtn.disabled = true;
+
+                            const response = await fetch("/Account/SendOtp", { method: "POST", body: formData });
+                            if (response.ok) {
+                                const html = await response.text();
+                                const otpContent = document.querySelector("#otpContent");
+                                const otpModal = document.getElementById("otpModal");
+                                if (otpContent && otpModal) {
+                                    otpContent.innerHTML = html;
+                                    otpModal.style.display = "flex";
+                                    executeScriptsInElement(otpContent);
+                                    setTimeout(() => initializeOTPModal(), 100);
+                                } else {
+                                    console.error("❌ otpContent أو otpModal غير موجود في DOM");
+                                }
+                            } else {
+                                const errorResult = await response.json().catch(() => ({}));
+                                showAlert(errorResult.message || "❌ فشل إرسال رمز التحقق", "error");
+                            }
+                        } catch (err) {
+                            console.error("SendOtp error:", err);
+                            showAlert("⚠️ حدث خطأ أثناء إرسال رمز التحقق", "error");
+                        } finally {
+                            const btnText = placeOrderBtn.querySelector('.btn-content span');
+                            btnText.textContent = "تأكيد الطلب";
+                            placeOrderBtn.disabled = false;
+                        }
+                    }
+
+                    async function completeOrder() {
+                        const CART_KEY = "food_ecom_cart";
+                        const cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
+                        const placeOrderBtn = document.getElementById("placeOrderBtn");
+                        const btnText = placeOrderBtn.querySelector('.btn-content span');
+                        const originalText = btnText.textContent;
+
+                        if (cart.length === 0) {
+                            showAlert("سلة التسوق فارغة", "error");
+                            return;
+                        }
+
+                        btnText.innerHTML = '<div class="loading-spinner"></div> جاري المعالجة...';
+                        placeOrderBtn.disabled = true;
+
+                        document.getElementById("ItemsJson").value = JSON.stringify(cart);
+                        const form = document.getElementById("addressForm");
+                        const formData = new FormData(form);
+
+                        try {
+                            const response = await fetch("/Order/CreateOrder", { method: "POST", body: formData });
+                            let result;
+                            try {
+                                result = await response.json();
+                            } catch (err) {
+                                console.error("JSON parse error:", err);
+                                showAlert("الرد من الخادم غير صالح", "error");
+                                return;
+                            }
+
+                            if (!response.ok || !result.success) {
+                                showAlert(result.message || "حدث خطأ أثناء إنشاء الطلب", "error");
+                                return;
+                            }
+
+                            if (result.data && result.data.redirectUrl) {
+                                localStorage.removeItem(CART_KEY);
+                                document.body.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+                                document.body.style.opacity = "0";
+                                document.body.style.transform = "translateY(20px)";
+                                setTimeout(() => { window.location.href = result.data.redirectUrl; }, 600);
+                            } else {
+                                showAlert("تم إنشاء الطلب بنجاح", "success");
+                            }
+                        } catch (error) {
+                            console.error("❌ Order completion error:", error);
+                            let userMessage = "حدث خطأ في معالجة الطلب. حاول مرة أخرى";
+                            if (error.message?.includes('Failed to fetch')) userMessage = "مشكلة في الاتصال بالخادم. تحقق من الإنترنت وحاول مرة أخرى";
+                            else if (error.message?.includes('HTTP 400')) userMessage = "بيانات الطلب غير صحيحة. تحقق من البيانات المدخلة";
+                            else if (error.message?.includes('HTTP 401')) userMessage = "انتهت جلسة العمل. يرجى تسجيل الدخول مرة أخرى";
+                            else if (error.message?.includes('HTTP 500')) userMessage = "خطأ في الخادم. يرجى المحاولة لاحقاً";
+                            showAlert(userMessage, "error");
+                        } finally {
+                            btnText.textContent = originalText;
+                            placeOrderBtn.disabled = false;
+                        }
+                    }
+
+                    function executeScriptsInElement(element) {
+                        const scripts = element.querySelectorAll('script');
+                        scripts.forEach(script => {
+                            const newScript = document.createElement('script');
+                            Array.from(script.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                            if (script.src) newScript.src = script.src;
+                            else newScript.textContent = script.textContent;
+                            script.parentNode.removeChild(script);
+                            document.head.appendChild(newScript);
+                        });
+                    }
+
+
+
+                    function initializeOTPModal() {
+                        const otpInputs = document.querySelectorAll('.otp-input');
+                        const otpHiddenInput = document.getElementById('Otp');
+                        const verifyBtn = document.getElementById('verifyOtp');
+                        const otpForm = document.getElementById('otpForm');
+                        const cancelBtn = document.getElementById('cancelOtp');
+                        const resendBtn = document.getElementById('resendBtn');
+                        const otpError = document.getElementById('otpError');
+                        const timerElement = document.getElementById('timerCount');
+                        const attemptsElement = document.getElementById('attemptsCount');
+
+                        if (!otpInputs.length || !otpHiddenInput || !verifyBtn || !otpForm) return;
+
+                        let timeLeft = 60;
+                        let attempts = 5;
+                        let timerInterval = null;
+                        let isSubmitting = false;
+
+                        function updateOTPValue() {
+                            const otpValue = Array.from(otpInputs).map(input => input.value).join('');
+                            if (otpHiddenInput) otpHiddenInput.value = otpValue;
+                            if (verifyBtn) verifyBtn.disabled = otpValue.length !== 4 || isSubmitting;
+                            if (otpValue.length === 4) hideError();
+                        }
+
+                        Array.from(otpInputs).forEach((input, index) => {
+                            input.addEventListener('input', function (e) {
+                                const value = e.target.value.replace(/[^0-9]/g, '');
+                                e.target.value = value.length > 1 ? value.charAt(0) : value;
+                                if (value && index < otpInputs.length - 1) otpInputs[index + 1].focus();
+                                updateOTPValue();
+                            });
+
+                            input.addEventListener('keydown', function (e) {
+                                if (e.key === 'Backspace' && !e.target.value && index > 0) otpInputs[index - 1].focus();
+                            });
+
+                            input.addEventListener('paste', function (e) {
+                                e.preventDefault();
+                                const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '');
+                                for (let i = 0; i < pastedData.length && (index + i) < otpInputs.length; i++) {
+                                    otpInputs[index + i].value = pastedData[i];
+                                }
+                                updateOTPValue();
+                            });
+                        });
+
+            
+
+                // التحقق من OTP
+                otpForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+                    if (isSubmitting) return;
+
+                    updateOTPValue();
+                    const otpValue = otpHiddenInput.value;
+                    if (otpValue.length !== 4) {
+                        showError('يرجى إدخال رمز التحقق كاملاً');
+                        return;
+                    }
+
+                    showLoading();
+                    try {
+                        const formData = new FormData(otpForm);
+                        const response = await fetch('/Account/VerifyOtp', { method: 'POST', body: formData });
+                        const result = await response.json();
+
+                        if (result.success) {
+                            const modal = document.getElementById('otpModal');
+                            if (modal) modal.style.display = 'none';
+
+                            window.isCustomerLoggedIn = true;
+
+                            console.log("OTP verified ✅, completing order...");
+
+                                            window.customerPhone = formData.get("phoneNumber") || "";
+
+                            await window.completeOrder();
+                        } else {
+                            attempts--;
+                            if (attemptsElement) attemptsElement.textContent = attempts;
+
+                            if (attempts <= 0) {
+                                showBlockedState();
+                            } else {
+                                showError(result.message || 'رمز التحقق غير صحيح');
+                                clearInputs();
+                            }
+                        }
+                    } catch (error) {
+                        showError('حدث خطأ أثناء التحقق من الرمز');
+                    } finally {
+                        hideLoading();
+                    }
+                });
+
+                        if (cancelBtn) {
+                            cancelBtn.addEventListener('click', function () {
+                                const modal = document.getElementById('otpModal');
+                                if (modal) modal.style.display = 'none';
+                                clearTimer();
+                            });
+                        }
+
+                        function showLoading() {
+                            isSubmitting = true;
+                            const verifyText = verifyBtn.querySelector('.verify-text');
+                            const loadingSpinner = verifyBtn.querySelector('.loading-spinner');
+                            if (verifyText) verifyText.style.display = 'none';
+                            if (loadingSpinner) loadingSpinner.style.display = 'inline-block';
+                            verifyBtn.disabled = true;
+                        }
+
+                        function hideLoading() {
+                            isSubmitting = false;
+                            const verifyText = verifyBtn.querySelector('.verify-text');
+                            const loadingSpinner = verifyBtn.querySelector('.loading-spinner');
+                            if (verifyText) verifyText.style.display = 'inline';
+                            if (loadingSpinner) loadingSpinner.style.display = 'none';
+                            updateOTPValue();
+                        }
+
+                        function showError(message) {
+                            if (otpError) {
+                                otpError.textContent = message;
+                                otpError.style.display = 'block';
+                            }
+                            Array.from(otpInputs).forEach(input => input.classList.add('error'));
+                        }
+
+                        function hideError() {
+                            if (otpError) otpError.style.display = 'none';
+                            Array.from(otpInputs).forEach(input => input.classList.remove('error'));
+                        }
+
+                        function clearInputs() {
+                            Array.from(otpInputs).forEach(input => { input.value = ''; input.classList.remove('error'); });
+                            updateOTPValue();
+                            if (otpInputs.length > 0) otpInputs[0].focus();
+                        }
+
+                        function showBlockedState() {
+                            const otpContent = document.getElementById('otpContent');
+                            const blockedContent = document.getElementById('blockedContent');
+                            if (otpContent) otpContent.style.display = 'none';
+                            if (blockedContent) blockedContent.style.display = 'block';
+                        }
+
+                        function startTimer() {
+                            clearTimer();
+                            timerInterval = setInterval(() => {
+                                timeLeft--;
+                                if (timerElement) timerElement.textContent = timeLeft;
+                                if (timeLeft <= 0) enableResend();
+                            }, 1000);
+                        }
+
+
+                        function enableResend() {
+                            clearTimer();
+                            if (resendBtn) {
+                                resendBtn.disabled = false;
+                                resendBtn.textContent = 'إعادة الإرسال';
+                            }
+                        }
+
+                        function clearTimer() {
+                            if (timerInterval) {
+                                clearInterval(timerInterval);
+                                timerInterval = null;
+                            }
+                        }
+
+                        // Initialize timer and focus
+                        startTimer();
+                        if (otpInputs.length > 0) {
+                            otpInputs[0].focus();
+                        }
+                        updateOTPValue();
+
+                        // console.log('✅ OTP modal initialized successfully');
+                    }
+
+
+                    // Complete order function
+                //         async function completeOrder2() {
+
+
+                //     const btnText = placeOrderBtn.querySelector('.btn-content span');
+                //     const originalText = btnText.textContent;
+
+                //     // Set loading state
+                //     btnText.innerHTML = '<div class="loading-spinner"></div> جاري المعالجة...';
+                //     placeOrderBtn.disabled = true;
+
+                //     try {
+                //         // Validate cart
+                //         const cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
+                //         if (cart.length === 0) {
+                //             showAlert("سلة التسوق فارغة", "error");
+                //             return;
+                //         }
+
+                //         // Calculate totals
+                //         let subtotal = 0;
+                //         cart.forEach(item => {
+                //             const toppingsTotal = (item.SelectedToppingGroups || []).reduce((sum, group) =>
+                //                 sum + group.SelectedToppingOptions.reduce((optSum, opt) =>
+                //                     optSum + (opt.PriceAtOrderTime * opt.Quantity), 0), 0);
+                //             subtotal += (item.PriceAtOrderTime + toppingsTotal) * item.Quantity;
+                //         });
+
+                //         const deliveryFees = 15;
+                //         const grandTotal = subtotal + deliveryFees;
+
+                //         // Prepare payload
+                //             const payload = {
+                //     PhoneNumber: phoneInput.value,
+                //     GovernrateId: +governorateSelect.value,
+                //     AreaId: +areaSelect.value,
+                //     BranchId: +branchSelect.value,
+                //     Address: document.getElementById('Order_Address').value,
+                //     BuildingDetails: document.getElementById('Order_BuildingDetails').value,
+                //     Floor: document.getElementById('Order_Floor').value || '',
+                //     FlatNumber: document.getElementById('Order_FlatNumber').value || '',
+                //     Notes: document.getElementById('Order_Notes').value || '',
+                //     SubTotal: subtotal,
+                //     // DeliveryFees: deliveryFees,
+                //     GrandTotal: grandTotal,
+                //     Items: cart,
+                //     Payment: {
+                //         Amount: grandTotal,
+                //         PaymentMethod: 1,
+                //         PaymentStatus: 1
+                //     }
+                // };
+
+                //         console.log("📦 Payload:", payload);
+
+                //         // Make API request
+                //         const response = await fetch('/Order/CreateOrder', {
+                //             method: 'POST',
+                //             headers: {
+                //                 'Content-Type': 'application/json',
+                //                 'RequestVerificationToken': antiForgeryToken
+                //              }//,
+                //             // body: JSON.stringify(payload)
+                //         });
+
+                //         console.log('📡 Response status:', response.status);
+                //         console.log('📡 Response content-type:', response.headers.get('content-type'));
+
+                //         // Handle non-OK responses
+                //         if (!response.ok) {
+                //             let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+
+                //             // Try to get error details from response
+                //             try {
+                //                 const errorText = await response.text();
+                //                 console.log('❌ Error response:', errorText);
+
+                //                 // Try to parse as JSON for structured error
+                //                 try {
+                //                     const errorData = JSON.parse(errorText);
+                //                     errorMessage = errorData.message || errorMessage;
+                //                 } catch {
+                //                     // If not JSON, use the text as is (might be HTML error page)
+                //                     if (errorText.includes('<html>')) {
+                //                         errorMessage = 'خطأ في الخادم - يرجى المحاولة مرة أخرى';
+                //                     } else {
+                //                         errorMessage = errorText || errorMessage;
+                //                     }
+                //                 }
+                //             } catch {
+                //                 // If we can't read the error response, use the status
+                //             }
+
+                //             throw new Error(errorMessage);
+                //         }
+
+                //         // Parse successful response
+                //         const responseText = await response.text();
+                //         console.log('✅ Raw response:', responseText);
+
+                //         if (!responseText.trim()) {
+                //             throw new Error('خطأ: استجابة فارغة من الخادم');
+                //         }
+
+                //         let result;
+                //         try {
+                //             result = JSON.parse(responseText);
+                //         } catch (parseError) {
+                //             console.error('❌ JSON parse error:', parseError);
+                //             console.log('📄 Response that failed to parse:', responseText);
+                //             throw new Error('خطأ في تحليل استجابة الخادم');
+                //         }
+
+                //         console.log('📋 Parsed result:', result);
+
+                //         // Handle response
+                //         if (result.success) {
+                //             console.log('🎉 Order created successfully:', {
+                //                 orderId: result.orderId,
+                //                 orderNumber: result.orderNumber
+                //             });
+
+                //             // Clear cart and form data
+                //             localStorage.removeItem(CART_KEY);
+                //             // localStorage.removeItem(FORM_DATA_KEY);
+
+                //             // Add success animation
+                //             document.body.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+                //             document.body.style.opacity = "0";
+                //             document.body.style.transform = "translateY(20px)";
+
+                //             // Redirect after animation
+                //             setTimeout(() => {
+                //                 window.location.href = '/Home/Index';
+                //             }, 600);
+
+                //         } else {
+                //             console.warn('⚠️ Order creation failed:', result.message);
+                //             showAlert(result.message || "فشل في إنشاء الطلب", "error");
+                //         }
+
+                //     } catch (error) {
+                //         console.error('❌ Order completion error:', error);
+
+                //         // Show user-friendly error message
+                //         let userMessage = "حدث خطأ في معالجة الطلب. حاول مرة أخرى";
+
+                //         if (error.message.includes('Failed to fetch')) {
+                //             userMessage = "مشكلة في الاتصال بالخادم. تحقق من الإنترنت وحاول مرة أخرى";
+                //         } else if (error.message.includes('HTTP 400')) {
+                //             userMessage = "بيانات الطلب غير صحيحة. تحقق من البيانات المدخلة";
+                //         } else if (error.message.includes('HTTP 401')) {
+                //             userMessage = "انتهت جلسة العمل. يرجى تسجيل الدخول مرة أخرى";
+                //         } else if (error.message.includes('HTTP 500')) {
+                //             userMessage = "خطأ في الخادم. يرجى المحاولة لاحقاً";
+                //         } else if (error.message.startsWith('خطأ') || error.message.includes('HTTP')) {
+                //             userMessage = error.message;
+                //         }
+
+                //         showAlert(userMessage, "error");
+
+                //     } finally {
+                //         // Reset button state
+                //         btnText.textContent = originalText;
+                //         placeOrderBtn.disabled = false;
+                //     }
+                // }
+
+
+
+
+                // Toast/alert
+                    function showAlert(message, type = "info") {
+                        if (window.Swal) {
+                            Swal.fire({
+                                icon: type,
+                                title: message,
+                                confirmButtonText: "موافق"
+                            });
+                        } else {
+                            alert(message);
+                        }
+                    }
+                });
     </script>
+
+
+
 </body>
 </html>

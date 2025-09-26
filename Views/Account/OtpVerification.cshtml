@@ -1,43 +1,7 @@
 ﻿@using RMS.Web.Core.ViewModels.Account
 @model VerifyOtpRequest
-
 <style>
-
-    :root {
-        --primary-color: #185499;
-        --primary-dark: #0f3d7a;
-        --primary-light: #3e7bb5;
-        --success-color: #10b981;
-        --danger-color: #ef4444;
-        --warning-color: #f59e0b;
-        --info-color: #3b82f6;
-        --background: #f8fafc;
-        --surface: #ffffff;
-        --surface-hover: #f1f5f9;
-        --border: #e2e8f0;
-        --border-focus: #3b82f6;
-        --text-primary: #1e293b;
-        --text-secondary: #64748b;
-        --text-muted: #94a3b8;
-        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-        --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
-        --border-radius: 16px;
-        --border-radius-lg: 24px;
-        --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        --transition-spring: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    body {
-        font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-        background: var(--background);
-        color: var(--text-primary);
-        line-height: 1.6;
-        min-height: 100vh;
-        padding-bottom: 120px;
-        margin: 0;
-        -webkit-font-smoothing: antialiased;
-    }
+    /* OTP Modal */
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -47,15 +11,11 @@
         background: rgba(0, 0, 0, 0.6);
         backdrop-filter: blur(8px);
         z-index: 1000;
-        display:flex;
-       align-items: center;
+        display: none;
+        align-items: center;
         justify-content: center;
         animation: fadeIn 0.3s ease-out;
-      /*   background-image: url('https://t3.ftcdn.net/jpg/13/31/21/24/360_F_1331212451_Cuv1RqmO5XnZmNOzCm90Fnpxkp51XqrU.jpg');
-        background-repeat:no-repeat;
-        background-size:cover; */
     }
-    
 
         .modal-overlay.show {
             display: flex;
@@ -283,458 +243,78 @@
         opacity: 0.8;
     }
 
-    /* Place Order Button */
-    .place-order-container {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        padding: 16px 20px;
-        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.1);
-        z-index: 50;
-        border-top: 1px solid var(--border);
-    }
-
-    .place-order-btn {
-        width: 100%;
-        max-width: 800px;
-        margin: 0 auto;
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-        color: white;
-        border: none;
-        border-radius: 16px;
-        padding: 18px 24px;
-        cursor: pointer;
-        transition: var(--transition-spring);
-        box-shadow: var(--shadow);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 16px;
-        font-weight: 600;
-        font-family: inherit;
-        position: relative;
-        overflow: hidden;
-    }
-
-        .place-order-btn:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 40px rgba(24, 84, 153, 0.4);
-        }
-
-        .place-order-btn:active:not(:disabled) {
-            transform: translateY(-1px);
-        }
-
-        .place-order-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-    .btn-content {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        position: relative;
-        z-index: 1;
-    }
-
-    .btn-price {
-        font-size: 18px;
-        font-weight: 700;
-        position: relative;
-        z-index: 1;
-    }
-
-    /* Loading Spinner */
-    .loading-spinner {
-        width: 20px;
-        height: 20px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-top: 2px solid white;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
-
-    @@keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
-    }
-
-    /* Animations */
-    .fade-in {
-        animation: fadeIn 0.6s ease-out;
-    }
-
-    @@keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .slide-up {
-        animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    @@keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(40px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Responsive Design */
-    @@media (max-width: 480px) {
-        body
-
-    {
-        padding: 16px;
-    }
-
-    .container {
-        max-width: 100%;
-    }
-
-    .header {
-        padding: 24px 20px;
-    }
-
-    .header-icon {
-        width: 64px;
-        height: 64px;
-        font-size: 24px;
-    }
-
-    .header-title {
-        font-size: 20px;
-    }
-
-    .content {
-        padding: 24px 20px;
-    }
-
-    .otp-inputs {
-        gap: 8px;
-    }
-
-    .otp-input {
-        width: 48px;
-        height: 48px;
-        font-size: 20px;
-    }
-
-    .form-actions {
-        flex-direction: column;
-    }
-
-    .btn {
-        padding: 16px 20px;
-    }
-
-    }
-
-    @@media (max-width: 360px) {
-        .otp-inputs
-
-    {
-        gap: 6px;
-    }
-
-    .otp-input {
-        width: 44px;
-        height: 44px;
-        font-size: 18px;
-    }
-
-    }
-
-
-
-    /* Fade-out animation */
-    .page-exit {
-        animation: fadeOut 0.6s ease forwards;
-    }
-
-    @@keyframes fadeOut {
-        from {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        to {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-    }
-
 </style>
 
-<!-- OTP Modal -->
-<div class="modal-overlay" id="otpModal">
-    <div class="otp-modal">
-       
+<!-- Fixed OTP Verification Form -->
+<div class="otp-header">
+    <div class="otp-icon">
+        <i class="fas fa-mobile-alt"></i>
+    </div>
+    <h2 class="otp-title">تأكيد رقم الهاتف</h2>
+    <p class="otp-description">
+        تم إرسال رمز التحقق إلى رقم
+        <span class="phone-display" id="displayPhone">@Model.PhoneNumber</span>
+    </p>
+</div>
 
-<form asp-action="VerifyOtp" asp-controller="Account" method="post">
+<!-- Form -->
+<form asp-action="VerifyOtp" asp-controller="Account" method="post" id="otpForm">
     @Html.AntiForgeryToken()
 
-    <div class="otp-header">
-        <div class="otp-icon">
-            <i class="fas fa-mobile-alt"></i>
+    <div id="otpContent">
+        <!-- OTP Inputs -->
+        <div class="otp-inputs">
+            <input type="text" class="otp-input" maxlength="1" data-index="0" inputmode="numeric" pattern="[0-9]">
+            <input type="text" class="otp-input" maxlength="1" data-index="1" inputmode="numeric" pattern="[0-9]">
+            <input type="text" class="otp-input" maxlength="1" data-index="2" inputmode="numeric" pattern="[0-9]">
+            <input type="text" class="otp-input" maxlength="1" data-index="3" inputmode="numeric" pattern="[0-9]">
         </div>
-        <h2 class="otp-title">تأكيد رقم الهاتف</h2>
-        <p class="otp-description">
-            تم إرسال رمز التحقق إلى رقم
-            <span class="phone-display">@Model.PhoneNumber</span>
-        </p>
-    </div>
 
-    <input type="hidden" asp-for="PhoneNumber" />
+        <input type="hidden" asp-for="PhoneNumber" id="PhoneNumber" />
+        <input type="hidden" asp-for="Otp" id="Otp" name="Otp" value=""  />
 
-    <div class="otp-inputs">
-        <input type="text" maxlength="1" class="otp-input" data-index="0">
-        <input type="text" maxlength="1" class="otp-input" data-index="1">
-        <input type="text" maxlength="1" class="otp-input" data-index="2">
-        <input type="text" maxlength="1" class="otp-input" data-index="3">
-    </div>
+        <!-- Timer -->
+        <div class="otp-timer" id="otpTimer">
+           jjj يمكنك طلب رمز جديد خلال <span class="timer-text" id="timerCount">60</span> ثانية
+        </div>
 
-    <input type="hidden" asp-for="Otp" id="Otp" />
+        <!-- Resend -->
+        <div class="otp-resend">
+            <button type="button" class="resend-btn" id="resendBtn" disabled>إعادة الإرسال</button>
+        </div>
 
-    <span asp-validation-for="Otp" class="text-danger"></span>
+        <!-- Error -->
+        <div class="otp-error" id="otpError" style="display:none;"></div>
 
-    <div class="otp-actions">
-        <button type="button" class="otp-btn otp-btn-cancel" onclick="window.history.back()">إلغاء</button>
-        <button type="submit" class="otp-btn otp-btn-verify" id="verifyOtp" disabled>تحقق</button>
+        <!-- Attempts -->
+        <div class="otp-attempts" id="otpAttempts">
+            المحاولات المتبقية: <span id="attemptsCount">5</span>
+        </div>
+
+        <!-- Actions -->
+        <div class="otp-actions">
+            <button type="button" class="otp-btn otp-btn-cancel" id="cancelOtp">إلغاء</button>
+            <button type="submit" class="otp-btn otp-btn-verify" id="verifyOtp" disabled>
+                <span class="verify-text">تحقق</span>
+                <div class="loading-spinner" style="display:none;"></div>
+            </button>
+        </div>
     </div>
 </form>
 
-
-        <div id="blockedContent" style="display: none;">
-            <div class="blocked-message">
-                <div class="blocked-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="blocked-title">تم إيقاف المحاولات مؤقتاً</div>
-                <div class="blocked-description" id="blockedDescription">
-                    يرجى المحاولة مرة أخرى بعد دقيقة واحدة
-                </div>
-                <div class="otp-timer" id="blockedTimer" style="margin-top: 16px;">
-                    الوقت المتبقي: <span class="timer-text" id="blockedTimeLeft">60</span> ثانية
-                </div>
-            </div>
+<!-- Blocked content -->
+<div id="blockedContent" style="display:none;">
+    <div class="blocked-message">
+        <div class="blocked-icon">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="blocked-title">تم إيقاف المحاولات مؤقتاً</div>
+        <div class="blocked-description" id="blockedDescription">
+            يرجى المحاولة مرة أخرى بعد دقيقة واحدة
+        </div>
+        <div class="otp-timer" id="blockedTimer" style="margin-top:16px;">
+            الوقت المتبقي: <span class="timer-text" id="blockedTimeLeft">60</span> ثانية
         </div>
     </div>
 </div>
 
-<script>
-
-    document.addEventListener('DOMContentLoaded', () => {
-        // Constants
-        const OTP_TOKEN_KEY = 'otp_token';
-        const OTP_PHONE_KEY = 'otp_phone';
-
-        // DOM Elements
-        const otpInputs = document.querySelectorAll('.otp-input');
-        const hiddenOtpInput = document.getElementById('Otp');
-        const verifyBtn = document.getElementById('verifyOtp');
-        const phoneNumber = document.querySelector('input[name="PhoneNumber"]').value;
-
-        // State
-        let otpCode = '';
-
-        // Initialize
-        setupOTPInputs();
-
-        function setupOTPInputs() {
-            otpInputs.forEach((input, index) => {
-                // Input handling
-                input.addEventListener('input', (e) => {
-                    const value = e.target.value.replace(/\D/g, '');
-                    e.target.value = value;
-
-                    if (value && index < otpInputs.length - 1) {
-                        otpInputs[index + 1].focus();
-                    }
-
-                    updateOTPCode();
-                });
-
-                // Backspace handling
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
-                        otpInputs[index - 1].focus();
-                    }
-                });
-
-                // Paste handling
-                input.addEventListener('paste', (e) => {
-                    e.preventDefault();
-                    const paste = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4);
-
-                    otpInputs.forEach((inp, i) => {
-                        inp.value = paste[i] || '';
-                    });
-
-                    updateOTPCode();
-
-                    // Focus next empty input or last input
-                    const nextEmpty = Array.from(otpInputs).findIndex(inp => !inp.value);
-                    if (nextEmpty !== -1 && nextEmpty < otpInputs.length) {
-                        otpInputs[nextEmpty].focus();
-                    } else {
-                        otpInputs[otpInputs.length - 1].focus();
-                    }
-                });
-            });
-
-            // Form submission with AJAX to store OTP token
-            const form = document.querySelector('form');
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-
-                if (otpCode.length !== 4) {
-                    showError('يرجى إدخال رمز التحقق كاملاً');
-                    return;
-                }
-
-                // Set loading state
-                const originalText = verifyBtn.textContent;
-                verifyBtn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid transparent;border-top:2px solid currentColor;border-radius:50%;animation:spin 1s linear infinite;margin-left:8px;"></span> جاري التحقق...';
-                verifyBtn.disabled = true;
-
-                try {
-                    const formData = new FormData(form);
-                    formData.set('Otp', otpCode);
-
-                    const response = await fetch('/Account/VerifyOtp', {
-                        method: 'POST',
-                        headers: {
-                            'RequestVerificationToken': form.querySelector('input[name="__RequestVerificationToken"]').value
-                        },
-                        body: formData
-                    });
-
-                    if (response.ok) {
-                        // Generate and store OTP token for future use
-                        const otpToken = generateOtpToken(phoneNumber);
-                        localStorage.setItem(OTP_TOKEN_KEY, otpToken);
-                        localStorage.setItem(OTP_PHONE_KEY, phoneNumber);
-
-                        // Smooth transition
-                        document.body.style.transition = "opacity 0.5s ease";
-                        document.body.style.opacity = "0";
-
-                        setTimeout(() => {
-                            window.location.href = '/Home/Index';
-                        }, 500);
-                    } else {
-                        const errorText = await response.text();
-                        showError('رمز التحقق غير صحيح أو منتهي الصلاحية');
-                        clearOTPInputs();
-                        markInputsError();
-                    }
-                } catch (error) {
-                    console.error('Error verifying OTP:', error);
-                    showError('حدث خطأ في التحقق. حاول مرة أخرى');
-                } finally {
-                    verifyBtn.textContent = originalText;
-                    verifyBtn.disabled = false;
-                }
-            });
-        }
-
-        function updateOTPCode() {
-            otpCode = Array.from(otpInputs).map(input => input.value).join('');
-            hiddenOtpInput.value = otpCode;
-            verifyBtn.disabled = otpCode.length !== 4;
-
-            // Clear any existing errors
-            clearError();
-        }
-
-        function clearOTPInputs() {
-            otpInputs.forEach(input => {
-                input.value = '';
-                input.classList.remove('error');
-            });
-            otpCode = '';
-            hiddenOtpInput.value = '';
-            verifyBtn.disabled = true;
-        }
-
-        function markInputsError() {
-            otpInputs.forEach(input => input.classList.add('error'));
-            setTimeout(() => {
-                otpInputs.forEach(input => input.classList.remove('error'));
-            }, 2000);
-        }
-
-        function showError(message) {
-            // Create or update error message
-            let errorEl = document.querySelector('.otp-error');
-            if (!errorEl) {
-                errorEl = document.createElement('div');
-                errorEl.className = 'otp-error';
-                errorEl.style.cssText = 'color: #e74c3c; font-size: 0.9rem; margin-top: 1rem; text-align: center;';
-                document.querySelector('.otp-inputs').parentNode.insertBefore(errorEl, document.querySelector('.otp-actions'));
-            }
-            errorEl.textContent = message;
-            errorEl.style.display = 'block';
-        }
-
-        function clearError() {
-            const errorEl = document.querySelector('.otp-error');
-            if (errorEl) {
-                errorEl.style.display = 'none';
-            }
-        }
-
-        function generateOtpToken(phoneNumber) {
-            // Simple token generation - matches the C# implementation
-            const timestamp = Math.floor(Date.now() / 1000);
-            const data = `${phoneNumber}:${timestamp}`;
-            return btoa(data); // Base64 encode
-        }
-
-        // Focus first input on load
-        if (otpInputs.length > 0) {
-            otpInputs[0].focus();
-        }
-
-        // Add CSS for spinner animation
-        const style = document.createElement('style');
-        style.textContent = `
-    @@keyframes spin {
-                to { transform: rotate(360deg); }
-            }
-            .otp-input.error {
-                border-color: #e74c3c !important;
-                animation: shake 0.5s ease-in-out;
-            }
-    @@keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-5px); }
-                75% { transform: translateX(5px); }
-            }
-        `;
-        document.head.appendChild(style);
-    });
-</script>

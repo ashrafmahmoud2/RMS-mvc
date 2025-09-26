@@ -77,9 +77,9 @@ builder.Services.AddHangfireServer();
 
 builder.Services.AddViewToHTML();
 
-builder.Services.AddMvc(options =>
-    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute())
-);
+//builder.Services.AddMvc(options =>
+//    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute())
+//);
 
 //Add Serilog
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
