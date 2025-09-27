@@ -2,22 +2,6 @@
 @model CheckoutViewModel
 
 
-
-@*    
-    refactor: restructure OTP modal and optimize checkout flow
-- Rebuilt OTP modal logic for cleaner state handling (open/close/reset)
-- Simplified checkout form submission and data flow to action
-- Optimized OTP verification and order completion steps
-- Ensured completeOrder() only executes after successful OTP validation
- *@
-
-@* 
-
-        // 3. Handdel js of otp model and split to useiing in every where
- *@
-
-
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -1344,18 +1328,471 @@
         </button>
     </div>
 
-    <!-- OTP Modal -->
+@*     <!-- OTP Modal -->
     <div id="otpModal" class="modal-overlay" role="dialog" aria-labelledby="otp-title" aria-modal="true" style="display:none;">
         <div class="otp-modal">
             <div id="otpContent">
                 <!-- OTP content will be loaded here -->
             </div>
         </div>
-    </div>
-
-    <!-- Enhanced JavaScript -->
+    </div> *@
 
 
+     <script>
+            // Updated Checkout JavaScript - Replace the existing script section in your Checkout.cshtml
+        document.addEventListener("DOMContentLoaded", () => {
+            const CART_KEY = "food_ecom_cart";
+            const FORM_DATA_KEY = "checkout_form_data";
+            let currentDeliveryFee = 0; // Start with 0 instead of 15
+
+            window.isCustomerLoggedIn = @User.Identity.IsAuthenticated.ToString().ToLower();
+            window.customerId = '@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value';
+
+            // DOM Elements
+            const form = document.getElementById('addressForm');
+            const placeOrderBtn = document.getElementById('placeOrderBtn');
+            const phoneInput = document.getElementById("Order_PhoneNumber");
+            const governorateSelect = document.getElementById("Order_GovernrateId");
+            const areaSelect = document.getElementById("Order_AreaId");
+            const branchSelect = document.getElementById("Order_BranchId");
+
+            const antiForgeryTokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            const antiForgeryToken = antiForgeryTokenInput?.value || "";
+
+            // Init
+            loadCartSummary();
+            setupFormHandlers();
+            restoreFormData();
+
+            // Make completeOrder available globally
+            window.completeOrder = completeOrder;
+
+            // Restore saved form data
+            async function restoreFormData() {
+                const saved = JSON.parse(localStorage.getItem(FORM_DATA_KEY) || "{}");
+                if (!saved) return;
+
+                if (saved.phone) phoneInput.value = saved.phone;
+
+                if (saved.governorate) {
+                    governorateSelect.value = saved.governorate;
+                    try {
+                        const areasRes = await fetch(`/Cart/GetAreas?governorateId=${saved.governorate}`);
+                        const areas = await areasRes.json();
+                        areaSelect.innerHTML = '<option value="">اختر المنطقة</option>';
+                        areas.forEach(a => areaSelect.add(new Option(a.nameAr, a.id)));
+
+                        if (saved.area) {
+                            areaSelect.value = saved.area;
+                            const branchesRes = await fetch(`/Cart/GetBranches?areaId=${saved.area}`);
+                            const branches = await branchesRes.json();
+                            branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
+                            branches.forEach(b => branchSelect.add(new Option(b.nameAr, b.id)));
+
+                            if (saved.branch) {
+                                branchSelect.value = saved.branch;
+                                await updateDeliveryFee();
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Error restoring area/branch:", err);
+                    }
+                }
+
+                if (saved.street) document.getElementById("Order_Address").value = saved.street;
+                if (saved.buildingDetails) document.getElementById("Order_BuildingDetails").value = saved.buildingDetails;
+                if (saved.floor) document.getElementById("Order_Floor").value = saved.floor;
+                if (saved.flatNumber) document.getElementById("Order_FlatNumber").value = saved.flatNumber;
+                if (saved.notes) document.getElementById("Order_Notes").value = saved.notes;
+            }
+
+            // Save form data on input
+            form.addEventListener("input", () => {
+                const formData = {
+                    phone: phoneInput.value,
+                    governorate: governorateSelect.value,
+                    area: areaSelect.value,
+                    branch: branchSelect.value,
+                    street: document.getElementById("Order_Address").value,
+                    buildingDetails: document.getElementById("Order_BuildingDetails").value,
+                    floor: document.getElementById("Order_Floor").value,
+                    flatNumber: document.getElementById("Order_FlatNumber").value,
+                    notes: document.getElementById("Order_Notes").value
+                };
+                localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formData));
+            });
+
+            // Form handlers
+            function setupFormHandlers() {
+                fetch("/Cart/GetGovernorates")
+                    .then(res => res.json())
+                    .then(governorates => governorates.forEach(g => governorateSelect.add(new Option(g.nameAr, g.id))))
+                    .catch(err => console.error("Error loading governorates:", err));
+
+                governorateSelect.addEventListener("change", async () => {
+                    areaSelect.innerHTML = '<option value="">اختر المنطقة</option>';
+                    branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
+                    currentDeliveryFee = 0;
+                    updateDeliveryFeeDisplay();
+
+                    if (!governorateSelect.value) return;
+
+                    try {
+                        const res = await fetch(`/Cart/GetAreas?governorateId=${governorateSelect.value}`);
+                        const areas = await res.json();
+                        areas.forEach(a => areaSelect.add(new Option(a.nameAr, a.id)));
+                    } catch (err) {
+                        console.error("Error loading areas:", err);
+                    }
+                });
+
+                areaSelect.addEventListener("change", async () => {
+                    branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
+                    currentDeliveryFee = 0;
+                    updateDeliveryFeeDisplay();
+
+                    if (!areaSelect.value) return;
+
+                    try {
+                        const res = await fetch(`/Cart/GetBranches?areaId=${areaSelect.value}`);
+                        const branches = await res.json();
+                        branches.forEach(b => branchSelect.add(new Option(b.nameAr, b.id)));
+                    } catch (err) {
+                        console.error("Error loading branches:", err);
+                    }
+                });
+
+                // Branch selection change event to update delivery fee
+                branchSelect.addEventListener("change", updateDeliveryFee);
+
+                phoneInput.addEventListener('input', (e) => {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 11) value = value.slice(0, 11);
+                    e.target.value = value;
+
+                    if (value.length === 11 && value.startsWith('01')) {
+                        e.target.classList.remove('error');
+                        const errorEl = document.getElementById('phone-error');
+                        if (errorEl) errorEl.classList.remove('show');
+                    }
+                });
+
+                form.addEventListener('input', (e) => {
+                    if (e.target.classList.contains('error')) {
+                        e.target.classList.remove('error');
+                        const errorEl = document.getElementById(e.target.name + 'Error');
+                        if (errorEl) errorEl.classList.remove('show');
+                    }
+                });
+            }
+
+            // Update delivery fee when branch changes
+            async function updateDeliveryFee() {
+                const branchId = branchSelect.value;
+                if (!branchId) {
+                    currentDeliveryFee = 0;
+                    updateDeliveryFeeDisplay();
+                    return;
+                }
+
+                try {
+                    // Show loading state
+                    const deliveryFeeElement = document.querySelector('.delivery-fee');
+                    const originalText = deliveryFeeElement.textContent;
+                    deliveryFeeElement.textContent = 'جاري التحميل...';
+
+                    const res = await fetch(`/Cart/GetDeliveryFeeOfBranch?branchId=${branchId}`);
+
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+
+                    const data = await res.json();
+                    currentDeliveryFee = data.DeliveryFee || 0;
+
+                    updateDeliveryFeeDisplay();
+                    console.log(`Delivery fee updated to: ${currentDeliveryFee} for branch ID: ${branchId}`);
+
+                } catch (err) {
+                    console.error("Error fetching delivery fee:", err);
+                    currentDeliveryFee = 0;
+                    updateDeliveryFeeDisplay();
+                    showAlert("حدث خطأ في تحديث رسوم التوصيل", "warning");
+                }
+            }
+
+            // Update delivery fee display and recalculate totals
+            function updateDeliveryFeeDisplay() {
+                const deliveryFeeElements = document.querySelectorAll('.delivery-fee');
+                deliveryFeeElements.forEach(element => {
+                    element.textContent = `${currentDeliveryFee.toFixed(2)} جنيه`;
+                });
+                calculateAndUpdateTotals();
+            }
+
+            // Calculate and update totals
+            function calculateAndUpdateTotals() {
+                try {
+                    const cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
+                    let subtotal = 0;
+
+                    cart.forEach(item => {
+                        const toppingsTotal = (item.SelectedToppingGroups || []).reduce((sum, group) =>
+                            sum + group.SelectedToppingOptions.reduce((optSum, opt) =>
+                                optSum + (opt.PriceAtOrderTime * opt.Quantity), 0), 0);
+                        subtotal += (item.PriceAtOrderTime + toppingsTotal) * item.Quantity;
+                    });
+
+                    const total = subtotal + currentDeliveryFee;
+
+                    // Update subtotal
+                    document.querySelector('.subtotal').textContent = `${subtotal.toFixed(2)} جنيه`;
+
+                    // Update all total displays
+                    document.querySelectorAll('.total-amount').forEach(el => {
+                        el.textContent = `${total.toFixed(2)} جنيه`;
+                    });
+
+                } catch (error) {
+                    console.error('Error calculating totals:', error);
+                }
+            }
+
+            // Enhanced Cart summary with dynamic delivery fee
+            async function loadCartSummary() {
+                try {
+                    const cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
+                    let subtotal = 0;
+
+                    cart.forEach(item => {
+                        const toppingsTotal = (item.SelectedToppingGroups || []).reduce((sum, group) =>
+                            sum + group.SelectedToppingOptions.reduce((optSum, opt) =>
+                                optSum + (opt.PriceAtOrderTime * opt.Quantity), 0), 0);
+                        subtotal += (item.PriceAtOrderTime + toppingsTotal) * item.Quantity;
+                    });
+
+                    // Update subtotal
+                    document.querySelector('.subtotal').textContent = `${subtotal.toFixed(2)} جنيه`;
+
+                    // If branch is already selected, get its delivery fee
+                    if (branchSelect.value) {
+                        await updateDeliveryFee();
+                    } else {
+                        updateDeliveryFeeDisplay();
+                    }
+
+                } catch (error) {
+                    console.error('Error loading cart:', error);
+                }
+            }
+
+            // Place Order Button Event
+            placeOrderBtn.addEventListener("click", async (e) => {
+                e.preventDefault();
+
+                if (!validateRequiredFields()) {
+                    return;
+                }
+
+                const phone = phoneInput.value.trim();
+                window.customerPhone = '@ViewBag.CustomerPhone' || "";
+
+                if (window.isCustomerLoggedIn) {
+                    if (window.customerPhone === phone) {
+                        console.log("case 1: logged in & same phone");
+                        await completeOrder();
+                        return;
+                    }
+
+                    console.log("case 2: logged in & another phone");
+                    await showOtpModal(phone);
+                } else {
+                    console.log("case 3: new guest");
+                    await showOtpModal(phone);
+                }
+            });
+
+            // Show OTP Modal using global handler
+            async function showOtpModal(phoneNumber) {
+                const btnText = placeOrderBtn.querySelector('.btn-content span');
+                const originalText = btnText.textContent;
+
+                // Show loading state
+                btnText.innerHTML = '<div class="loading-spinner"></div> جاري الإرسال...';
+                placeOrderBtn.disabled = true;
+
+                try {
+                    const otpHandler = await window.OtpHandler.show(phoneNumber, {
+                        onSuccess: async (result, formData) => {
+                            console.log("OTP verified successfully");
+
+                            // Hide the modal
+                            window.OtpHandler.hide();
+
+                            // Update login status
+                            window.isCustomerLoggedIn = true;
+                            window.customerPhone = formData.get("PhoneNumber") || "";
+
+                            // Complete the order
+                            await completeOrder();
+                        },
+                        onCancel: () => {
+                            console.log("OTP cancelled");
+                            window.OtpHandler.hide();
+                        },
+                        onError: (error) => {
+                            console.error("OTP error:", error);
+                            showAlert("حدث خطأ أثناء التحقق من الرمز", "error");
+                        }
+                    });
+
+                    if (!otpHandler) {
+                        showAlert("فشل في عرض نافذة التحقق", "error");
+                    }
+
+                } catch (error) {
+                    console.error("Error showing OTP modal:", error);
+                    showAlert("حدث خطأ أثناء إرسال رمز التحقق", "error");
+                } finally {
+                    // Reset button state
+                    btnText.textContent = originalText;
+                    placeOrderBtn.disabled = false;
+                }
+            }
+
+            // Validate required fields
+            function validateRequiredFields() {
+                const form = document.getElementById("addressForm");
+                const requiredInputs = form.querySelectorAll("[required]");
+                let invalidFields = [];
+
+                requiredInputs.forEach(input => {
+                    if (!input.value.trim()) {
+                        input.classList.add("is-invalid");
+                        input.style.animation = "none";
+                        input.offsetHeight; // reflow
+                        input.style.animation = null;
+                        invalidFields.push(input);
+
+                        input.addEventListener("input", () => {
+                            if (input.value.trim()) {
+                                input.classList.remove("is-invalid");
+                            }
+                        }, { once: true });
+                    } else {
+                        input.classList.remove("is-invalid");
+                    }
+                });
+
+                if (invalidFields.length > 0) {
+                    let firstInvalid = invalidFields[0];
+                    firstInvalid.focus();
+
+                    let label = form.querySelector(`label[for="${firstInvalid.id}"]`);
+                    let fieldName = label ? label.textContent.trim() : firstInvalid.name || firstInvalid.id;
+                    fieldName = fieldName.replace("*", "").trim();
+
+                    if (invalidFields.length === 1) {
+                        showAlert(`⚠️ يرجى ملء ${fieldName}`, "error");
+                    } else {
+                        showAlert("⚠️ يرجى ملء جميع الحقول المطلوبة", "error");
+                    }
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Complete Order function with dynamic delivery fee
+            async function completeOrder() {
+                const cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
+                const btnText = placeOrderBtn.querySelector('.btn-content span');
+                const originalText = btnText.textContent;
+
+                if (cart.length === 0) {
+                    showAlert("سلة التسوق فارغة", "error");
+                    return;
+                }
+
+                btnText.innerHTML = '<div class="loading-spinner"></div> جاري المعالجة...';
+                placeOrderBtn.disabled = true;
+
+                // Add cart items and calculated values to form
+                document.getElementById("ItemsJson").value = JSON.stringify(cart);
+
+                const form = document.getElementById("addressForm");
+                const formData = new FormData(form);
+
+                // Add delivery fee to form data if needed
+                formData.append("DeliveryFee", currentDeliveryFee);
+
+                try {
+                    const response = await fetch("/Order/CreateOrder", { method: "POST", body: formData });
+                    let result;
+
+                    try {
+                        result = await response.json();
+                    } catch (err) {
+                        console.error("JSON parse error:", err);
+                        showAlert("الرد من الخادم غير صالح", "error");
+                        return;
+                    }
+
+                    if (!response.ok || !result.success) {
+                        showAlert(result.message || "حدث خطأ أثناء إنشاء الطلب", "error");
+                        return;
+                    }
+
+                    if (result.data && result.data.redirectUrl) {
+                        localStorage.removeItem(CART_KEY);
+                        localStorage.removeItem(FORM_DATA_KEY);
+                        document.body.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+                        document.body.style.opacity = "0";
+                        document.body.style.transform = "translateY(20px)";
+                        setTimeout(() => { window.location.href = result.data.redirectUrl; }, 600);
+                    } else {
+                        showAlert("تم إنشاء الطلب بنجاح", "success");
+                    }
+                } catch (error) {
+                    console.error("Order completion error:", error);
+                    let userMessage = "حدث خطأ في معالجة الطلب. حاول مرة أخرى";
+
+                    if (error.message?.includes('Failed to fetch')) {
+                        userMessage = "مشكلة في الاتصال بالخادم. تحقق من الإنترنت وحاول مرة أخرى";
+                    } else if (error.message?.includes('HTTP 400')) {
+                        userMessage = "بيانات الطلب غير صحيحة. تحقق من البيانات المدخلة";
+                    } else if (error.message?.includes('HTTP 401')) {
+                        userMessage = "انتهت جلسة العمل. يرجى تسجيل الدخول مرة أخرى";
+                    } else if (error.message?.includes('HTTP 500')) {
+                        userMessage = "خطأ في الخادم. يرجى المحاولة لاحقاً";
+                    }
+
+                    showAlert(userMessage, "error");
+                } finally {
+                    btnText.textContent = originalText;
+                    placeOrderBtn.disabled = false;
+                }
+            }
+
+            // Toast/alert function
+            function showAlert(message, type = "info") {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: type,
+                        title: message,
+                        confirmButtonText: "موافق"
+                    });
+                } else {
+                    alert(message);
+                }
+            }
+        });
+    </script>
+
+    <script src="~/js/otp-handler.js" asp-append-version="true"></script>
+
+@* 
     <script>
                 document.addEventListener("DOMContentLoaded", () => {
                     const CART_KEY = "food_ecom_cart";
@@ -2144,7 +2581,7 @@
                 });
     </script>
 
-
+ *@
 
 </body>
 </html>

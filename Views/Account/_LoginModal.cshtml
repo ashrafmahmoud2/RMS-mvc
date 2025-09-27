@@ -1,0 +1,559 @@
+﻿<style>
+    /* Login Modal Styles - Save this as login-modal.css in wwwroot/css/ */
+
+    :root {
+        --primary-color: #185499;
+        --primary-dark: #0f3d7a;
+        --primary-light: #3e7bb5;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+        --warning-color: #f59e0b;
+        --info-color: #3b82f6;
+        --background: #f8fafc;
+        --surface: #ffffff;
+        --surface-hover: #f1f5f9;
+        --border: #e2e8f0;
+        --border-focus: #3b82f6;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+        --border-radius: 16px;
+        --border-radius-lg: 24px;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-spring: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    /* Login Modal Overlay */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(12px);
+        z-index: 5000 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.4s ease-out;
+        direction: rtl;
+    }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+    /* Login Modal */
+    .phone-modal {
+        background: var(--surface);
+        border-radius: var(--border-radius-lg);
+        padding: 32px;
+        max-width: 440px;
+        width: 90%;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+        position: relative;
+        transform: translateY(50px) scale(0.9);
+        transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 6000 !important;
+        position: relative;
+    }
+
+    .modal-overlay.show .phone-modal {
+        transform: translateY(0) scale(1);
+    }
+
+    /* Header */
+    .phone-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .phone-icon {
+        width: 72px;
+        height: 72px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 28px;
+        color: white;
+        box-shadow: 0 8px 32px rgba(24, 84, 153, 0.3);
+        position: relative;
+        overflow: hidden;
+        animation: iconPulse 3s infinite;
+    }
+
+        .phone-icon::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            animation: iconShine 3s infinite;
+        }
+
+    .phone-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+        letter-spacing: -0.5px;
+    }
+
+    .phone-description {
+        color: var(--text-secondary);
+        font-size: 15px;
+        line-height: 1.6;
+        max-width: 320px;
+        margin: 0 auto;
+    }
+
+    /* Input Container */
+    .phone-input-container {
+        margin: 32px 0;
+        position: relative;
+    }
+
+    .input-label {
+        position: absolute;
+        top: -12px;
+        right: 20px;
+        background: var(--surface);
+        padding: 0 12px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        transition: var(--transition);
+        z-index: 2;
+        border-radius: 4px;
+    }
+
+    .phone-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--surface);
+        border: 3px solid var(--border);
+        border-radius: 16px;
+        transition: var(--transition-spring);
+        overflow: hidden;
+        backdrop-filter: blur(4px);
+        box-shadow: var(--shadow-sm);
+    }
+
+        .phone-input-wrapper:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 6px rgba(24, 84, 153, 0.12), var(--shadow);
+            transform: scale(1.02) translateY(-2px);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+            .phone-input-wrapper:focus-within .input-label {
+                color: var(--primary-color);
+                font-weight: 700;
+                transform: scale(0.95);
+            }
+
+        .phone-input-wrapper.error {
+            border-color: var(--danger-color);
+            box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.15);
+            animation: errorShake 0.6s ease-in-out;
+        }
+
+        .phone-input-wrapper.success {
+            border-color: var(--success-color);
+            background: rgba(16, 185, 129, 0.08);
+            box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.15);
+            animation: successBounce 0.5s ease-out;
+        }
+
+            .phone-input-wrapper.success::after {
+                content: '✓';
+                position: absolute;
+                left: 16px;
+                color: var(--success-color);
+                font-weight: bold;
+                font-size: 18px;
+                animation: checkmarkPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            }
+
+    .country-prefix {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 18px 16px;
+        background: linear-gradient(135deg, var(--surface-hover) 0%, rgba(24, 84, 153, 0.05) 100%);
+        border-left: 1px solid var(--border);
+        color: var(--text-secondary);
+        font-weight: 700;
+        min-width: 85px;
+        justify-content: center;
+        transition: var(--transition);
+        position: relative;
+        display: none;
+    }
+
+    .phone-input-wrapper:focus-within .country-prefix {
+        background: linear-gradient(135deg, rgba(24, 84, 153, 0.1) 0%, rgba(24, 84, 153, 0.15) 100%);
+        color: var(--primary-color);
+    }
+
+    .phone-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        padding: 18px 20px;
+        font-size: 17px;
+        font-weight: 600;
+        background: transparent;
+        color: var(--text-primary);
+        direction: ltr;
+        text-align: left;
+        transition: var(--transition);
+        letter-spacing: 0.5px;
+    }
+
+        .phone-input::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+            transition: var(--transition);
+        }
+
+        .phone-input:focus::placeholder {
+            opacity: 0.7;
+            transform: translateX(-10px);
+        }
+
+    /* Error Message */
+    .phone-error {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.15) 100%);
+        color: var(--danger-color);
+        padding: 14px 18px;
+        border-radius: 12px;
+        margin: 16px 0;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+        border: 2px solid rgba(239, 68, 68, 0.2);
+        display: none;
+        animation: errorSlideIn 0.4s ease-out;
+        box-shadow: var(--shadow-sm);
+        backdrop-filter: blur(4px);
+    }
+
+    /* Actions */
+    .phone-actions {
+        display: flex;
+        gap: 16px;
+        margin-top: 32px;
+    }
+
+    .phone-btn {
+        flex: 1;
+        padding: 16px 24px;
+        border: none;
+        border-radius: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition-spring);
+        font-family: inherit;
+        font-size: 16px;
+        position: relative;
+        overflow: hidden;
+        letter-spacing: 0.3px;
+    }
+
+        .phone-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .phone-btn:hover::before {
+            left: 100%;
+        }
+
+    .phone-btn-cancel {
+        background: var(--surface-hover);
+        color: var(--text-secondary);
+        border: 2px solid var(--border);
+        box-shadow: var(--shadow-sm);
+    }
+
+        .phone-btn-cancel:hover {
+            background: var(--border);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+            border-color: var(--text-muted);
+        }
+
+    .phone-btn-continue {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 6px 20px rgba(24, 84, 153, 0.3);
+    }
+
+        .phone-btn-continue:hover:not(:disabled) {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(24, 84, 153, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .phone-btn-continue:active:not(:disabled) {
+            transform: translateY(-2px);
+            animation: buttonPress 0.15s ease-in-out;
+        }
+
+        .phone-btn-continue:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            filter: grayscale(0.3);
+        }
+
+    .loading-spinner {
+        width: 18px;
+        height: 18px;
+        border: 2px solid transparent;
+        border-top: 2px solid currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        margin-left: 8px;
+    }
+
+    /* Animations */
+    @@keyframes iconPulse {
+        0%, 100%
+
+    {
+        box-shadow: 0 8px 32px rgba(24, 84, 153, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 8px 32px rgba(24, 84, 153, 0.5), 0 0 0 8px rgba(24, 84, 153, 0.1);
+    }
+
+    }
+
+    @@keyframes iconShine {
+        0%
+
+    {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+
+    50% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+
+    100% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+
+    }
+
+    @@keyframes errorShake {
+        0%, 100%
+
+    {
+        transform: translateX(0);
+    }
+
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-8px);
+    }
+
+    20%, 40%, 60%, 80% {
+        transform: translateX(8px);
+    }
+
+    }
+
+    @@keyframes successBounce {
+        0%
+
+    {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+
+    }
+
+    @@keyframes checkmarkPop {
+        0%
+
+    {
+        transform: scale(0) rotate(180deg);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1.3) rotate(0deg);
+    }
+
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+
+    }
+
+    @@keyframes errorSlideIn {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(-20px);
+        max-height: 0;
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 100px;
+    }
+
+    }
+
+    @@keyframes buttonPress {
+        0%
+
+    {
+        transform: translateY(-4px) scale(1);
+    }
+
+    50% {
+        transform: translateY(-2px) scale(0.98);
+    }
+
+    100% {
+        transform: translateY(-4px) scale(1);
+    }
+
+    }
+
+    @@keyframes spin {
+        0%
+
+    {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 480px) {
+        .phone-modal
+
+    {
+        padding: 28px 24px;
+        max-width: 100%;
+        margin: 16px;
+    }
+
+    .phone-icon {
+        width: 64px;
+        height: 64px;
+        font-size: 24px;
+    }
+
+    .phone-title {
+        font-size: 22px;
+    }
+
+    .phone-btn {
+        padding: 18px 24px;
+    }
+
+    .phone-input-wrapper:focus-within {
+        transform: scale(1.01) translateY(-1px);
+    }
+
+    }
+
+    @@media (max-width: 360px) {
+        .phone-modal
+
+    {
+        padding: 24px 20px;
+    }
+
+    }
+</style>
+<div class="phone-header">
+    <div class="phone-icon">
+        <i class="fas fa-phone"></i>
+    </div>
+    <h2 class="phone-title">تسجيل الدخول</h2>
+    <p class="phone-description">
+        أدخل رقم هاتفك المحمول لإرسال رمز التحقق<br>
+        تأكد من صحة الرقم لضمان وصول الرمز
+    </p>
+</div>
+
+<form>
+@*     @Html.AntiForgeryToken()
+ *@
+    <div class="phone-input-container">
+        <label class="input-label" for="phoneInput">رقم الهاتف المحمول</label>
+        <div class="phone-input-wrapper" id="phoneInputWrapper">
+            <div class="country-prefix">
+                <div class="flag-icon"></div>
+                <span>+20</span>
+            </div>
+            <input type="tel"
+                   class="phone-input"
+                   id="phoneInput"
+                   name="PhoneNumber"
+                   placeholder="01xxxxxxxxx"
+                   maxlength="11"
+                   pattern="^01[0,1,2,5]{1}[0-9]{8}$"
+                   inputmode="numeric"
+                   required />
+        </div>
+    </div>
+
+    <div class="phone-error" id="phoneError"></div>
+
+    <div class="phone-actions">
+        <button type="button" class="phone-btn phone-btn-cancel">
+            إلغاء
+        </button>
+        <button type="submit" class="phone-btn phone-btn-continue">
+            <span class="continue-text">استمر</span>
+        </button>
+    </div>
+</form>

@@ -656,10 +656,10 @@
             }
             else
             {
-                <a asp-controller="Account" asp-action="Login" class="logout-btn">
+                <button  @* asp-controller="Account" asp-action="Login" *@  onclick="showLoginModal()"  class="logout-btn">
                     <i class="fa-solid fa-sign-in-alt"></i>
                     <span>تسجيل الدخول</span>
-                </a>
+                </button>
             }
 
 
@@ -687,6 +687,7 @@
             document.body.style.overflow = '';
         }
 
+            
         // Event listeners
         menuToggle.addEventListener('click', openSidebar);
         sidebarClose.addEventListener('click', closeSidebar);
@@ -759,5 +760,8 @@
                 supportArrow.classList.add('rotated');
             }
         }
+
+               
+       
     </script>
 </body>

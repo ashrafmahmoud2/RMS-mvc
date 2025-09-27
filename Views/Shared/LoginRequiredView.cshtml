@@ -566,10 +566,10 @@
             <!-- Button Container -->
             <div class="button-container">
                 <!-- Primary Login Button -->
-                <a asp-action="Login" asp-controller="Account" class="login-btn" id="loginBtn">
+                <button @* asp-action="Login" asp-controller="Account" *@  onclick="showLoginModal()"  class="login-btn" id="loginBtn">
                     <i class="fas fa-sign-in-alt"></i>
                     <span>تسجيل الدخول</span>
-                </a>
+                </button>
 
                 <!-- Guest Continue Button -->
                 <a href="javascript:void(0)" class="guest-btn" onclick="continueAsGuest()">

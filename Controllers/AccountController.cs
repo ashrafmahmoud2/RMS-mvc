@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Humanizer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
@@ -7,16 +8,20 @@ using RMS.Web.Core.ViewModels.Account;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using static NuGet.Packaging.PackagingConstants;
+using static System.Net.WebRequestMethods;
 
 namespace RMS.Web.Controllers;
 
 
 
+
+
 /*
 # Steps
-
+1. fix chekout new code you add like when restor local stroge , update branch dlivery fee in select
 2. Add placeholder images in product grid and modal
-4. Insert real demo data for clarity in showcases
+4. Insert real demo data for clarity in showcases , but item image in clude flair
 5. Apply UI (Arabic & English):
    - Start with restaurant side:
      • Menu (items, categories, toppings) • Branches • Analytics
@@ -58,8 +63,26 @@ public class AccountController : Controller
         _logger = logger;
     }
 
+
     [HttpGet]
-    public IActionResult Login() => View();
+    public IActionResult GetLoginModal()
+    {
+        // Return the login modal as a partial view with anti-forgery token
+        return PartialView("_LoginModal");
+    }
+
+    [HttpGet]
+    public IActionResult Login()
+    {
+        
+            return PartialView("_LoginModal");
+        
+
+    }
+
+
+    //[HttpGet]
+    //public IActionResult Login() => View();
 
 
 
@@ -86,7 +109,7 @@ public class AccountController : Controller
             //if (!smsResult.Success)
             //    return BadRequest(new { success = false, message = "فشل إرسال رمز التحقق" });
 
-            return PartialView("OtpVerification", new VerifyOtpRequest { PhoneNumber = request.PhoneNumber });
+            return PartialView("_OtpVerification", new VerifyOtpRequest { PhoneNumber = request.PhoneNumber });
         }
         catch (Exception ex)
         {

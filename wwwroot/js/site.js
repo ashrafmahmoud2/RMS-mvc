@@ -77,3 +77,30 @@ function showMessageInToast(message, type = "info") {
         }
     }).showToast();
 }
+
+
+function showLoginModal() {
+    console.log('Attempting to show login modal...'); // Debug log
+
+    window.LoginHandler.show({
+        onSuccess: (result) => {
+            console.log('Login successful:', result);
+            window.location.reload();
+        },
+        onCancel: () => {
+            console.log('Login cancelled');
+        },
+        onError: (error) => {
+            console.error('Login error:', error);
+            alert('حدث خطأ في تسجيل الدخول');
+        }
+    }).then(instance => {
+        if (instance) {
+            console.log('Login modal shown successfully');
+        } else {
+            console.error('Failed to show login modal');
+        }
+    }).catch(error => {
+        console.error('Error showing login modal:', error);
+    });
+}

@@ -25,19 +25,35 @@
     <script type="importmap"></script>
 </head>
 <body>
+
+    <div id="otpModal" class="modal-overlay" role="dialog" aria-labelledby="otp-title" aria-modal="true" style="display:none;">
+        <div class="otp-modal">
+            <div id="otpContent">
+                <!-- OTP content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
 @*     <div class="container">
  *@        <main role="main" class="pb-3">
             @RenderBody()
         </main>
 @*     </div>
  *@
+
+    <script>
+        window.userAuthenticated = @User.Identity.IsAuthenticated.ToString().ToLower();
+        window.currentUserPhone = '@User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value';
+    </script>
     <!-- Scripts -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.32/sweetalert2.min.js"></script>
 
-    <script src="~/js/site.js" asp-append-version="true"></script>
 
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/login-handler.js" asp-append-version="true"></script>
+    <script src="~/js/otp-handler.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
     @await RenderSectionAsync("CustomScripts", required: false)
