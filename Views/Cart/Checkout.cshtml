@@ -1328,14 +1328,6 @@
         </button>
     </div>
 
-@*     <!-- OTP Modal -->
-    <div id="otpModal" class="modal-overlay" role="dialog" aria-labelledby="otp-title" aria-modal="true" style="display:none;">
-        <div class="otp-modal">
-            <div id="otpContent">
-                <!-- OTP content will be loaded here -->
-            </div>
-        </div>
-    </div> *@
 
 
      <script>
@@ -1368,43 +1360,47 @@
             window.completeOrder = completeOrder;
 
             // Restore saved form data
-            async function restoreFormData() {
-                const saved = JSON.parse(localStorage.getItem(FORM_DATA_KEY) || "{}");
-                if (!saved) return;
+           async function restoreFormData() {
 
-                if (saved.phone) phoneInput.value = saved.phone;
+            const saved = JSON.parse(localStorage.getItem(FORM_DATA_KEY) || "{}");
 
-                if (saved.governorate) {
-                    governorateSelect.value = saved.governorate;
-                    try {
-                        const areasRes = await fetch(`/Cart/GetAreas?governorateId=${saved.governorate}`);
-                        const areas = await areasRes.json();
-                        areaSelect.innerHTML = '<option value="">اختر المنطقة</option>';
-                        areas.forEach(a => areaSelect.add(new Option(a.nameAr, a.id)));
+            // لو مفيش أي key متخزن
+            if (!saved || Object.keys(saved).length === 0) return;
 
-                        if (saved.area) {
-                            areaSelect.value = saved.area;
-                            const branchesRes = await fetch(`/Cart/GetBranches?areaId=${saved.area}`);
-                            const branches = await branchesRes.json();
-                            branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
-                            branches.forEach(b => branchSelect.add(new Option(b.nameAr, b.id)));
+            if (saved.phone) phoneInput.value = saved.phone;
 
-                            if (saved.branch) {
-                                branchSelect.value = saved.branch;
-                                await updateDeliveryFee();
-                            }
+            if (saved.governorate) {
+                governorateSelect.value = saved.governorate;
+                try {
+                    const areasRes = await fetch(`/Cart/GetAreas?governorateId=${saved.governorate}`);
+                    const areas = await areasRes.json();
+                    areaSelect.innerHTML = '<option value="">اختر المنطقة</option>';
+                    areas.forEach(a => areaSelect.add(new Option(a.nameAr, a.id)));
+
+                    if (saved.area) {
+                        areaSelect.value = saved.area;
+                        const branchesRes = await fetch(`/Cart/GetBranches?areaId=${saved.area}`);
+                        const branches = await branchesRes.json();
+                        branchSelect.innerHTML = '<option value="">اختر الفرع</option>';
+                        branches.forEach(b => branchSelect.add(new Option(b.nameAr, b.id)));
+
+                        if (saved.branch) {
+                            branchSelect.value = saved.branch;
+                            await updateDeliveryFee();
                         }
-                    } catch (err) {
-                        console.error("Error restoring area/branch:", err);
                     }
+                } catch (err) {
+                    console.error("Error restoring area/branch:", err);
                 }
-
-                if (saved.street) document.getElementById("Order_Address").value = saved.street;
-                if (saved.buildingDetails) document.getElementById("Order_BuildingDetails").value = saved.buildingDetails;
-                if (saved.floor) document.getElementById("Order_Floor").value = saved.floor;
-                if (saved.flatNumber) document.getElementById("Order_FlatNumber").value = saved.flatNumber;
-                if (saved.notes) document.getElementById("Order_Notes").value = saved.notes;
             }
+
+            if (saved.street) document.getElementById("Order_Address").value = saved.street;
+            if (saved.buildingDetails) document.getElementById("Order_BuildingDetails").value = saved.buildingDetails;
+            if (saved.floor) document.getElementById("Order_Floor").value = saved.floor;
+            if (saved.flatNumber) document.getElementById("Order_FlatNumber").value = saved.flatNumber;
+            if (saved.notes) document.getElementById("Order_Notes").value = saved.notes;
+        }
+
 
             // Save form data on input
             form.addEventListener("input", () => {
@@ -1508,7 +1504,7 @@
                     }
 
                     const data = await res.json();
-                    currentDeliveryFee = data.DeliveryFee || 0;
+                    currentDeliveryFee = data || 0;
 
                     updateDeliveryFeeDisplay();
                     console.log(`Delivery fee updated to: ${currentDeliveryFee} for branch ID: ${branchId}`);
@@ -1746,7 +1742,7 @@
 
                     if (result.data && result.data.redirectUrl) {
                         localStorage.removeItem(CART_KEY);
-                        localStorage.removeItem(FORM_DATA_KEY);
+                        // localStorage.removeItem(FORM_DATA_KEY);
                         document.body.style.transition = "opacity 0.6s ease, transform 0.6s ease";
                         document.body.style.opacity = "0";
                         document.body.style.transform = "translateY(20px)";

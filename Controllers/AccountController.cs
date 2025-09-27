@@ -14,12 +14,8 @@ using static System.Net.WebRequestMethods;
 namespace RMS.Web.Controllers;
 
 
-
-
-
 /*
 # Steps
-1. fix chekout new code you add like when restor local stroge , update branch dlivery fee in select
 2. Add placeholder images in product grid and modal
 4. Insert real demo data for clarity in showcases , but item image in clude flair
 5. Apply UI (Arabic & English):

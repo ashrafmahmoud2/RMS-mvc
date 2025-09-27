@@ -528,37 +528,173 @@
                     Name: getToppingName(optionId)
                 });
             } else {
-                showMessageInToast(`يمكنك اختيار ${maxAllowed} خيار كحد أقصى من هذه المجموعة`);
+                       const groupWrapper = document.querySelector(`.topping-item[data-group-id="${groupId}"]`)?.closest("section.topping-options");
+    if (!groupWrapper) {
+        console.warn(`⚠️ Group wrapper for id=${groupId} not found`);
+        return;
+    }
+
+    const requirement = groupWrapper.previousElementSibling?.querySelector(".topping-requirement");
+    if (!requirement) {
+        console.warn(`⚠️ No .topping-requirement found for group id=${groupId}`);
+        return;
+    }
+
+     toppingRequirementWarning(requirement);
+
+
+   // showMessageInToast(`يمكنك اختيار ${maxAllowed} خيار كحد أقصى من هذه المجموعة`);
+
+         }
+        };
+
+    const toggleTopping = (target) => {
+        const optionId = +target.dataset.optionId;
+        const groupId = +target.dataset.groupId;
+        const maxAllowed = +target.dataset.maxAllowed;
+        const price = +target.dataset.optionPrice;
+        const isSelected = target.dataset.selected === "true";
+
+        if (!state.selectedToppings.has(groupId)) state.selectedToppings.set(groupId, new Map());
+
+        if (maxAllowed === 1) {
+            selectRadio(groupId, optionId, price);
+        } else {
+            toggleCheckbox(groupId, optionId, price, isSelected, maxAllowed);
+        }
+
+        // ✅ Check if requirements are now satisfied and remove warnings
+        const groupEl = target.closest(".topping-options");
+        const requirement = groupEl?.previousElementSibling?.querySelector(".topping-requirement");
+
+        if (requirement) {
+            checkGroupSelection(requirement);
+        }
+
+        updateTotalPrice();
+    };
+
+        const checkAllGroupRequirements = () => {
+        document.querySelectorAll('.topping-requirement').forEach(requirement => {
+            checkGroupSelection(requirement);
+        });
+    };
+
+
+    function toppingRequirementWarning(requirementElement, persistent = false) {
+        if (!requirementElement) return;
+
+        // Reset previous animations
+        requirementElement.classList.remove("warning", "pulse");
+
+        // Force reflow for animation
+        void requirementElement.offsetWidth;
+
+        // Add warning animation to requirement text
+        requirementElement.classList.add("warning");
+
+        // Add warning-header class to the .topping-header
+        const toppingHeader = requirementElement.closest(".topping-header");
+        if (toppingHeader) {
+            toppingHeader.classList.add("warning-header");
+
+            if (!persistent) {
+                // Remove warning-header after 3s for temporary warnings
+                setTimeout(() => {
+                    toppingHeader.classList.remove("warning-header");
+                }, 3000);
             }
-        };
+        }
 
-        const toggleTopping = (target) => {
-            const optionId = +target.dataset.optionId;
-            const groupId = +target.dataset.groupId;
-            const maxAllowed = +target.dataset.maxAllowed;
-            const price = +target.dataset.optionPrice;
-            const isSelected = target.dataset.selected === "true";
+        // Add soft pulse after 1s
+        setTimeout(() => {
+            requirementElement.classList.add("pulse");
+        }, 1000);
 
-            if (!state.selectedToppings.has(groupId)) state.selectedToppings.set(groupId, new Map());
-            maxAllowed === 1 ? selectRadio(groupId, optionId, price)
-                             : toggleCheckbox(groupId, optionId, price, isSelected, maxAllowed);
+        // Cleanup warning animation after 3s only if temporary
+        if (!persistent) {
+            setTimeout(() => {
+                requirementElement.classList.remove("warning", "pulse");
+            }, 3000);
+        }
+    }
 
-            updateTotalPrice();
-        };
+    function checkGroupSelection(requirementElement) {
+        if (!requirementElement) return false;
 
+        // Try several ways to get the group wrapper
+        const groupWrapper =
+            requirementElement.closest("section.topping-options") ||
+            requirementElement.parentElement?.querySelector("section.topping-options") ||
+            requirementElement.parentElement?.nextElementSibling;
+
+        if (!groupWrapper) {
+            console.warn("⚠️ groupWrapper not found for requirementElement:", requirementElement);
+            return false;
+        }
+
+        // Get group ID from any button in this group
+        const firstButton = groupWrapper.querySelector('.topping-item[data-group-id]');
+        if (!firstButton) {
+            console.warn("⚠️ No topping buttons found in group");
+            return false;
+        }
+
+        const groupId = firstButton.dataset.groupId;
+        const minRequired = parseInt(firstButton.dataset.minAllowed || "1", 10);
+
+        // Count selected items in this group
+        const groupButtons = document.querySelectorAll(`.topping-item[data-group-id="${groupId}"]`);
+        const selectedCount = Array.from(groupButtons).filter(btn => btn.dataset.selected === "true").length;
+
+        console.log(`Group ${groupId}: ${selectedCount}/${minRequired} selected`);
+
+        if (selectedCount >= minRequired) {
+            // ✅ Requirements satisfied - remove all warning classes
+            requirementElement.classList.remove("warning", "pulse");
+
+            const toppingHeader = requirementElement.closest(".topping-header");
+            if (toppingHeader) {
+                toppingHeader.classList.remove("warning-header");
+            }
+
+            return true;
+        }
+
+        return false;
+    }
         // =========================
         // 🔹 Validation
         // =========================
-        const validateSelections = () => {
-            for (const g of state.groups) {
-                const selectedCount = state.selectedToppings.get(g.Id)?.size || 0;
-                if (selectedCount < g.MinAllowedOptions) {
-                    showMessageInToast(`يجب اختيار ${g.MinAllowedOptions} على الأقل من ${g.TitleAr}`,"info");
-                    return false;
+    const validateSelections = () => {
+        for (const g of state.groups) {
+            const selectedCount = state.selectedToppings.get(g.Id)?.size || 0;
+
+            if (selectedCount < g.MinAllowedOptions) {
+                // Scroll smoothly للـ group
+                const groupEl = document.querySelector(`[data-group-id="${g.Id}"]`)?.closest(".topping-options");
+
+                if (groupEl) {
+                    groupEl.scrollIntoView({ behavior: "smooth", block: "center" });
+
+                    // Requirement موجود في الـ header قبل المجموعة
+                    const requirement = groupEl.previousElementSibling?.querySelector(".topping-requirement");
+
+                    if (requirement) {
+                        toppingRequirementWarning(requirement,true);
+                    } else {
+                        console.warn(`⚠️ No .topping-requirement found for group id=${g.Id}`);
+                    }
+                } else {
+                    console.warn(`⚠️ Group element not found for id=${g.Id}`);
                 }
+
+                return false;
             }
-            return true;
-        };
+        }
+        return true;
+    };
+
 
         // =========================
         // 🔹 Cart

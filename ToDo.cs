@@ -1,4 +1,4 @@
-﻿/*
+﻿ /*
 #genral 
 - add data in ar end in en
 - don't forget to use enum gernallsettings

@@ -1,16 +1,6 @@
 ﻿@using Newtonsoft.Json
 @model ItemDetailsViewModel
 
-@* 
-1. OPTMIZE RESPONSIZE
-2. if not selected requed faild go to him and make colore red ,
- *@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Item Modal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <style>
         /* CSS is unchanged as it's already well-written */
@@ -58,7 +48,8 @@
             z-index: 1000;
             display: flex;
             flex-direction: column;
-        }
+        scrollbar-width: none;
+    }
 
         .modal-content {
             flex: 1;
@@ -193,6 +184,75 @@
                 border-radius: 8px;
             white-space: nowrap;
             }
+    /* Strong red highlight with smooth bounce + glow */
+    .warning {
+        color: #b71c1c !important;
+        font-size: 1em !important;
+        font-weight: bold !important;
+        border: 2px solid #f44336 !important;
+        border-radius: 6px;
+        padding: 6px 12px;
+        background-color: #ffebee !important;
+        animation: bounceGlow 1s ease-in-out;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .topping-header.warning-header {
+        border: 1px solid red;
+        padding: 10px;
+        border-radius: 20px;
+        background: #e5b7b7;
+        transition: all 0.3s ease-in-out;
+    }
+
+
+    /* Bounce + glow animation */
+    @@keyframes bounceGlow {
+        0%
+
+    {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(244,67,54,0.4);
+    }
+
+    30% {
+        transform: scale(1.15);
+        box-shadow: 0 0 15px rgba(244,67,54,0.6);
+    }
+
+    60% {
+        transform: scale(0.95);
+        box-shadow: 0 0 10px rgba(244,67,54,0.5);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(244,67,54,0.4);
+    }
+
+    }
+
+    /* Extra subtle pulse after bounce (if you want a repeating soft effect) */
+    .pulse {
+        animation: softPulse 1.8s ease-in-out infinite;
+    }
+
+    @@keyframes softPulse {
+        0%, 100%
+
+    {
+        box-shadow: 0 0 0 rgba(244,67,54,0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 12px rgba(244,67,54,0.4);
+    }
+
+    }
+
+
+
+   
 
         /* Topping Options */
         .topping-options {
@@ -361,6 +421,7 @@
             justify-content: center;
             position: relative;
             overflow: hidden;
+            padding: 20px 0;
         }
 
             .counter-btn:hover:not(:disabled) {
@@ -536,8 +597,10 @@
             }
 
             .topping-options {
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-                gap: 15px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+
+
             }
 
             .topping-item {
@@ -611,8 +674,9 @@
             }
 
             .topping-options {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            }
+/*                 grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+ *//*             grid-template-columns: repeat(5, 1fr));
+ */            }
 
             .modal-footer {
                 border-radius: 0 0 20px 20px;
@@ -638,7 +702,8 @@
             }
 
             .topping-options {
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+/*                 grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+ */            grid-template-columns: repeat(5, 1fr);
             }
         }
 
@@ -654,12 +719,12 @@
             }
 
             .topping-options {
-                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-                gap: 8px;
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 8px;
             }
 
             .topping-item {
-                min-height: 160px;
+                min-height: 175                                                                                                                                                                                                              px;
                 padding: 8px;
             }
 
@@ -690,8 +755,7 @@
             }
         }
     </style>
-</head>
-<body>
+ 
     <div class="my-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -785,5 +849,3 @@
         </script>
     </div>
 
-</body>
-</html>
