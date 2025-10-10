@@ -1,0 +1,46 @@
+version: "3.9"
+
+networks:
+  rms_network:
+    driver: bridge
+
+services:
+  rmsdb:
+    container_name: rms-db
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: always
+    ports:
+      - "8002:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "Your_password123!"
+    networks:
+      - rms_network
+    volumes:
+      - rms_data:/var/opt/mssql  # ? persist database data
+
+  rms.web:
+    container_name: rms-web
+    build:
+      context: .
+      dockerfile: RMS.Web/Dockerfile
+    image: rmsweb:latest
+    restart: always
+    ports:
+      - "8001:80"
+    depends_on:
+      - rmsdb
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DB_HOST=rmsdb
+      - DB_NAME=RMS
+      - DB_SA_PASSWORD=Your_password123!
+    networks:
+      - rms_network
+
+volumes:
+  rms_data:
+  
+  
+
+  # stop in 14:8 and give error to clude code

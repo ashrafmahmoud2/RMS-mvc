@@ -1,0 +1,937 @@
+﻿@using RMS.Web.Core.ViewModels.Home
+@using System.Globalization
+@model IEnumerable<CategoryWithItemsViewModel>
+
+<style>
+
+    :root {
+        --primary-color: #0052a3;
+
+        --info-color: #3b82f6;
+        --background: #f8fafc;
+        --surface: #ffffff;
+        --surface-hover: #f1f5f9;
+        --border: #e2e8f0;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+        --border-radius: 16px;
+        --border-radius-lg: 24px;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .category:last-child {
+        border-bottom: none;
+    }
+
+    .category .title {
+        /* font-family: 'Noto Sans Arabic', Arial, sans-serif; */
+        font-size: 34px;
+        font-weight: bold;
+        color: #415e7e;
+        margin: 20px 0;
+        text-align: start;
+    }
+
+    /* Empty State */
+    .empty-items {
+        margin-top: 100px;
+        text-align: center;
+        padding: 60px 20px;
+        background: var(--surface);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow);
+    }
+
+    .empty-items-icon {
+        font-size: 64px;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .empty-items h2 {
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .empty-items p {
+        color: var(--text-secondary);
+        font-size: 16px;
+        margin-bottom: 24px;
+    }
+
+    .start-ordering-btn {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: var(--border-radius);
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .start-ordering-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 82, 163, 0.3);
+        }
+
+</style>
+
+@* <style>
+
+  
+       
+
+    .product-card {
+        color: #333;
+        background-color: transparent;
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    @@media (min-width: 1000px) {
+        .product-card {
+            max-width: 500px;
+            min-width: 350px;
+            width: 100%;
+            /* Ensures responsiveness within limits */
+        }
+
+        .product-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            /* auto-fit keeps items more balanced */
+            gap: 16px;
+            /* Slightly increased for better spacing */
+            justify-content: center;
+            /* Centers the grid for better alignment */
+        }
+    }
+
+
+
+
+    .product-card .product-image {
+        aspect-ratio: 16/10;
+        border-radius: 20px;
+        background-color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        width: 100%;
+        height: auto;
+      /*   background-image: url(https://res.cloudinary.com/dwzq2jxms/image/upload/v1754841367/Copilot_20250607_235033_kmgd2m.png);
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: center; */
+    }
+
+    .product-card img {
+        /* background-color: #fff; */
+        display: block;
+        object-fit: scale-down;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 20px;
+    }
+
+
+    .product-info {
+        padding: 15px;
+        text-align: start;
+        width: 100%;
+    }
+
+    .product-card .product-info h3 {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 1;
+        /* font-family: 'Noto Sans Arabic', Arial, sans-serif; */
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+        padding-bottom: 2px;
+    }
+
+    .product-card .product-info .description {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 2;
+        font-family: 'Reem Kufi', Arial, sans-serif;
+        font-size: 18px;
+        line-height: 1.5;
+        color: #777;
+        padding: 8px 0;
+    }
+
+
+    .product-card .price-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+    .product-card .price {
+        /* font-family: 'Tajawal', Arial, sans-serif; */
+        font-size: 20px;
+        font-weight: bold;
+        color: #125079;
+    }
+
+    .product-card .add-to-cart {
+        padding: 8px 15px;
+        cursor: pointer;
+        background-color: #185499;
+        color: white;
+        border-radius: 50%;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+    }
+
+
+    @@media (max-width: 768px) {
+        .product-list.product-Layout-two-column {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .product-Layout-two-column .product-image {
+            min-height: 180px;
+        }
+
+        .product-Layout-two-column .product-card .product-info h3 {
+            -webkit-line-clamp: 2;
+            min-height: 50px;
+            font-size: 20px;
+        }
+
+        .product-Layout-two-column .add-to-cart {
+            display: none;
+        }
+    }
+
+/    @@media (max-width: 500px) {
+        .Rectangle-Item-Layout {
+            grid-template-columns: repeat(1, 1fr);
+            gap: 15px;
+        }
+
+            .Rectangle-Item-Layout .product-card {
+                display: flex;
+                flex-direction: row-reverse;
+                justify-content: space-between;
+                max-height: 180px;
+                min-height: 160px;
+                background-color: #ffffff;
+            }
+
+            .Rectangle-Item-Layout .product-title {
+                padding-top: 3px;
+            }
+
+            .Rectangle-Item-Layout .description {
+                line-height: 1.4;
+            }
+
+
+
+            .Rectangle-Item-Layout .product-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: scale-down;
+            }
+
+            .Rectangle-Item-Layout .product-image {
+                max-width: 150px;
+                min-width: 150px;
+                height: 100%;
+            }
+
+            .Rectangle-Item-Layout .add-to-cart {
+                display: none;
+            }
+    } 
+
+
+
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes slideInZoom {
+        0% {
+            transform: translateX(-100%) scale(0.8);
+            opacity: 0;
+        }
+
+        100% {
+            transform: translateX(0) scale(1);
+            opacity: 1;
+        }
+    }
+
+    .product-card {
+        opacity: 0;
+        transform: translateY(50px);
+        animation: fadeInUp 1s ease-out forwards;
+    }
+
+        .product-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .product-card:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .product-card:nth-child(3) {
+            animation-delay: 0.5s;
+        }
+
+        .product-card:nth-child(4) {
+            animation-delay: 0.7s;
+        }
+
+        .product-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+            animation: slideInZoom 1s ease-in-out forwards;
+        }
+
+        .product-card:nth-child(1) img {
+            animation-delay: 0.1s;
+        }
+
+        .product-card:nth-child(2) img {
+            animation-delay: 0.3s;
+        }
+
+        .product-card:nth-child(3) img {
+            animation-delay: 0.5s;
+        }
+
+        .product-card:nth-child(4) img {
+            animation-delay: 0.7s;
+        } */
+
+</style>
+ *@
+
+
+<div class="products-grid">
+    <div class="container">
+
+        @if (!Model.Any(c => c.Items.Any()))
+        {
+            <div class="empty-items">
+                <i class="fas fa-box-open empty-items-icon"></i>
+                <h3 class="empty-state-title">لا توجد أصناف مطابقة لفلترة البحث</h3>
+            </div>
+        }
+        else
+        {
+            @foreach (var category in Model)
+            {
+                if (category.Items != null && category.Items.Any())
+                {
+                    <section class="category" id="@category.CategoryNameEn" data-category-name="@category.CategoryNameAr">
+                        <h3 class="title">
+                            <span class="before"></span>
+                            <i class="fa-solid fa-burger"></i>
+                            @category.CategoryNameAr
+                            <span class="after"></span>
+                        </h3>
+
+                        <div class="product-list @category.ItemsCardsLayout">
+                            @foreach (var item in category.Items)
+                            {
+                                switch (category.ItemsCardsLayout)
+                                {
+                                    case "Rectangle-Item-Layout":
+                                        @Html.Partial("_RectangleCard", item)
+                                        break;
+                                    case "two-Square-Item-Layout":
+                                        @Html.Partial("_TwoSquareCard", item)
+                                        break;
+                                    case "Square-Item-Layout":
+                                        @Html.Partial("_SquareCard", item)
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                        </div>
+                    </section>
+                }
+            }
+        }
+    </div>
+</div>
+
+
+<script>
+    (() => {
+        // =========================
+        // 🔹 State Management
+        // =========================
+        const state = {
+            itemId: null,
+            quantity: 1,
+            basePrice: 0,
+            selectedToppings: new Map(), // Map<groupId, Map<optionId, topping>>
+            groups: [],
+        };
+
+        // =========================
+        // 🔹 Utility Functions
+        // =========================
+        const $ = (selector, parent = document) => parent.querySelector(selector);
+        const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
+        const CART_KEY = "food_ecom_cart";
+
+        const getCart = () => {
+            try {
+                return JSON.parse(localStorage.getItem(CART_KEY)) || [];
+            } catch {
+                return [];
+            }
+        };
+
+        const saveCart = (cart) => {
+            localStorage.setItem(CART_KEY, JSON.stringify(cart));
+            window.dispatchEvent(new CustomEvent("cartUpdated"));
+        };
+
+        const showMessage = (msg) => alert(msg); 
+
+        // Helpers for item & topping data
+        const getItemTitle = id =>
+            $(`.js-render-modal[data-id="${id}"] .product-title`)?.textContent.trim() || "";
+
+        const getItemDescription = id =>
+            $(`.js-render-modal[data-id="${id}"] .description`)?.textContent.trim() || "";
+
+        const getItemThumbnailUrl = id =>
+            $(`.js-render-modal[data-id="${id}"] img`)?.src || "";
+
+        const getToppingImageUrl = id =>
+            $(`.topping-item[data-option-id="${id}"]`)?.dataset.imageUrl || "";
+
+        const getToppingName = id =>
+            $(`.topping-item[data-option-id="${id}"] .topping-name`)?.textContent.trim() || "";
+
+        // =========================
+        // 🔹 Price Calculation
+        // =========================
+       // =========================
+    const updateTotalPrice = () => {
+        // Sum of all toppings (price × topping quantity)
+        const toppingsTotal = [...state.selectedToppings.values()]
+            .flatMap(group => [...group.values()])
+            .reduce((sum, t) => sum + (t.PriceAtOrderTime * t.Quantity), 0);
+
+        // ✅ Correct: (base × qty) + (toppings × qty)
+        const totalPrice = ((state.basePrice * state.quantity) + (toppingsTotal * state.quantity)).toFixed(2);
+
+        const el = $("#totalPrice");
+        if (!el) return;
+
+        const html = `${totalPrice} <span class="currency">ج.م</span>`;
+        if (el.innerHTML !== html) {
+            el.innerHTML = html;
+            el.classList.add("updated");
+            setTimeout(() => el.classList.remove("updated"), 400);
+        }
+    };
+
+
+        // =========================
+        // 🔹 Counter
+        // =========================
+        const updateCounter = () => {
+            const el = $("#counterValue");
+            if (el) el.textContent = state.quantity;
+        };
+
+        const incrementCounter = () => { state.quantity++; updateCounter(); updateTotalPrice(); };
+        const decrementCounter = () => {
+            if (state.quantity > 1) {
+                state.quantity--;
+                updateCounter();
+                updateTotalPrice();
+            }
+        };
+
+        // =========================
+        // 🔹 Toppings
+        // =========================
+        const selectRadio = (groupId, optionId, price) => {
+            $$(`[data-group-id="${groupId}"]`).forEach(btn => btn.dataset.selected = "false");
+            state.selectedToppings.set(groupId, new Map());
+            const el = $(`[data-option-id="${optionId}"]`);
+            if (el) el.dataset.selected = "true";
+            state.selectedToppings.get(groupId).set(optionId, {
+                ToppingOptionId: optionId,
+                Quantity: 1,
+                PriceAtOrderTime: price,
+                ImageUrl: getToppingImageUrl(optionId),
+                Name: getToppingName(optionId)
+            });
+        };
+
+        const toggleCheckbox = (groupId, optionId, price, isSelected, maxAllowed) => {
+            const groupMap = state.selectedToppings.get(groupId);
+            const el = $(`[data-option-id="${optionId}"]`);
+
+            if (isSelected) {
+                el && (el.dataset.selected = "false");
+                groupMap.delete(optionId);
+            } else if (groupMap.size < maxAllowed) {
+                el && (el.dataset.selected = "true");
+                groupMap.set(optionId, {
+                    ToppingOptionId: optionId,
+                    Quantity: 1,
+                    PriceAtOrderTime: price,
+                    ImageUrl: getToppingImageUrl(optionId),
+                    Name: getToppingName(optionId)
+                });
+            } else {
+                       const groupWrapper = document.querySelector(`.topping-item[data-group-id="${groupId}"]`)?.closest("section.topping-options");
+    if (!groupWrapper) {
+        console.warn(`⚠️ Group wrapper for id=${groupId} not found`);
+        return;
+    }
+
+    const requirement = groupWrapper.previousElementSibling?.querySelector(".topping-requirement");
+    if (!requirement) {
+        console.warn(`⚠️ No .topping-requirement found for group id=${groupId}`);
+        return;
+    }
+
+     toppingRequirementWarning(requirement);
+
+
+   // showMessageInToast(`يمكنك اختيار ${maxAllowed} خيار كحد أقصى من هذه المجموعة`);
+
+         }
+        };
+
+    const toggleTopping = (target) => {
+        const optionId = +target.dataset.optionId;
+        const groupId = +target.dataset.groupId;
+        const maxAllowed = +target.dataset.maxAllowed;
+        const price = +target.dataset.optionPrice;
+        const isSelected = target.dataset.selected === "true";
+
+        if (!state.selectedToppings.has(groupId)) state.selectedToppings.set(groupId, new Map());
+
+        if (maxAllowed === 1) {
+            selectRadio(groupId, optionId, price);
+        } else {
+            toggleCheckbox(groupId, optionId, price, isSelected, maxAllowed);
+        }
+
+        // ✅ Check if requirements are now satisfied and remove warnings
+        const groupEl = target.closest(".topping-options");
+        const requirement = groupEl?.previousElementSibling?.querySelector(".topping-requirement");
+
+        if (requirement) {
+            checkGroupSelection(requirement);
+        }
+
+        updateTotalPrice();
+    };
+
+        const checkAllGroupRequirements = () => {
+        document.querySelectorAll('.topping-requirement').forEach(requirement => {
+            checkGroupSelection(requirement);
+        });
+    };
+
+
+    function toppingRequirementWarning(requirementElement, persistent = false) {
+        if (!requirementElement) return;
+
+        // Reset previous animations
+        requirementElement.classList.remove("warning", "pulse");
+
+        // Force reflow for animation
+        void requirementElement.offsetWidth;
+
+        // Add warning animation to requirement text
+        requirementElement.classList.add("warning");
+
+        // Add warning-header class to the .topping-header
+        const toppingHeader = requirementElement.closest(".topping-header");
+        if (toppingHeader) {
+            toppingHeader.classList.add("warning-header");
+
+            if (!persistent) {
+                // Remove warning-header after 3s for temporary warnings
+                setTimeout(() => {
+                    toppingHeader.classList.remove("warning-header");
+                }, 3000);
+            }
+        }
+
+        // Add soft pulse after 1s
+        setTimeout(() => {
+            requirementElement.classList.add("pulse");
+        }, 1000);
+
+        // Cleanup warning animation after 3s only if temporary
+        if (!persistent) {
+            setTimeout(() => {
+                requirementElement.classList.remove("warning", "pulse");
+            }, 3000);
+        }
+    }
+
+    function checkGroupSelection(requirementElement) {
+        if (!requirementElement) return false;
+
+        // Try several ways to get the group wrapper
+        const groupWrapper =
+            requirementElement.closest("section.topping-options") ||
+            requirementElement.parentElement?.querySelector("section.topping-options") ||
+            requirementElement.parentElement?.nextElementSibling;
+
+        if (!groupWrapper) {
+            console.warn("⚠️ groupWrapper not found for requirementElement:", requirementElement);
+            return false;
+        }
+
+        // Get group ID from any button in this group
+        const firstButton = groupWrapper.querySelector('.topping-item[data-group-id]');
+        if (!firstButton) {
+            console.warn("⚠️ No topping buttons found in group");
+            return false;
+        }
+
+        const groupId = firstButton.dataset.groupId;
+        const minRequired = parseInt(firstButton.dataset.minAllowed || "1", 10);
+
+        // Count selected items in this group
+        const groupButtons = document.querySelectorAll(`.topping-item[data-group-id="${groupId}"]`);
+        const selectedCount = Array.from(groupButtons).filter(btn => btn.dataset.selected === "true").length;
+
+        console.log(`Group ${groupId}: ${selectedCount}/${minRequired} selected`);
+
+        if (selectedCount >= minRequired) {
+            // ✅ Requirements satisfied - remove all warning classes
+            requirementElement.classList.remove("warning", "pulse");
+
+            const toppingHeader = requirementElement.closest(".topping-header");
+            if (toppingHeader) {
+                toppingHeader.classList.remove("warning-header");
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+        // =========================
+        // 🔹 Validation
+        // =========================
+    const validateSelections = () => {
+        for (const g of state.groups) {
+            const selectedCount = state.selectedToppings.get(g.Id)?.size || 0;
+
+            if (selectedCount < g.MinAllowedOptions) {
+                // Scroll smoothly للـ group
+                const groupEl = document.querySelector(`[data-group-id="${g.Id}"]`)?.closest(".topping-options");
+
+                if (groupEl) {
+                    groupEl.scrollIntoView({ behavior: "smooth", block: "center" });
+
+                    // Requirement موجود في الـ header قبل المجموعة
+                    const requirement = groupEl.previousElementSibling?.querySelector(".topping-requirement");
+
+                    if (requirement) {
+                        toppingRequirementWarning(requirement,true);
+                    } else {
+                        console.warn(`⚠️ No .topping-requirement found for group id=${g.Id}`);
+                    }
+                } else {
+                    console.warn(`⚠️ Group element not found for id=${g.Id}`);
+                }
+
+                return false;
+            }
+        }
+        return true;
+    };
+
+
+        // =========================
+        // 🔹 Cart
+        // =========================
+     const addToCart = () => {
+        if (!validateSelections()) return;
+
+        const cart = getCart();
+
+        const groups = [...state.selectedToppings.entries()].map(([gid, opts]) => {
+            const group = state.groups.find(g => g.Id === gid);
+            return {
+                ToppingGroupId: gid,
+                Title: group?.TitleAr || group?.TitleEn || "",
+                SelectedToppingOptions: [...opts.values()]
+            };
+        });
+
+        const newItem = {
+            ItemId: state.itemId,
+            Title: getItemTitle(state.itemId),
+            Description: getItemDescription(state.itemId),
+            Quantity: state.quantity,
+            ThumbnailUrl: getItemThumbnailUrl(state.itemId),
+            PriceAtOrderTime: state.basePrice,
+            CashbackPercent: null,
+            DiscountPercent: null,
+            SelectedToppingGroups: groups
+        };
+
+         // 🔹 Helper: normalize topping groups for comparison
+    const normalizeGroups = (groups) =>
+        (groups || []).map(g => ({
+            ToppingGroupId: g.ToppingGroupId,
+            SelectedToppingOptions: (g.SelectedToppingOptions || [])
+                .map(o => ({ ToppingOptionId: o.ToppingOptionId }))
+                .sort((a, b) => a.ToppingOptionId - b.ToppingOptionId)
+        }))
+        .sort((a, b) => a.ToppingGroupId - b.ToppingGroupId);
+
+    const idx = cart.findIndex(i =>
+        i.ItemId === newItem.ItemId &&
+        JSON.stringify(normalizeGroups(i.SelectedToppingGroups)) === JSON.stringify(normalizeGroups(newItem.SelectedToppingGroups))
+    );
+
+
+        if (idx !== -1) {
+            // ✅ موجود → زود الكمية
+            cart[idx].Quantity += newItem.Quantity;
+        } else {
+            // ➕ جديد → أضفه
+            cart.push(newItem);
+        }
+
+        saveCart(cart);
+        window.dispatchEvent(new Event("cartUpdated")); // تحديث الزر و المجموع
+        closeModal();
+    };
+
+
+
+        // =========================
+        // 🔹 Modal
+        // =========================
+        const closeModal = () => {
+            const modal = $(".my-modal");
+            if (!modal) return;
+           modal.style.animation = 'fadeOut 0.3s ease-in-out';
+        setTimeout(() => {
+            modal.remove();
+            document.body.style.overflow = '';
+
+            // ✅ بعد ما يتقفل المودال خلي الزر يعمل الأنميشن
+            const btn = document.getElementById('cartAccessBtn');
+            if (btn) {
+                btn.classList.remove('cart-access_btn--slideUpFooter');
+                void btn.offsetWidth; // force reflow
+                btn.classList.add('cart-access_btn--slideUpFooter');
+            }
+        }, 300);
+    };
+
+        document.addEventListener("click", (e) => {
+        const modal = document.querySelector(".my-modal");
+        if (!modal) return;
+
+        const modalContent = modal.querySelector(".modal-content");
+        // Check click is outside modal content AND not on a modal open button
+        if (modalContent && !modalContent.contains(e.target) && !e.target.closest(".js-render-modal")) {
+            closeModal();
+        }
+    });
+
+
+
+        const initializeModal = (data, itemId, basePrice) => {
+            Object.assign(state, {
+                itemId: +itemId,
+                basePrice: +basePrice || 0,
+                groups: data.ItemToppingGroups,
+                quantity: 1,
+                selectedToppings: new Map()
+            });
+
+            if (!state.basePrice) {
+                const el = $("#totalPrice");
+                if (el) state.basePrice = parseFloat(el.textContent.replace(/[^\d.]/g, "")) || 0;
+            }
+
+            updateCounter();
+            updateTotalPrice();
+        };
+
+               // =========================
+        // 🔹 Cart Access Button
+        // =========================
+        const updateCartAccessBtn = () => {
+            const cart = getCart();
+            const btn = $("#cartAccessBtn");
+            if (!btn) return;
+
+            const thumbs = $("#cartThumbnails");
+            const totalEl = $("#cartTotalPrice");
+
+            // --- Clear previous state ---
+            if (thumbs) thumbs.innerHTML = "";
+            if (totalEl) totalEl.textContent = "0.00";
+
+            if (!cart.length) {
+                btn.style.display = "none";
+                btn.classList.remove("cart-access_btn--slideUpFooter");
+                return;
+            }
+
+            // --- Show button with animation ---
+            btn.style.display = "flex";
+            btn.classList.remove("cart-access_btn--slideUpFooter");
+            void btn.offsetWidth; // trigger reflow
+            btn.classList.add("cart-access_btn--slideUpFooter");
+
+            // --- Calculate total price ---
+            const totalPrice = cart.reduce((sum, item) => {
+                const toppings = item.SelectedToppingGroups?.flatMap(g => g.SelectedToppingOptions) || [];
+                const toppingsTotal = toppings.reduce((s, o) => s + (o.PriceAtOrderTime * o.Quantity), 0);
+                return sum + ((item.PriceAtOrderTime + toppingsTotal) * item.Quantity);
+            }, 0);
+
+            totalEl && (totalEl.textContent = totalPrice.toFixed(2));
+
+            // --- Render thumbnails with quantity badge ---
+            if (thumbs) {
+                const maxVisible = 2;
+                cart.slice(0, maxVisible).forEach((item, i) => {
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "thumb-wrapper";
+                    if (i) wrapper.classList.add("overlap");
+
+                    const img = document.createElement("img");
+                    img.src = item.ThumbnailUrl;
+                    img.alt = item.Title || `منتج ${i + 1}`;
+                    wrapper.appendChild(img);
+
+                    // if (item.Quantity > 1) {
+                    //     const badge = document.createElement("span");
+                    //     badge.className = "thumb-qty";
+                    //     badge.textContent = `×${item.Quantity}`;
+                    //     wrapper.appendChild(badge);
+                    // }
+
+                    thumbs.appendChild(wrapper);
+                });
+
+                if (cart.length > maxVisible) {
+                    const div = document.createElement("div");
+                    div.className = "cart-access__overflow overlap";
+                    div.textContent = `+${cart.length - maxVisible}`;
+                    thumbs.appendChild(div);
+                }
+            }
+        };
+
+        // --- Init once ---
+        updateCartAccessBtn();
+        window.addEventListener("cartUpdated", updateCartAccessBtn);
+
+            // --- Check cart on page load ---
+    window.addEventListener('DOMContentLoaded', () => {
+        const cart = JSON.parse(localStorage.getItem('food_ecom_cart') || '[]');
+        const btn = document.getElementById('cartAccessBtn');
+        if (!btn) return;
+
+        if (cart.length) {
+            // اجعل الزر مرئي وابدأ الأنيميشن
+            btn.style.display = 'flex';
+            btn.classList.remove('cart-access_btn--slideUpFooter');
+            void btn.offsetWidth; // force reflow
+            btn.classList.add('cart-access_btn--slideUpFooter');
+
+            // تحديث المجموع والصور
+            updateCartAccessBtn();
+        }
+    });
+
+
+
+        // =========================
+        // 🔹 Event Delegation
+        // =========================
+        document.addEventListener("click", e => {
+            const target = e.target.closest(
+                ".js-render-modal, .my-modal .close, .counter-btn, .checkout-btn, .topping-item"
+            );
+            if (!target) return;
+
+            if (target.matches(".js-render-modal")) {
+                e.preventDefault();
+                fetch(target.dataset.url)
+                    .then(r => r.text())
+                    .then(html => {
+                        $(".my-modal")?.remove();
+                        document.body.insertAdjacentHTML("beforeend", html);
+                        document.body.style.overflow = "hidden";
+                        const dataEl = $("#modal-data");
+                        if (dataEl) initializeModal(JSON.parse(dataEl.textContent), target.dataset.id, target.dataset.price);
+                    })
+                    .catch(err => console.error("Failed to load modal:", err));
+            }
+            else if (target.matches(".my-modal .close")) closeModal();
+            else if (target.matches(".counter-btn.decrement")) decrementCounter();
+            else if (target.matches(".counter-btn.increment")) incrementCounter();
+            else if (target.matches(".checkout-btn")) addToCart();
+            else if (target.matches(".topping-item")) toggleTopping(target);
+        });
+    })();
+</script>
+
+
+
+
+
