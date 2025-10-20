@@ -259,6 +259,7 @@ public class OrderController : Controller
 
         if (customer != null)
         {
+
             await _signInManager.SignInAsync(customer.User, isPersistent: true);
             return customer;
         }
@@ -271,7 +272,7 @@ public class OrderController : Controller
         var user = new ApplicationUser
         {
             //FullName = model.FullName,
-            FullName = "Ashrf from C#",
+            FullName = "Gust",
             PhoneNumber = model.PhoneNumber,
             UserName = model.PhoneNumber,
             CreatedOn = DateTime.Now
@@ -280,6 +281,8 @@ public class OrderController : Controller
         var result = await _userManager.CreateAsync(user);
         if (!result.Succeeded)
             throw new InvalidOperationException(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+        await _userManager.AddToRoleAsync(user, AppRoles.Customer);
 
         await _signInManager.SignInAsync(user, isPersistent: false);
 
@@ -423,6 +426,7 @@ public class OrderController : Controller
         return now.TimeOfDay >= workingHour.OpeningTime && now.TimeOfDay <= workingHour.ClosingTime;
     }
 
+   
     [HttpGet]
     public IActionResult OrderDetails(int orderId)
     {
@@ -454,7 +458,6 @@ public class OrderController : Controller
         var viewModel = _mapper.Map<OrderDetailsViewModel>(order);
         return View(viewModel);
     }
-
 
     [HttpGet]
     public IActionResult ChangeStatus(int orderId, OrderStatusEnum newStatus)

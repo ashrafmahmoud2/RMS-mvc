@@ -71,7 +71,7 @@ public class AccountController : Controller
     public IActionResult Login()
     {
         
-            return PartialView("_LoginModal");
+      return PartialView("_LoginModal");
         
 
     }
@@ -159,6 +159,8 @@ public class AccountController : Controller
                     return BadRequest(new { success = false, message = "فشل إنشاء المستخدم" });
                 }
 
+                await _userManager.AddToRoleAsync(user, AppRoles.Customer);
+
                 if (!await _context.Customers.AnyAsync(c => c.UserId == user.Id))
                 {
                     _context.Customers.Add(new Customer { UserId = user.Id, User = user });
@@ -166,9 +168,23 @@ public class AccountController : Controller
                 }
             }
 
-            await _signInManager.SignInAsync(user, true);
+            await _signInManager.SignInAsync(user, isPersistent: true);
 
-            return Ok(new { success = true, message = "تم التحقق من الرمز بنجاح" });
+
+            if (await _userManager.IsInRoleAsync(user, AppRoles.Admin))
+                user.FullName = "Role Admin";
+
+            // ✅ Combined role check for Admin, Chef, Driver
+            if (await _userManager.IsInRoleAsync(user, AppRoles.Admin) ||
+                await _userManager.IsInRoleAsync(user, AppRoles.Chef) ||
+                await _userManager.IsInRoleAsync(user, AppRoles.Driver))
+            {
+                //return RedirectToAction("Index", "Dashboard");
+                return Ok(new { success = true, RedirectToAction = Url.Action("Index", "Dashboard") });
+            }
+
+            return Ok(new { success = true, redirectUrl = Url.Action("Index", "Home222") });
+
 
         }
         catch (Exception ex)

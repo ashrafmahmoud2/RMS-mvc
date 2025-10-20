@@ -135,10 +135,17 @@
                 });
 
                 const result = await response.json();
+                alert("Redirect URL: " + result.redirectUrl);
+
+
+
 
                 if (result.success) {
+                   
+                    
                     this.options.onSuccess(result, formData);
-                } else {
+                }
+                else {
                     this.attempts--;
 
                     if (this.elements.attemptsElement) {

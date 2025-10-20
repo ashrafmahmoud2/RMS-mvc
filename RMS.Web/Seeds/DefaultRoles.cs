@@ -9,8 +9,9 @@ namespace RMS.Web.Seeds
             if (!roleManager.Roles.Any())
             {
                 await roleManager.CreateAsync(new IdentityRole(AppRoles.Admin));
-                await roleManager.CreateAsync(new IdentityRole(AppRoles.Archive));
-                await roleManager.CreateAsync(new IdentityRole(AppRoles.Reception));
+                await roleManager.CreateAsync(new IdentityRole(AppRoles.Chef));
+                await roleManager.CreateAsync(new IdentityRole(AppRoles.Customer));
+                await roleManager.CreateAsync(new IdentityRole(AppRoles.Driver));
             }
         } 
     }

@@ -156,15 +156,15 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
-//var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
+var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
 
-//using var scope = scopeFactory.CreateScope();
+using var scope = scopeFactory.CreateScope();
 
-//var roleManger = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-//var userManger = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+var roleManger = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+var userManger = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-//await DefaultRoles.SeedAsync(roleManger);
-//await DefaultUsers.SeedAdminUserAsync(userManger);
+await DefaultRoles.SeedAsync(roleManger);
+await DefaultUsers.SeedAdminUserAsync(userManger);
 
 //hangfire
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
@@ -204,11 +204,11 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
-}
+//using (var scope = app.Services.CreateScope())
+//{
+//    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+//    db.Database.Migrate();
+//}
 
 
 app.Run();
