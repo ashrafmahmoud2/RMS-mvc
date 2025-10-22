@@ -4,8 +4,8 @@ public class BranchWorkingHour
 {
     public int Id { get; set; }
 
-    [Required]
-    public int BranchId { get; set; }
+
+    public int? BranchId { get; set; }
 
     [Required]
     public DayOfWeek DayOfWeek { get; set; }

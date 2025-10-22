@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using RMS.Web.Core.ViewModels.Branches;
 using RMS.Web.Core.ViewModels.GovernateAreaBranch;
 using RMS.Web.Core.ViewModels.Home;
 using RMS.Web.Core.ViewModels.Item;
@@ -55,7 +56,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.DeliveryTimeInMinutes, opt => opt.MapFrom(src => src.Branch.DeliveryTimeInMinutes))
             .ForMember(dest => dest.BranchPhone, opt => opt.MapFrom(src => src.Branch.Phone))
             .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.NameAr))
-                .ForMember(dest => dest.OrderStatusBox, opt => opt.MapFrom(src => src)); 
+                .ForMember(dest => dest.OrderStatusBox, opt => opt.MapFrom(src => src));
 
         CreateMap<OrderItem, OrderItemViewModel>()
             .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Item.NameAr))   // Arabic name
@@ -89,12 +90,18 @@ public class MappingProfile : Profile
 
 
         // ===============================
-        // Customer & Address & Branch
+        // Customer & Address 
         // ===============================
         CreateMap<CustomerAddress, CustomerAddressViewModel>()
       .ForMember(dest => dest.GovernrateName, opt => opt.MapFrom(src => src.Governrate.NameAr))
       .ForMember(dest => dest.AreaName, opt => opt.MapFrom(src => src.Area.NameAr))
       .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.NameAr));
+
+
+
+        // ===============================
+        //    Branch
+        // ===============================
 
         CreateMap<Branch, BranchViewModel>()
            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameAr))
@@ -103,7 +110,39 @@ public class MappingProfile : Profile
            .ForMember(dest => dest.AreaNameAr, opt => opt.MapFrom(src => src.Area!.NameAr))
            .ForMember(dest => dest.WorkingHours, opt => opt.MapFrom(src => src.BranchWorkingHours));
 
-        CreateMap<BranchWorkingHour, BranchWorkingHourViewModel>();
+        CreateMap<Branch, BranchFormViewModel>()
+                .ForMember(dest => dest.ExistingBranchImagePaths,
+                    opt => opt.MapFrom(src => src.BranchImages.Select(img => img.ImageUrl).ToList()))
+                .ForMember(dest => dest.WorkingHours,
+                    opt => opt.MapFrom(src => src.BranchWorkingHours))
+                .ForMember(dest => dest.WorkingHourExceptions,
+                    opt => opt.MapFrom(src => src.WorkingHourExceptions))
+                .ForMember(dest => dest.NewImageFiles, opt => opt.Ignore())
+                .ForMember(dest => dest.GovernorateList, opt => opt.Ignore())
+                .ForMember(dest => dest.AreaList, opt => opt.Ignore());
+
+        CreateMap<BranchFormViewModel, Branch>()
+             .ForMember(dest => dest.BranchImages, opt => opt.Ignore())
+             .ForMember(dest => dest.BranchWorkingHours, opt => opt.Ignore())
+             .ForMember(dest => dest.WorkingHourExceptions, opt => opt.Ignore())
+             .ForMember(dest => dest.Area, opt => opt.Ignore())
+             .ForMember(dest => dest.Governorate, opt => opt.Ignore())
+             .ForMember(dest => dest.CreatedById, opt => opt.Ignore())
+             .ForMember(dest => dest.CreatedOn, opt => opt.Ignore())
+             .ForMember(dest => dest.LastUpdatedById, opt => opt.Ignore())
+             .ForMember(dest => dest.LastUpdatedOn, opt => opt.Ignore());
+
+
+
+        CreateMap<BranchWorkingHour, BranchWorkingHoursFormViewModel>().ReverseMap();
+
+        CreateMap<BranchWorkingHour, BranchWorkingHourViewModel>().ReverseMap();
+
+        CreateMap<BranchWorkingHourException, BranchExceptionHoursFormViewModel>()
+            .ReverseMap();
+        CreateMap<BranchWorkingHourException, BranchWorkingHourExceptionViewModel>()
+            
+            .ReverseMap();
 
     }
 }

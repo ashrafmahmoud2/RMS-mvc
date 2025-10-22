@@ -17,7 +17,7 @@ services:
     networks:
       - rms_network
     volumes:
-      - rms_data:/var/opt/mssql  # ? persist database data
+      - rms_data:/var/opt/mssql  
 
   rms.web:
     container_name: rms-web
@@ -43,4 +43,4 @@ volumes:
   
   
 
-  # stop in 14:8 and give error to clude code
+  # ngnix 28:40 and add his file

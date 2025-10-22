@@ -19,6 +19,7 @@ public class ApplicationDbContext :/* IdentityDbContext*/  IdentityDbContext<App
 
     // Branches
     public DbSet<Branch> Branches { get; set; }
+    public DbSet<BranchImage> BranchImages { get; set; }
     public DbSet<BranchWorkingHour> BranchWorkingHours { get; set; }
     public DbSet<BranchWorkingHourException> BranchWorkingHourExceptions { get; set; }
 

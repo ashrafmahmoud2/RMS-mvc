@@ -13,8 +13,8 @@ services:
       - C:\Users\top\AppData\Roaming\ASP.NET\Https:/home/app/.aspnet/https:ro
       - C:\Users\top\AppData\Roaming\Microsoft\UserSecrets:/root/.microsoft/usersecrets:ro
       - C:\Users\top\AppData\Roaming\Microsoft\UserSecrets:/home/app/.microsoft/usersecrets:ro
-      - C:\Program Files\Microsoft Visual Studio\2022\Preview\MSBuild\Sdks\Microsoft.Docker.Sdk\tools\linux-x64\net6.0:/VSTools:ro
-      - C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\IDE\CommonExtensions\Microsoft\HotReload:/HotReloadAgent:ro
+      - C:\Program Files\Microsoft Visual Studio\18\Insiders\MSBuild\Sdks\Microsoft.Docker.Sdk\tools\linux-x64\net6.0:/VSTools:ro
+      - C:\Program Files\Microsoft Visual Studio\18\Insiders\Common7\IDE\extensions\Microsoft\managedprojectsystem\HotReload:/HotReloadAgent:ro
 
     entrypoint: "dotnet --roll-forward Major /VSTools/DistrolessHelper/DistrolessHelper.dll --wait"
     labels:

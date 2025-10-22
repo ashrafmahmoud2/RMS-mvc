@@ -1,60 +1,68 @@
 ﻿using AutoMapper.QueryableExtensions;
+using CloudinaryDotNet;
+using Humanizer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using RMS.Web.Core.Models;
+using RMS.Web.Core.ViewModels;
+using RMS.Web.Core.ViewModels.Branches;
 using RMS.Web.Core.ViewModels.GovernateAreaBranch;
+using RMS.Web.Services.Interfaces;
 
 namespace RMS.Web.Controllers;
 
+/*
 
+
+# Clude ai
+1. make add/Edit form of creat Branch wiht his BranchWorkingHours and WorkingHourExceptions
+2. optmize the conttroler and his services
+3. 
+
+# stop
+1. add Details view 
+2. in list of branches view make it like branch-card in index , wiht add images and fix open and close time in ui in braches 
+4. add clinet ui add alart of close time like drik it or jahaz
+
+
+# feat : split BranchController to have IBranchservices and Branchservices ,
+optmzie the way of adding image of braches ,  and creat form of add/edit branches
+
+
+# when creat item form ui
+--1. when shoice price in item in BranchItems(you can ignour if it will take time)
+--2. in options and hsi group will make it from item form , in future you can make split tab for topping
+--3. in ToppingOptions you can make ToppingGroupId many to many if have same price , and if not have make another row
+--4. 
+*/
 
 public class BranchController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<BranchController> _logger;
     private readonly IMapper _mapper;
+    private readonly IBranchService _branchService;
 
-    public BranchController(ApplicationDbContext context, ILogger<BranchController> logger, IMapper mapper)
+    public BranchController(ApplicationDbContext context, ILogger<BranchController> logger, 
+        IMapper mapper, IBranchService branchService
+                       )
     {
         _context = context;
         _logger = logger;
         _mapper = mapper;
+       _branchService = branchService;
     }
 
     public async Task<IActionResult> Index()
     {
-        // Get all branches with their governorates
-        var branches = await _context.Branches
-            .AsNoTracking()
-            .Include(b => b.Governorate)
-            .Include(b => b.Area)
-            .Include(b => b.BranchWorkingHours)
-            .Include(b => b.WorkingHourExceptions)
-            .OrderBy(b => b.Governorate!.NameAr)
-            .ThenBy(b => b.NameAr)
-            .ToListAsync();
+        var branches = await _branchService.GetAllBranchesAsync();
 
-        // Map to view models and calculate working hours status
-        var branchViewModels = new List<BranchViewModel>();
-
-        foreach (var branch in branches)
-        {
-            var branchViewModel = _mapper.Map<BranchViewModel>(branch);
-
-            // Calculate working hours status directly in controller
-            branchViewModel.IsCurrentlyOpen = IsBranchOpenNow(branch);
-            branchViewModel.WorkingHoursStatus = GetWorkingHoursStatus(branch);
-            branchViewModel.WorkingHoursText = GetWorkingHoursText(branch);
-
-            branchViewModels.Add(branchViewModel);
-        }
-
-        // Group by governorate
-        var groupedBranches = branchViewModels
-            .GroupBy(b => new { b.GovernorateNameAr })
+        var groupedBranches = branches
+            .GroupBy(b => b.GovernorateNameAr)
             .Select(g => new GovernorateWithBranchesViewModel
             {
-                Name = g.Key.GovernorateNameAr,
+                Name = g.Key,
                 Branches = g.OrderBy(b => b.Name).ToList()
             })
             .OrderBy(g => g.Name)
@@ -68,272 +76,349 @@ public class BranchController : Controller
         return View(viewModel);
     }
 
-
-    // GET: Branch/Details/5
     public async Task<IActionResult> Details(int id)
     {
-        var branch = await _context.Branches
-            .Include(b => b.Governorate)
-            .Include(b => b.Area)
-            .Include(b => b.BranchWorkingHours)
-            .Include(b => b.WorkingHourExceptions)
-            .FirstOrDefaultAsync(b => b.Id == id);
-
+        var branch = await _branchService.GetBranchByIdAsync(id);
         if (branch == null)
             return NotFound();
 
         return View(branch);
     }
 
-    // GET: Branch/Create
     public IActionResult Create()
     {
-        ViewData["Governorates"] = _context.Governorates.ToList();
-        ViewData["Areas"] = _context.Areas.ToList();
-        return View(new Branch());
+        var model = new BranchFormViewModel();
+        PopulateDropdowns(model);
+        return View("Form", model);
     }
 
-    // POST: Branch/Create
+    public static BranchFormViewModel CreateMockBranchFormViewModel()
+    {
+        // For IFormFile, we typically mock the behavior in tests. 
+        // For a data object, we initialize the collection as empty or with null/mock files.
+        var mockFileCollection = new List<IFormFile>();
+
+        return new BranchFormViewModel
+        {
+           
+
+            // --- Basic Info ---
+            NameEn = "Central City Hub",
+            NameAr = "الفرع الرئيسي للمدينة",
+
+            // --- Location IDs ---
+            AreaId = 6,
+            GovernorateId = 2,
+
+            // --- Select List Data (essential for MVC View rendering) ---
+            AreaList = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "5", Text = "Downtown Area", Selected = true },
+                new SelectListItem { Value = "6", Text = "North Suburb" },
+            },
+            GovernorateList = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "1", Text = "First Gov" },
+                new SelectListItem { Value = "2", Text = "Capital Gov", Selected = true },
+            },
+
+            // --- Address & Contact ---
+            AddressEn = "123 Technology Street, Central City",
+            AddressAr = "شارع التكنولوجيا 123، المدينة المركزية",
+            Phone = "96512345678", // Valid international-style phone number
+
+            // --- Financial & Delivery ---
+            MaxCashOnDeliveryAllowed = 750.00m,
+            DeliveryFee = 2.50m,
+            DeliveryTimeInMinutes = 45,
+
+            // --- Operational Status ---
+            MaxAllowedOrdersInDay = 800,
+            IsBusy = false,
+            IsOpen = true,
+
+            // --- Image Management ---
+            NewImageFiles = mockFileCollection,
+            ExistingBranchImagePaths = new List<string>
+            {
+                "https://cdn.example.com/images/branch_42_main.jpg",
+                "https://cdn.example.com/images/branch_42_interior.jpg"
+            },
+
+            // --- Nested Collections ---
+            WorkingHours = new List<BranchWorkingHoursFormViewModel>
+            {
+                // Monday (1) 9:00 to 17:00
+                new BranchWorkingHoursFormViewModel { DayOfWeek = DayOfWeek.Sunday }, 
+                // Tuesday (2) 9:00 to 17:00
+                new BranchWorkingHoursFormViewModel { DayOfWeek = DayOfWeek.Monday, 
+                    OpeningTime = new TimeSpan(9, 0, 0), 
+                    ClosingTime = new TimeSpan(17, 0, 0)
+                }
+                // Add more as needed for testing list population
+            },
+            WorkingHourExceptions = new List<BranchExceptionHoursFormViewModel>
+            {
+                // Mock an exception for today
+               // new BranchExceptionHoursFormViewModel { Date = DateTime.Today}
+            }
+        };
+    }
+
+    public static BranchFormViewModel EditMockBranchFormViewModel()
+    {
+        // For IFormFile, we typically mock the behavior in tests. 
+        // For a data object, we initialize the collection as empty or with null/mock files.
+        var mockFileCollection = new List<IFormFile>();
+
+        return new BranchFormViewModel
+        {
+            // Crucial for EDIT scenario
+            Id = 1,
+
+            // --- Basic Info ---
+            NameEn = "Central City Hubjjjj",
+            NameAr = "jjjjالفرع الرئيسي للمدينة",
+
+            // --- Location IDs (Updated AreaId to 6, matching the new selected list item) ---
+            AreaId = 6,
+            GovernorateId = 2,
+
+            // --- Select List Data (essential for MVC View rendering) ---
+            AreaList = new List<SelectListItem>
+            {
+                // Unselected
+                new SelectListItem { Value = "5", Text = "Downtown Area", Selected = false },
+                // Selected value now matches AreaId = 6
+                new SelectListItem { Value = "6", Text = "North Suburb", Selected = true },
+            },
+            GovernorateList = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "1", Text = "First Gov" },
+                new SelectListItem { Value = "2", Text = "Capital Gov", Selected = true },
+            },
+
+            // --- Address & Contact ---
+            AddressEn = "123 Technology Street, Central Cityjjjj",
+            AddressAr = "شارع التكنولوجيا 123، المدينة المركزيةjjj",
+            Phone = "96512345678", // Valid international-style phone number
+
+            // --- Financial & Delivery ---
+            MaxCashOnDeliveryAllowed = 750.00m,
+            DeliveryFee = 2.50m,
+            DeliveryTimeInMinutes = 45,
+
+            // --- Operational Status ---
+            MaxAllowedOrdersInDay = 800,
+            IsBusy = false,
+            IsOpen = true,
+
+            // --- Image Management ---
+            NewImageFiles = mockFileCollection,
+            ExistingBranchImagePaths = new List<string>
+            {
+                "https://cdn.example.com/images/branch_42_main.jpg",
+                "https://cdn.example.com/images/branch_42_interior.jpg"
+            },
+
+            // --- Nested Collections ---
+            WorkingHours = new List<BranchWorkingHoursFormViewModel>
+            {
+                // Sunday: Uses default times (9:00 - 17:00)
+                new BranchWorkingHoursFormViewModel { DayOfWeek = DayOfWeek.Sunday }, 
+                // Monday: Explicitly set times
+                new BranchWorkingHoursFormViewModel {
+                    DayOfWeek = DayOfWeek.Monday,
+                    OpeningTime = new TimeSpan(10, 0, 0),
+                    ClosingTime = new TimeSpan(22, 0, 0) // Open later
+                }
+            },
+            WorkingHourExceptions = new List<BranchExceptionHoursFormViewModel>
+            {
+                // Mock an exception: Christmas Day, branch closed all day (times are null)
+             
+            }
+        };
+    }
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Branch branch)
+    public async Task<IActionResult> Create(BranchFormViewModel viewModel )
     {
         if (!ModelState.IsValid)
         {
-            ViewData["Governorates"] = _context.Governorates.ToList();
-            ViewData["Areas"] = _context.Areas.ToList();
-            return View(branch);
+            PopulateDropdowns(viewModel);
+            return View("Form", viewModel);
         }
 
-        // Validation: Governorate & Area must exist
-        var governorateExists = await _context.Governorates.AnyAsync(g => g.Id == branch.GovernorateId);
-        var areaExists = await _context.Areas.AnyAsync(a => a.Id == branch.AreaId);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var (success, message, branchId) = await _branchService.CreateBranchAsync(viewModel, userId);
 
-        if (!governorateExists || !areaExists)
+        if (success)
         {
-            ModelState.AddModelError("", "Invalid Governorate or Area selected.");
-            return View(branch);
+            TempData["SuccessMessage"] = message;
+            return RedirectToAction(nameof(Details), new { id = branchId });
         }
 
-        _context.Branches.Add(branch);
-        await _context.SaveChangesAsync();
-
-        return RedirectToAction(nameof(Index));
+        ModelState.AddModelError(string.Empty, message);
+        PopulateDropdowns(viewModel);
+        return View("Form", viewModel);
     }
 
-    // GET: Branch/Edit/5
     public async Task<IActionResult> Edit(int id)
     {
-        var branch = await _context.Branches.FindAsync(id);
-        if (branch == null)
+        var viewModel = await _branchService.GetBranchForEditAsync(id);
+        if (viewModel == null)
             return NotFound();
 
-        ViewData["Governorates"] = _context.Governorates.ToList();
-        ViewData["Areas"] = _context.Areas.ToList();
-        return View(branch);
+        PopulateDropdowns(viewModel);
+        return View("Form", viewModel);
     }
 
-    // POST: Branch/Edit
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, Branch branch)
+    public async Task<IActionResult> Edit(int id, BranchFormViewModel viewModel)
     {
-        if (id != branch.Id)
+        if (id != viewModel.Id)
             return NotFound();
 
         if (!ModelState.IsValid)
         {
-            ViewData["Governorates"] = _context.Governorates.ToList();
-            ViewData["Areas"] = _context.Areas.ToList();
-            return View(branch);
+            PopulateDropdowns(viewModel);
+            return View("Form", viewModel);
         }
 
-        try
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var (success, message) = await _branchService.UpdateBranchAsync(id, viewModel, userId);
+
+        if (success)
         {
-            _context.Update(branch);
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!_context.Branches.Any(b => b.Id == branch.Id))
-                return NotFound();
-
-            throw;
+            TempData["SuccessMessage"] = message;
+            return RedirectToAction(nameof(Details), new { id });
         }
 
-        return RedirectToAction(nameof(Index));
+        ModelState.AddModelError(string.Empty, message);
+        PopulateDropdowns(viewModel);
+        return View("Form", viewModel);
     }
 
-    // GET: Branch/Delete/5
+
     public async Task<IActionResult> Delete(int id)
     {
-        var branch = await _context.Branches
-            .Include(b => b.Governorate)
-            .Include(b => b.Area)
-            .FirstOrDefaultAsync(m => m.Id == id);
-
+        var branch = await _branchService.GetBranchByIdAsync(id);
         if (branch == null)
             return NotFound();
 
         return View(branch);
     }
 
-    // POST: Branch/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var branch = await _context.Branches.FindAsync(id);
-        if (branch != null)
+        var (success, message) = await _branchService.DeleteBranchAsync(id);
+
+        if (success)
         {
-            _context.Branches.Remove(branch);
-            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = message;
+        }
+        else
+        {
+            TempData["ErrorMessage"] = message;
         }
 
         return RedirectToAction(nameof(Index));
     }
 
-        private bool IsBranchOpenNow(Branch branch)
+
+    [HttpPost]
+    public async Task<IActionResult> ToggleStatus(int id)
+    {
+        var (success, isOpen) = await _branchService.ToggleBranchStatusAsync(id);
+
+        if (!success)
+            return NotFound();
+
+        return Ok(new { success = true, isOpen });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ToggleBusy(int id)
+    {
+        var (success, isBusy) = await _branchService.ToggleBranchBusyAsync(id);
+
+        if (!success)
+            return NotFound();
+
+        return Ok(new { success = true, isBusy });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAreas(int governorateId)
+    {
+        var areas = await _context.Areas
+            .Where(a => a.GovernorateId == governorateId)
+            .Select(a => new { id = a.Id, nameAr = a.NameAr, nameEn = a.NameEn })
+            .ToListAsync();
+
+        return Ok(areas);
+    }
+    
+    [HttpPost]
+    public async Task<IActionResult> DeleteImage(int branchId, string imageUrl)
+    {
+        try
         {
-            if (branch.IsBusy)
-                return false;
+            var branch = await _context.Branches
+                .Include(b => b.BranchImages)
+                .FirstOrDefaultAsync(b => b.Id == branchId);
 
-            var now = DateTime.Now;
-            var today = DateOnly.FromDateTime(now);
-            var currentTime = TimeOnly.FromDateTime(now);
+            if (branch == null)
+                return NotFound();
 
-            // Check for exceptions first
-            var exception = branch.WorkingHourExceptions
-                .FirstOrDefault(e => e.Date == today);
-
-            if (exception != null)
+            var image = branch.BranchImages.FirstOrDefault(img => img.ImageUrl == imageUrl);
+            if (image != null)
             {
-                return IsTimeInRange(currentTime.ToTimeSpan(), exception.OpeningTime, exception.ClosingTime);
+                _context.BranchImages.Remove(image);
+                await _context.SaveChangesAsync();
+
+                // Delete from R2 (handled by service)
+                // await _r2Service.DeleteFileAsync(imageUrl);
             }
 
-            // Check regular working hours
-            var todayWorkingHours = branch.BranchWorkingHours
-                .FirstOrDefault(wh => wh.DayOfWeek == now.DayOfWeek);
-
-            if (todayWorkingHours == null)
-                return false;
-
-            return IsTimeInRange(currentTime.ToTimeSpan(), todayWorkingHours.OpeningTime, todayWorkingHours.ClosingTime);
+            return Ok(new { success = true });
         }
-
-        private string GetWorkingHoursStatus(Branch branch)
+        catch (Exception ex)
         {
-            var isOpen = IsBranchOpenNow(branch);
-            return isOpen ? "مفتوح" : "مغلق";
+            _logger.LogError(ex, "Error deleting image");
+            return BadRequest(new { success = false, message = "Failed to delete image" });
         }
+    }
 
-        private string GetWorkingHoursText(Branch branch)
+    private void PopulateDropdowns(BranchFormViewModel model)
+    {
+        var currentLang = Thread.CurrentThread.CurrentCulture.Name;
+        var isArabic = currentLang.StartsWith("ar");
+
+        model.GovernorateList = new SelectList(
+            _context.Governorates.ToList(),
+            "Id",
+            isArabic ? "NameAr" : "NameEn",
+            model.GovernorateId
+        );
+
+        if (model.GovernorateId > 0)
         {
-            if (branch.IsBusy)
-                return "مغلق مؤقتاً";
-
-            var now = DateTime.Now;
-            var today = DateOnly.FromDateTime(now);
-            var currentTime = TimeOnly.FromDateTime(now);
-
-            // Check for exceptions first
-            var exception = branch.WorkingHourExceptions
-                .FirstOrDefault(e => e.Date == today);
-
-            if (exception != null)
-            {
-                if (IsTimeInRange(currentTime.ToTimeSpan(), exception.OpeningTime, exception.ClosingTime))
-                {
-                    return $"مفتوح حتى {FormatTime(exception.ClosingTime)}";
-                }
-                else
-                {
-                    return $"مغلق - {exception.ExceptionNameAr}";
-                }
-            }
-
-            // Check regular working hours
-            var todayWorkingHours = branch.BranchWorkingHours
-                .FirstOrDefault(wh => wh.DayOfWeek == now.DayOfWeek);
-
-            if (todayWorkingHours == null)
-            {
-                // Find next day that has working hours
-                var nextWorkingDay = GetNextWorkingDay(branch.BranchWorkingHours, now.DayOfWeek);
-                if (nextWorkingDay != null)
-                {
-                    return $"مغلق - يفتح {GetDayName(nextWorkingDay.DayOfWeek)} {FormatTime(nextWorkingDay.OpeningTime)}";
-                }
-                return "مغلق";
-            }
-
-            if (IsTimeInRange(currentTime.ToTimeSpan(), todayWorkingHours.OpeningTime, todayWorkingHours.ClosingTime))
-            {
-                return $"مفتوح حتى {FormatTime(todayWorkingHours.ClosingTime)}";
-            }
-            else if (currentTime.ToTimeSpan() < todayWorkingHours.OpeningTime)
-            {
-                return $"مغلق - يفتح اليوم {FormatTime(todayWorkingHours.OpeningTime)}";
-            }
-            else
-            {
-                // Find tomorrow or next working day
-                var nextWorkingDay = GetNextWorkingDay(branch.BranchWorkingHours, now.DayOfWeek);
-                if (nextWorkingDay != null)
-                {
-                    var dayName = nextWorkingDay.DayOfWeek == now.AddDays(1).DayOfWeek ? "غداً" : GetDayName(nextWorkingDay.DayOfWeek);
-                    return $"مغلق - يفتح {dayName} {FormatTime(nextWorkingDay.OpeningTime)}";
-                }
-                return "مغلق";
-            }
+            model.AreaList = new SelectList(
+                _context.Areas.Where(a => a.GovernorateId == model.GovernorateId).ToList(),
+                "Id",
+                isArabic ? "NameAr" : "NameEn",
+                model.AreaId
+            );
         }
-
-        private static bool IsTimeInRange(TimeSpan currentTime, TimeSpan openTime, TimeSpan closeTime)
+        else
         {
-            // Handle cases where close time is next day (e.g., 22:00 - 02:00)
-            if (closeTime < openTime)
-            {
-                return currentTime >= openTime || currentTime <= closeTime;
-            }
-            return currentTime >= openTime && currentTime <= closeTime;
+            model.AreaList = Enumerable.Empty<SelectListItem>();
         }
+    }
 
-        private static BranchWorkingHour? GetNextWorkingDay(ICollection<BranchWorkingHour> workingHours, DayOfWeek currentDay)
-        {
-            for (int i = 1; i <= 7; i++)
-            {
-                var nextDay = (DayOfWeek)(((int)currentDay + i) % 7);
-                var workingHour = workingHours.FirstOrDefault(wh => wh.DayOfWeek == nextDay);
-                if (workingHour != null)
-                    return workingHour;
-            }
-            return null;
-        }
-
-        private static string FormatTime(TimeSpan time)
-        {
-            var hours = time.Hours;
-            var minutes = time.Minutes;
-            var ampm = hours >= 12 ? "م" : "ص";
-
-            if (hours > 12) hours -= 12;
-            if (hours == 0) hours = 12;
-
-            return minutes == 0 ? $"{hours} {ampm}" : $"{hours}:{minutes:D2} {ampm}";
-        }
-
-        private static string GetDayName(DayOfWeek day)
-        {
-            return day switch
-            {
-                DayOfWeek.Sunday => "الأحد",
-                DayOfWeek.Monday => "الإثنين",
-                DayOfWeek.Tuesday => "الثلاثاء",
-                DayOfWeek.Wednesday => "الأربعاء",
-                DayOfWeek.Thursday => "الخميس",
-                DayOfWeek.Friday => "الجمعة",
-                DayOfWeek.Saturday => "السبت",
-                _ => ""
-            };
-        }
     }

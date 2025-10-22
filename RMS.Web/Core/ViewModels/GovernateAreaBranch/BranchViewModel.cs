@@ -30,7 +30,6 @@ public class BranchViewModel
     public string GovernorateNameAr { get; set; } = null!;
     public string AreaNameAr { get; set; } = null!;
 
-    // Working hours for display
     public List<BranchWorkingHourViewModel> WorkingHours { get; set; } = new();
 }
 
@@ -39,4 +38,27 @@ public class BranchWorkingHourViewModel
     public DayOfWeek DayOfWeek { get; set; }
     public TimeSpan OpeningTime { get; set; }
     public TimeSpan ClosingTime { get; set; }
+}
+
+public class BranchWorkingHourExceptionViewModel
+{
+    public int Id { get; set; }
+    public int BranchId { get; set; }
+
+    public string ExceptionNameEn { get; set; } = null!;
+    public string ExceptionNameAr { get; set; } = null!;
+
+    public DateOnly StartDate { get; set; }
+    public DateOnly EndDate { get; set; }
+
+    public bool IsClosedAllDay { get; set; }
+    public bool IsOpen24Hours { get; set; }
+
+    public TimeSpan? OpeningTime { get; set; }
+    public TimeSpan? ClosingTime { get; set; }
+
+    public string Status =>
+     IsClosedAllDay ? "Closed All Day" :
+     IsOpen24Hours ? "Open 24 Hours" :
+     $"{OpeningTime:hh\\:mm} - {ClosingTime:hh\\:mm}";
 }

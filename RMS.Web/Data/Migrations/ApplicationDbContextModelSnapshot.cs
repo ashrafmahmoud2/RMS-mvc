@@ -17,7 +17,7 @@ namespace RMS.Web.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.7")
+                .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -329,8 +329,11 @@ namespace RMS.Web.Migrations
                     b.Property<int>("AreaId")
                         .HasColumnType("int");
 
-                    b.Property<string>("BranchImages")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
 
                     b.Property<decimal>("DeliveryFee")
                         .HasColumnType("decimal(18,2)");
@@ -344,8 +347,17 @@ namespace RMS.Web.Migrations
                     b.Property<bool>("IsBusy")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsOpen")
                         .HasColumnType("bit");
+
+                    b.Property<string>("LastUpdatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("LastUpdatedOn")
+                        .HasColumnType("datetime2");
 
                     b.Property<int?>("MaxAllowedOrdersInDay")
                         .HasColumnType("int");
@@ -355,7 +367,8 @@ namespace RMS.Web.Migrations
 
                     b.Property<string>("NameAr")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("NameEn")
                         .IsRequired()
@@ -371,7 +384,11 @@ namespace RMS.Web.Migrations
 
                     b.HasIndex("AreaId");
 
+                    b.HasIndex("CreatedById");
+
                     b.HasIndex("GovernorateId");
+
+                    b.HasIndex("LastUpdatedById");
 
                     b.HasIndex("NameAr")
                         .IsUnique();
@@ -380,6 +397,35 @@ namespace RMS.Web.Migrations
                         .IsUnique();
 
                     b.ToTable("Branches");
+                });
+
+            modelBuilder.Entity("RMS.Web.Core.Models.BranchImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("UploadedOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.ToTable("BranchImages");
                 });
 
             modelBuilder.Entity("RMS.Web.Core.Models.BranchItem", b =>
@@ -437,7 +483,7 @@ namespace RMS.Web.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("BranchId")
+                    b.Property<int?>("BranchId")
                         .HasColumnType("int");
 
                     b.Property<TimeSpan>("ClosingTime")
@@ -470,23 +516,53 @@ namespace RMS.Web.Migrations
                     b.Property<TimeSpan>("ClosingTime")
                         .HasColumnType("time");
 
-                    b.Property<DateOnly>("Date")
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
 
                     b.Property<string>("ExceptionNameAr")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("ExceptionNameEn")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsClosedAllDay")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsOpen24Hours")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastUpdatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("LastUpdatedOn")
+                        .HasColumnType("datetime2");
 
                     b.Property<TimeSpan>("OpeningTime")
                         .HasColumnType("time");
 
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BranchId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("LastUpdatedById");
 
                     b.ToTable("BranchWorkingHourExceptions");
                 });
@@ -1200,15 +1276,38 @@ namespace RMS.Web.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("RMS.Web.Core.Models.ApplicationUser", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
                     b.HasOne("RMS.Web.Core.Models.Governorate", "Governorate")
                         .WithMany()
                         .HasForeignKey("GovernorateId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("RMS.Web.Core.Models.ApplicationUser", "LastUpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("LastUpdatedById");
+
                     b.Navigation("Area");
 
+                    b.Navigation("CreatedBy");
+
                     b.Navigation("Governorate");
+
+                    b.Navigation("LastUpdatedBy");
+                });
+
+            modelBuilder.Entity("RMS.Web.Core.Models.BranchImage", b =>
+                {
+                    b.HasOne("RMS.Web.Core.Models.Branch", "Branch")
+                        .WithMany("BranchImages")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
                 });
 
             modelBuilder.Entity("RMS.Web.Core.Models.BranchItem", b =>
@@ -1234,9 +1333,7 @@ namespace RMS.Web.Migrations
                 {
                     b.HasOne("RMS.Web.Core.Models.Branch", "Branch")
                         .WithMany("BranchWorkingHours")
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("BranchId");
 
                     b.Navigation("Branch");
                 });
@@ -1249,7 +1346,19 @@ namespace RMS.Web.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("RMS.Web.Core.Models.ApplicationUser", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.HasOne("RMS.Web.Core.Models.ApplicationUser", "LastUpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("LastUpdatedById");
+
                     b.Navigation("Branch");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("LastUpdatedBy");
                 });
 
             modelBuilder.Entity("RMS.Web.Core.Models.Customer", b =>
@@ -1503,6 +1612,8 @@ namespace RMS.Web.Migrations
 
             modelBuilder.Entity("RMS.Web.Core.Models.Branch", b =>
                 {
+                    b.Navigation("BranchImages");
+
                     b.Navigation("BranchWorkingHours");
 
                     b.Navigation("WorkingHourExceptions");

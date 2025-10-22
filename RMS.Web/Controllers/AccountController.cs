@@ -180,10 +180,13 @@ public class AccountController : Controller
                 await _userManager.IsInRoleAsync(user, AppRoles.Driver))
             {
                 //return RedirectToAction("Index", "Dashboard");
-                return Ok(new { success = true, RedirectToAction = Url.Action("Index", "Dashboard") });
+                return Ok(new { 
+                    success = true,
+                    redirectUrl = Url.Action("Index", "Dashboard")
+                });
             }
 
-            return Ok(new { success = true, redirectUrl = Url.Action("Index", "Home222") });
+            return Ok(new { success = true, redirectUrl = Url.Action("Index", "Home") });
 
 
         }

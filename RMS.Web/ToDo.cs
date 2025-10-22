@@ -1,5 +1,6 @@
 ﻿/*
 #genral 
+- Add services
 - add data in ar end in en
 - don't forget to use enum gernallsettings
 - using UtcNow or now 
@@ -40,6 +41,7 @@
 
 
 #chekout
+- in area and govrnrate get give his the the branch restourn have 
 - add max allowd number of order in same time
 - handel if add more then order like show 2 progress box , and add in kds 
 

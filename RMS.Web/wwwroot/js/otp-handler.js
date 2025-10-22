@@ -135,15 +135,20 @@
                 });
 
                 const result = await response.json();
-                alert("Redirect URL: " + result.redirectUrl);
-
-
-
 
                 if (result.success) {
-                   
-                    
-                    this.options.onSuccess(result, formData);
+                    // ✅ Handle redirect URL from server
+                    if (result.redirectUrl) {
+                      
+
+                        // Redirect after a short delay to show the message
+                        setTimeout(() => {
+                            window.location.href = result.redirectUrl;
+                        }, 500);
+                    } else {
+                        // Fallback: call onSuccess callback
+                        this.options.onSuccess(result, formData);
+                    }
                 }
                 else {
                     this.attempts--;

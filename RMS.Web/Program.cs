@@ -14,6 +14,8 @@ using RMS.Web.Seeds;
 using RMS.Web.Helpers;
 using ViewToHTML.Extensions;
 using WhatsAppCloudApi.Services;
+using RMS.Web.Services.Interfaces;
+using RMS.Web.Services.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,6 +61,7 @@ builder.Services.AddSingleton<IHashids>(_ => new Hashids("f1nd1ngn3m0", minHashL
 
 //builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, ApplicationUserClaimsPrincipalFactory>();
 
+builder.Services.AddTransient<IBranchService, BranchService>();
 builder.Services.AddTransient<IImageService, ImageService>();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddTransient<IEmailBodyBuilder, EmailBodyBuilder>();

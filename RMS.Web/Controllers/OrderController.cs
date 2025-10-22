@@ -410,10 +410,11 @@ public class OrderController : Controller
         if (!branch.IsOpen) return false;
 
         // Check exception day
-        var exception = branch.WorkingHourExceptions
-            .FirstOrDefault(e => e.Date == DateOnly.FromDateTime(now));
-        if (exception != null)
-            return now.TimeOfDay >= exception.OpeningTime && now.TimeOfDay <= exception.ClosingTime;
+        //var exception = branch.WorkingHourExceptions
+        //    .FirstOrDefault(e => e.Date == DateOnly.FromDateTime(now));
+
+        //if (exception != null)
+        //    return now.TimeOfDay >= exception.OpeningTime && now.TimeOfDay <= exception.ClosingTime;
 
         var workingHour = _context.BranchWorkingHours
             .FirstOrDefault(bw => bw.BranchId == branch.Id && bw.DayOfWeek == today);
