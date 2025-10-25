@@ -13,21 +13,16 @@ using RMS.Web.Services.Interfaces;
 namespace RMS.Web.Controllers;
 
 /*
-
+stop in this palylist : https://www.youtube.com/watch?v=D_3Ycq1v4mI&list=PL62tSREI9C-c_yZ0a7Yui1U22Tv4mBjSF
+https://drive.google.com/drive/u/1/folders/1OcsI1rr1qVIALQlBq_E-_8fy5FuSu4hc
 
 # Clude ai
-1. make add/Edit form of creat Branch wiht his BranchWorkingHours and WorkingHourExceptions
-2. optmize the conttroler and his services
-3. 
+1. make the model of using in froms , like otp model , and optmize branch form and do the notic in form.cshmlt
+
 
 # stop
-1. add Details view 
-2. in list of branches view make it like branch-card in index , wiht add images and fix open and close time in ui in braches 
-4. add clinet ui add alart of close time like drik it or jahaz
+1. add clinet ui add alart of close time like drik it or jahaz
 
-
-# feat : split BranchController to have IBranchservices and Branchservices ,
-optmzie the way of adding image of braches ,  and creat form of add/edit branches
 
 
 # when creat item form ui
@@ -54,18 +49,31 @@ public class BranchController : Controller
        _branchService = branchService;
     }
 
+
+
+
     public async Task<IActionResult> Index()
     {
         var branches = await _branchService.GetAllBranchesAsync();
 
         var groupedBranches = branches
-            .GroupBy(b => b.GovernorateNameAr)
+            // 1. Group by a composite key including ID and both names
+            .GroupBy(b => new
+            {
+                b.GovernorateId,
+                b.GovernorateNameAr,
+                b.GovernorateNameEn
+            })
             .Select(g => new GovernorateWithBranchesViewModel
             {
-                Name = g.Key,
-                Branches = g.OrderBy(b => b.Name).ToList()
+                Id = g.Key.GovernorateId,
+                NameAr = g.Key.GovernorateNameAr,
+                NameEn = g.Key.GovernorateNameEn, // <-- Set NameEn correctly
+
+                Branches = g.OrderBy(b => b.NameAr).ToList()
             })
-            .OrderBy(g => g.Name)
+            // Order by Arabic name (or English, depending on preference)
+            .OrderBy(g => g.NameAr)
             .ToList();
 
         var viewModel = new BranchIndexViewModel
@@ -76,6 +84,13 @@ public class BranchController : Controller
         return View(viewModel);
     }
 
+    public async Task<IActionResult> AdminIndex()
+    {
+        var viewModel = await _branchService.GetBranchesGroupedByGovernorateAsync();
+        return View(viewModel);
+    }
+
+
     public async Task<IActionResult> Details(int id)
     {
         var branch = await _branchService.GetBranchByIdAsync(id);
@@ -85,84 +100,85 @@ public class BranchController : Controller
         return View(branch);
     }
 
+
+    //public static BranchFormViewModel CreateMockBranchFormViewModel()
+    //{
+    //    // For IFormFile, we typically mock the behavior in tests. 
+    //    // For a data object, we initialize the collection as empty or with null/mock files.
+    //    var mockFileCollection = new List<IFormFile>();
+
+    //    return new BranchFormViewModel
+    //    {
+
+
+    //        // --- Basic Info ---
+    //        NameEn = "Central City Hub",
+    //        NameAr = "الفرع الرئيسي للمدينة",
+
+    //        // --- Location IDs ---
+    //        AreaId = 6,
+    //        GovernorateId = 2,
+
+    //        // --- Select List Data (essential for MVC View rendering) ---
+    //        AreaList = new List<SelectListItem>
+    //        {
+    //            new SelectListItem { Value = "5", Text = "Downtown Area", Selected = true },
+    //            new SelectListItem { Value = "6", Text = "North Suburb" },
+    //        },
+    //        GovernorateList = new List<SelectListItem>
+    //        {
+    //            new SelectListItem { Value = "1", Text = "First Gov" },
+    //            new SelectListItem { Value = "2", Text = "Capital Gov", Selected = true },
+    //        },
+
+    //        // --- Address & Contact ---
+    //        AddressEn = "123 Technology Street, Central City",
+    //        AddressAr = "شارع التكنولوجيا 123، المدينة المركزية",
+    //        Phone = "96512345678", // Valid international-style phone number
+
+    //        // --- Financial & Delivery ---
+    //        MaxCashOnDeliveryAllowed = 750.00m,
+    //        DeliveryFee = 2.50m,
+    //        DeliveryTimeInMinutes = 45,
+
+    //        // --- Operational Status ---
+    //        MaxAllowedOrdersInDay = 800,
+    //        IsBusy = false,
+    //        IsOpen = true,
+
+    //        // --- Image Management ---
+    //        NewImageFiles = mockFileCollection,
+    //        ExistingBranchImagePaths = new List<string>
+    //        {
+    //            "https://cdn.example.com/images/branch_42_main.jpg",
+    //            "https://cdn.example.com/images/branch_42_interior.jpg"
+    //        },
+
+    //        // --- Nested Collections ---
+    //        WorkingHours = new List<BranchWorkingHoursFormViewModel>
+    //        {
+    //            // Monday (1) 9:00 to 17:00
+    //            new BranchWorkingHoursFormViewModel { DayOfWeek = DayOfWeek.Sunday }, 
+    //            // Tuesday (2) 9:00 to 17:00
+    //            new BranchWorkingHoursFormViewModel { DayOfWeek = DayOfWeek.Monday, 
+    //                OpeningTime = new TimeSpan(9, 0, 0), 
+    //                ClosingTime = new TimeSpan(17, 0, 0)
+    //            }
+    //            // Add more as needed for testing list population
+    //        },
+    //        WorkingHourExceptions = new List<BranchExceptionHoursFormViewModel>
+    //        {
+    //            // Mock an exception for today
+    //           // new BranchExceptionHoursFormViewModel { Date = DateTime.Today}
+    //        }
+    //    };
+    //}
+
     public IActionResult Create()
     {
         var model = new BranchFormViewModel();
         PopulateDropdowns(model);
-        return View("Form", model);
-    }
-
-    public static BranchFormViewModel CreateMockBranchFormViewModel()
-    {
-        // For IFormFile, we typically mock the behavior in tests. 
-        // For a data object, we initialize the collection as empty or with null/mock files.
-        var mockFileCollection = new List<IFormFile>();
-
-        return new BranchFormViewModel
-        {
-           
-
-            // --- Basic Info ---
-            NameEn = "Central City Hub",
-            NameAr = "الفرع الرئيسي للمدينة",
-
-            // --- Location IDs ---
-            AreaId = 6,
-            GovernorateId = 2,
-
-            // --- Select List Data (essential for MVC View rendering) ---
-            AreaList = new List<SelectListItem>
-            {
-                new SelectListItem { Value = "5", Text = "Downtown Area", Selected = true },
-                new SelectListItem { Value = "6", Text = "North Suburb" },
-            },
-            GovernorateList = new List<SelectListItem>
-            {
-                new SelectListItem { Value = "1", Text = "First Gov" },
-                new SelectListItem { Value = "2", Text = "Capital Gov", Selected = true },
-            },
-
-            // --- Address & Contact ---
-            AddressEn = "123 Technology Street, Central City",
-            AddressAr = "شارع التكنولوجيا 123، المدينة المركزية",
-            Phone = "96512345678", // Valid international-style phone number
-
-            // --- Financial & Delivery ---
-            MaxCashOnDeliveryAllowed = 750.00m,
-            DeliveryFee = 2.50m,
-            DeliveryTimeInMinutes = 45,
-
-            // --- Operational Status ---
-            MaxAllowedOrdersInDay = 800,
-            IsBusy = false,
-            IsOpen = true,
-
-            // --- Image Management ---
-            NewImageFiles = mockFileCollection,
-            ExistingBranchImagePaths = new List<string>
-            {
-                "https://cdn.example.com/images/branch_42_main.jpg",
-                "https://cdn.example.com/images/branch_42_interior.jpg"
-            },
-
-            // --- Nested Collections ---
-            WorkingHours = new List<BranchWorkingHoursFormViewModel>
-            {
-                // Monday (1) 9:00 to 17:00
-                new BranchWorkingHoursFormViewModel { DayOfWeek = DayOfWeek.Sunday }, 
-                // Tuesday (2) 9:00 to 17:00
-                new BranchWorkingHoursFormViewModel { DayOfWeek = DayOfWeek.Monday, 
-                    OpeningTime = new TimeSpan(9, 0, 0), 
-                    ClosingTime = new TimeSpan(17, 0, 0)
-                }
-                // Add more as needed for testing list population
-            },
-            WorkingHourExceptions = new List<BranchExceptionHoursFormViewModel>
-            {
-                // Mock an exception for today
-               // new BranchExceptionHoursFormViewModel { Date = DateTime.Today}
-            }
-        };
+        return PartialView("Form", model);
     }
 
     public static BranchFormViewModel EditMockBranchFormViewModel()
@@ -240,6 +256,7 @@ public class BranchController : Controller
             }
         };
     }
+    
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(BranchFormViewModel viewModel )

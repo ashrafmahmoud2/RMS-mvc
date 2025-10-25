@@ -38,18 +38,18 @@ public class BranchFormViewModel
     public string AddressAr { get; set; } = null!;
 
     [Required(ErrorMessage = "رقم الهاتف مطلوب")]
-    [StringLength(20)]
-    [RegularExpression(@"^(01|05)[0-9]{9}$", ErrorMessage = "رقم الهاتف يجب أن يبدأ بـ 01 أو 05 ويكون 11 رقم")]
+    //[StringLength(20)]
+    [RegularExpression(RegexPatterns.EgyptianPhoneNumber, ErrorMessage = "رقم الهاتف يجب أن يبدأ بـ 01 أو 05 ويكون 11 رقم")]
     [Display(Name = "Phone Number")]
     public string Phone { get; set; } = null!;
 
     [Required(ErrorMessage = "الحد الأقصى للدفع عند الاستلام مطلوب")]
-    [Range(0.01, 999999.99, ErrorMessage = "القيمة يجب أن تكون بين 0.01 و 999999.99")]
+    [Range(0, 10000, ErrorMessage = "القيمة يجب أن تكون بين 0 و 1000")]
     [Display(Name = "Max Cash on Delivery")]
     public decimal MaxCashOnDeliveryAllowed { get; set; }
 
     [Required(ErrorMessage = "رسوم التوصيل مطلوبة")]
-    [Range(0, 999.99, ErrorMessage = "القيمة يجب أن تكون بين 0 و 999.99")]
+    [Range(0, 1000, ErrorMessage = "القيمة يجب أن تكون بين 0 و 1000")]
     [Display(Name = "Delivery Fee")]
     public decimal DeliveryFee { get; set; }
 

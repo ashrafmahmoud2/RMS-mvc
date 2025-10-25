@@ -1,36 +1,523 @@
 ﻿/**
- * Branch Form - Complete JavaScript
- * Handles: Governorate/Area cascade, Working hours, Exceptions, Images, Validation
+ * Branch Form - Complete JavaScript with Modern UI/UX
+ * Fixed: Working hours submission only sends selected days
+ * Enhanced: Premium time picker, smooth animations, improved UX
  */
 
 // Global variables
-let exceptionIndex = 0; // Will be set from Razor
+//let exceptionIndex = 0;
 
 // ============================================================================
-// 1. GOVERNORATE / AREA CASCADE
+// 1. WORKING HOURS - CRITICAL FIX
 // ============================================================================
 
-/**
- * Load areas based on selected governorate
- */
+function prepareWorkingHoursForSubmission() {
+    const form = document.getElementById('branchForm');
+    if (!form) return;
+
+    const workingHourItems = document.querySelectorAll('.working-hour-item');
+    const checkedDays = new Set();
+
+    workingHourItems.forEach(item => {
+        const checkbox = item.querySelector('.day-enabled:checked');
+        if (checkbox) {
+            checkedDays.add(parseInt(checkbox.dataset.day));
+        }
+    });
+
+    form.querySelectorAll('input[name^="WorkingHours["]').forEach(input => {
+        input.remove();
+    });
+
+    let index = 0;
+    checkedDays.forEach(dayOfWeek => {
+        const dayItem = document.querySelector(`.working-hour-item input[data-day="${dayOfWeek}"].day-enabled:checked`)
+            ?.closest('.working-hour-item');
+
+        if (dayItem) {
+            const timeInputs = dayItem.querySelector(`.time-inputs`);
+            const openingTime = timeInputs?.querySelector('.opening-time')?.value;
+            const closingTime = timeInputs?.querySelector('.closing-time')?.value;
+
+            const dayOfWeekInput = document.createElement('input');
+            dayOfWeekInput.type = 'hidden';
+            dayOfWeekInput.name = `WorkingHours[${index}].DayOfWeek`;
+            dayOfWeekInput.value = dayOfWeek;
+            form.appendChild(dayOfWeekInput);
+
+            const openingTimeInput = document.createElement('input');
+            openingTimeInput.type = 'hidden';
+            openingTimeInput.name = `WorkingHours[${index}].OpeningTime`;
+            openingTimeInput.value = openingTime || '09:00';
+            form.appendChild(openingTimeInput);
+
+            const closingTimeInput = document.createElement('input');
+            closingTimeInput.type = 'hidden';
+            closingTimeInput.name = `WorkingHours[${index}].ClosingTime`;
+            closingTimeInput.value = closingTime || '22:00';
+            form.appendChild(closingTimeInput);
+
+            index++;
+        }
+    });
+
+    console.log('✓ Working hours prepared. Checked days:', Array.from(checkedDays));
+}
+
+// ============================================================================
+// 2. PREMIUM TIME PICKER COMPONENT
+// ============================================================================
+
+class TimePicker {
+    constructor(inputElement) {
+        this.input = inputElement;
+        this.container = null;
+        this.isOpen = false;
+        this.currentDisplayHour = 0;
+        this.currentMinutes = 0;
+        this.currentPeriod = 'ص';
+        this.init();
+    }
+
+    init() {
+        this.input.type = 'text';
+        this.input.style.cursor = 'pointer';
+
+        this.input.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggle();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (this.isOpen && e.target !== this.input && (!this.container || !this.container.contains(e.target))) {
+                this.close();
+            }
+        });
+
+        this.input.addEventListener('focus', () => {
+            if (!this.isOpen) this.open();
+        });
+    }
+
+    toggle() {
+        if (this.isOpen) {
+            this.close();
+        } else {
+            this.open();
+        }
+    }
+
+    open() {
+        if (this.isOpen) return;
+
+        this.isOpen = true;
+        this.createPicker();
+
+        // Smooth focus animation
+        this.input.style.transition = 'all 0.2s ease';
+        this.input.style.borderColor = '#185499';
+        this.input.style.boxShadow = '0 0 0 3px rgba(24, 84, 153, 0.15)';
+    }
+
+    close() {
+        if (!this.isOpen) return;
+
+        this.isOpen = false;
+        if (this.container) {
+            this.container.style.animation = 'fadeOut 0.2s ease';
+            setTimeout(() => {
+                this.container.remove();
+                this.container = null;
+            }, 200);
+        }
+        this.input.style.borderColor = '';
+        this.input.style.boxShadow = '';
+    }
+
+    createPicker() {
+        const defaultTime = '09:00 ص';
+        const value = this.input.value || defaultTime;
+
+        let displayHour = 9;
+        let initialMinutes = 0;
+        let period = 'ص';
+
+        const parts = value.match(/(\d{1,2}):(\d{2})\s*(ص|م)/);
+
+        if (parts) {
+            displayHour = parseInt(parts[1], 10);
+            initialMinutes = parseInt(parts[2], 10);
+            period = parts[3];
+
+            if (displayHour < 1 || displayHour > 12) displayHour = 9;
+
+        } else {
+            const timeParts = value.match(/(\d{1,2}):(\d{2})/);
+            if (timeParts) {
+                const h24 = parseInt(timeParts[1], 10);
+                initialMinutes = parseInt(timeParts[2], 10);
+
+                period = h24 >= 12 ? 'م' : 'ص';
+                displayHour = (h24 % 12) || 12;
+            }
+        }
+
+        let minutes = Math.round(initialMinutes / 15) * 15;
+
+        this.currentDisplayHour = displayHour;
+        this.currentMinutes = minutes;
+        this.currentPeriod = period;
+
+        this.container = document.createElement('div');
+        this.container.style.cssText = `
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0;
+            margin-top: 12px;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(24, 84, 153, 0.05);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-width: 280px;
+            max-width: 320px;
+            height: 220px;
+            overflow: hidden;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            direction: rtl;
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        `;
+
+        const hoursColumn = this.createScrollColumn('ساعة', 1, 12, this.currentDisplayHour, 1, this.handleHourClick.bind(this));
+        const minutesColumn = this.createScrollColumn('دقيقة', 0, 45, this.currentMinutes, 15, this.handleMinuteClick.bind(this));
+        const periodColumn = this.createPeriodColumn(this.currentPeriod, this.handlePeriodClick.bind(this));
+
+        const separator = document.createElement('div');
+        separator.textContent = ':';
+        separator.style.cssText = `
+            font-size: 28px;
+            font-weight: 700;
+            color: #185499;
+            align-self: center;
+            padding: 0 6px;
+            pointer-events: none;
+        `;
+
+        this.container.appendChild(hoursColumn);
+        this.container.appendChild(separator);
+        this.container.appendChild(minutesColumn);
+        this.container.appendChild(periodColumn);
+
+        this.input.parentElement.style.position = 'relative';
+        this.input.parentElement.appendChild(this.container);
+
+        this.scrollToActive(hoursColumn, this.currentDisplayHour);
+        this.scrollToActive(minutesColumn, this.currentMinutes);
+        this.scrollToActive(periodColumn, this.currentPeriod);
+
+        // Add animation styles if not present
+        this.addAnimationStyles();
+    }
+
+    createScrollColumn(label, start, end, currentValue, step, clickHandler) {
+        const column = document.createElement('div');
+        column.className = 'timepicker-column';
+        column.style.cssText = `
+            flex: 1;
+            overflow-y: scroll;
+            height: 100%;
+            padding: 12px 0;
+            text-align: center;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            scroll-behavior: smooth;
+        `;
+        column.style.scrollbarWidth = 'none';
+
+        const labelEl = document.createElement('div');
+        labelEl.textContent = label;
+        labelEl.style.cssText = `
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        `;
+        column.appendChild(labelEl);
+
+        const list = document.createElement('ul');
+        list.style.cssText = `
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            border-radius: 8px;
+        `;
+
+        const topBuffer = document.createElement('li');
+        topBuffer.style.cssText = 'height: 60px; pointer-events: none;';
+        list.appendChild(topBuffer);
+
+        for (let i = start; i <= end; i += step) {
+            const itemValue = String(i).padStart(2, '0');
+            const listItem = document.createElement('li');
+            listItem.textContent = itemValue;
+            listItem.dataset.value = i;
+
+            const isActive = i === currentValue;
+            listItem.style.cssText = `
+                padding: 12px 8px;
+                cursor: pointer;
+                font-size: 18px;
+                font-weight: ${isActive ? '700' : '500'};
+                color: ${isActive ? '#185499' : '#64748b'};
+                background: ${isActive ? 'rgba(24, 84, 153, 0.1)' : 'transparent'};
+                border-radius: 6px;
+                transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+                user-select: none;
+            `;
+
+            listItem.addEventListener('mouseenter', () => {
+                if (parseInt(listItem.dataset.value) !== currentValue) {
+                    listItem.style.background = 'rgba(24, 84, 153, 0.05)';
+                }
+            });
+
+            listItem.addEventListener('mouseleave', () => {
+                if (parseInt(listItem.dataset.value) !== currentValue) {
+                    listItem.style.background = 'transparent';
+                }
+            });
+
+            listItem.addEventListener('click', clickHandler);
+            list.appendChild(listItem);
+        }
+
+        const bottomBuffer = document.createElement('li');
+        bottomBuffer.style.cssText = 'height: 60px; pointer-events: none;';
+        list.appendChild(bottomBuffer);
+
+        column.appendChild(list);
+        return column;
+    }
+
+    createPeriodColumn(currentPeriod, clickHandler) {
+        const periodMap = { 'ص': 'صباحًا', 'م': 'مساءً' };
+
+        const column = document.createElement('div');
+        column.className = 'timepicker-column period-column';
+        column.style.cssText = `
+            flex: 0 0 80px;
+            overflow-y: scroll;
+            height: 100%;
+            padding: 12px 0;
+            text-align: center;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            border-right: 1px solid #e2e8f0;
+        `;
+
+        const labelEl = document.createElement('div');
+        labelEl.textContent = 'الفترة';
+        labelEl.style.cssText = `
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        `;
+        column.appendChild(labelEl);
+
+        const list = document.createElement('ul');
+        list.style.cssText = `
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            border-radius: 8px;
+        `;
+
+        const topBuffer = document.createElement('li');
+        topBuffer.style.cssText = 'height: 60px; pointer-events: none;';
+        list.appendChild(topBuffer);
+
+        ['ص', 'م'].forEach(key => {
+            const listItem = document.createElement('li');
+            listItem.textContent = periodMap[key];
+            listItem.dataset.value = key;
+
+            const isActive = key === currentPeriod;
+            listItem.style.cssText = `
+                padding: 12px 4px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: ${isActive ? '700' : '500'};
+                color: ${isActive ? '#185499' : '#64748b'};
+                background: ${isActive ? 'rgba(24, 84, 153, 0.1)' : 'transparent'};
+                border-radius: 6px;
+                transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+                user-select: none;
+            `;
+
+            listItem.addEventListener('mouseenter', () => {
+                if (key !== currentPeriod) {
+                    listItem.style.background = 'rgba(24, 84, 153, 0.05)';
+                }
+            });
+
+            listItem.addEventListener('mouseleave', () => {
+                if (key !== currentPeriod) {
+                    listItem.style.background = 'transparent';
+                }
+            });
+
+            listItem.addEventListener('click', clickHandler);
+            list.appendChild(listItem);
+        });
+
+        const bottomBuffer = document.createElement('li');
+        bottomBuffer.style.cssText = 'height: 60px; pointer-events: none;';
+        list.appendChild(bottomBuffer);
+
+        column.appendChild(list);
+        return column;
+    }
+
+    scrollToActive(columnElement, currentValue) {
+        const list = columnElement.querySelector('ul');
+        const item = list.querySelector(`[data-value="${currentValue}"]`);
+
+        if (item) {
+            columnElement.scrollTop = item.offsetTop - (columnElement.offsetHeight / 2) + (item.offsetHeight / 2);
+        }
+    }
+
+    handleHourClick(e) {
+        const hour = parseInt(e.target.dataset.value);
+        this.currentDisplayHour = hour;
+        this.updateTime();
+        this.refreshColumn(e.target.closest('.timepicker-column'), hour);
+    }
+
+    handleMinuteClick(e) {
+        const minute = parseInt(e.target.dataset.value);
+        this.currentMinutes = minute;
+        this.updateTime();
+        this.refreshColumn(e.target.closest('.timepicker-column'), minute);
+        this.close();
+    }
+
+    handlePeriodClick(e) {
+        const period = e.target.dataset.value;
+        this.currentPeriod = period;
+        this.updateTime();
+        this.refreshPeriodColumn(e.target.closest('.timepicker-column'), period);
+    }
+
+    updateTime() {
+        const hours = String(this.currentDisplayHour).padStart(2, '0');
+        const minutes = String(this.currentMinutes).padStart(2, '0');
+        this.input.value = `${hours}:${minutes} ${this.currentPeriod}`;
+        this.input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    refreshColumn(column, newValue) {
+        column.querySelectorAll('li[data-value]').forEach(li => {
+            const value = parseInt(li.dataset.value);
+            const isActive = value === newValue;
+            li.style.fontWeight = isActive ? '700' : '500';
+            li.style.color = isActive ? '#185499' : '#64748b';
+            li.style.background = isActive ? 'rgba(24, 84, 153, 0.1)' : 'transparent';
+        });
+    }
+
+    refreshPeriodColumn(column, newPeriod) {
+        column.querySelectorAll('li[data-value]').forEach(li => {
+            const period = li.dataset.value;
+            const isActive = period === newPeriod;
+            li.style.fontWeight = isActive ? '700' : '500';
+            li.style.color = isActive ? '#185499' : '#64748b';
+            li.style.background = isActive ? 'rgba(24, 84, 153, 0.1)' : 'transparent';
+        });
+    }
+
+    addAnimationStyles() {
+        if (!document.getElementById('timePickerAnimations')) {
+            const style = document.createElement('style');
+            style.id = 'timePickerAnimations';
+            style.textContent = `
+                @keyframes slideUp {
+                    from {
+                        opacity: 0;
+                        transform: translateX(-50%) translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(-50%) translateY(0);
+                    }
+                }
+
+                @keyframes fadeOut {
+                    from {
+                        opacity: 1;
+                        transform: translateX(-50%) translateY(0);
+                    }
+                    to {
+                        opacity: 0;
+                        transform: translateX(-50%) translateY(10px);
+                    }
+                }
+
+                .timepicker-column::-webkit-scrollbar {
+                    display: none;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+}
+
+function initTimePickers() {
+    document.querySelectorAll('input[type="time"].form-control').forEach(input => {
+        if (!input.dataset.timepickerInitialized) {
+            new TimePicker(input);
+            input.dataset.timepickerInitialized = 'true';
+        }
+    });
+}
+
+window.addEventListener('load', initTimePickers);
+
+// ============================================================================
+// 3. GOVERNORATE / AREA CASCADE
+// ============================================================================
+
 async function loadAreas(governorateId, selectedAreaId = null) {
     const areaSelect = document.getElementById('areaSelect');
+    if (!areaSelect) return;
 
- 
-    // Clear existing options
-    areaSelect.innerHTML = '<option value="">-- اختر المنطقة --</option>';
+    areaSelect.innerHTML = '<option value="">-- جاري التحميل... --</option>';
 
-    if (!governorateId) return;
+    if (!governorateId) {
+        areaSelect.innerHTML = '<option value="">-- اختر المنطقة --</option>';
+        return;
+    }
 
     try {
-        console.log("Arrive3", governorateId)
         const response = await fetch(`/Branch/GetAreas?governorateId=${governorateId}`);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const areas = await response.json();
+
+        areaSelect.innerHTML = '<option value="">-- اختر المنطقة --</option>';
 
         areas.forEach(area => {
             const option = document.createElement('option');
@@ -39,7 +526,6 @@ async function loadAreas(governorateId, selectedAreaId = null) {
             areaSelect.appendChild(option);
         });
 
-        // Reselect area if provided (for edit mode)
         if (selectedAreaId) {
             areaSelect.value = selectedAreaId;
         }
@@ -49,41 +535,27 @@ async function loadAreas(governorateId, selectedAreaId = null) {
     }
 }
 
-/**
- * Initialize governorate change listener and initial load
- */
 function initGovernorateAreaCascade() {
     const governorateSelect = document.getElementById('governorateSelect');
     const areaSelect = document.getElementById('areaSelect');
 
     if (!governorateSelect || !areaSelect) return;
 
-    // --- FIX START ---
-    // 1. Read the initial selected AreaId from the server-rendered HTML.
-    // This value is needed to re-select the correct area AFTER JS loads new options.
     const initialAreaId = areaSelect.value;
-    // --- FIX END ---
 
     governorateSelect.addEventListener('change', function () {
-        // When the governorate changes, we load new areas, but don't try to re-select
-        // an old area ID, so we pass null for the selectedAreaId.
         loadAreas(this.value);
     });
 
-    // Load areas on page load if governorate is already selected (edit mode)
-    // We pass the initially selected Area ID to ensure it is re-selected after the loadAreas call.
     if (governorateSelect.value) {
         loadAreas(governorateSelect.value, initialAreaId);
     }
 }
 
 // ============================================================================
-// 2. WORKING HOURS MANAGEMENT
+// 4. WORKING HOURS MANAGEMENT
 // ============================================================================
 
-/**
- * Toggle working day enable/disable
- */
 function toggleDay(checkbox) {
     const day = checkbox.dataset.day;
     const timeInputs = document.getElementById(`timeInputs_${day}`);
@@ -93,22 +565,21 @@ function toggleDay(checkbox) {
     const timeInputFields = timeInputs.querySelectorAll('input[type="time"]');
 
     if (checkbox.checked) {
-        // Enable day
+        timeInputs.style.animation = 'slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
         timeInputs.style.display = 'grid';
-
         timeInputFields.forEach(input => {
             input.disabled = false;
 
-            // Set default times if empty
             if (!input.value) {
                 const isOpening = input.classList.contains('opening-time');
                 input.value = isOpening ? '09:00' : '22:00';
             }
         });
     } else {
-        // Disable day
-        timeInputs.style.display = 'none';
-
+        timeInputs.style.animation = 'slideUp 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
+        setTimeout(() => {
+            timeInputs.style.display = 'none';
+        }, 200);
         timeInputFields.forEach(input => {
             input.value = '';
             input.disabled = true;
@@ -116,49 +587,66 @@ function toggleDay(checkbox) {
     }
 }
 
+function copyFirstDayToAll() {
+    const firstDay = document.querySelector('.day-enabled:checked');
+    if (!firstDay) {
+        showNotification('يرجى تحديد يوم واحد على الأقل أولاً', 'warning');
+        return;
+    }
+
+    const dayId = firstDay.dataset.day;
+    const sourceInputs = document.getElementById('timeInputs_' + dayId);
+    const openingTime = sourceInputs.querySelector('.opening-time').value;
+    const closingTime = sourceInputs.querySelector('.closing-time').value;
+
+    document.querySelectorAll('.day-enabled:checked').forEach(checkbox => {
+        const currentDayId = checkbox.dataset.day;
+        const timeInputsDiv = document.getElementById('timeInputs_' + currentDayId);
+        timeInputsDiv.querySelector('.opening-time').value = openingTime;
+        timeInputsDiv.querySelector('.closing-time').value = closingTime;
+    });
+
+    showNotification('✓ تم نسخ الأوقات بنجاح لجميع الأيام', 'success');
+}
 
 // ============================================================================
-// 3. EXCEPTION MANAGEMENT
+// 5. EXCEPTION MANAGEMENT
 // ============================================================================
 
-/**
- * Set exception type (Closed 24h, Open 24h, Custom)
- */
-function setExceptionType(button, type, index) {
+function setExceptionType(button, type) {
     const exceptionItem = button.closest('.exception-item');
     if (!exceptionItem) return;
 
+    const index = exceptionItem.dataset.index;
     const buttons = exceptionItem.querySelectorAll('.type-btn');
-    const customTimes = exceptionItem.querySelector(`.custom-times-${index}`);
-
-    // --- UPDATED: Use the single ExceptionType field ---
+    const customTimes = exceptionItem.querySelector('.custom-times');
     const exceptionTypeInput = exceptionItem.querySelector(`input[name="WorkingHourExceptions[${index}].ExceptionType"]`);
+
     if (!exceptionTypeInput) return;
 
-    // Remove active class from all buttons
     buttons.forEach(btn => {
-        btn.classList.remove('active', 'closed', 'open24');
+        btn.classList.remove('active');
+        btn.style.transform = 'scale(1)';
     });
 
-    // Set active button and update hidden inputs/enum value
+    button.classList.add('active');
+    button.style.transform = 'scale(1.05)';
+    setTimeout(() => {
+        button.style.transform = 'scale(1)';
+    }, 100);
+
     if (type === 'closed') {
-        button.classList.add('active', 'closed');
         if (customTimes) customTimes.style.display = 'none';
-        exceptionTypeInput.value = 1; // 1 corresponds to ClosedAllDay (from BranchExceptionType enum)
+        exceptionTypeInput.value = 1;
     } else if (type === 'open24') {
-        button.classList.add('active', 'open24');
         if (customTimes) customTimes.style.display = 'none';
-        exceptionTypeInput.value = 2; // 2 corresponds to Open24Hours
-    } else { // CustomHours
-        button.classList.add('active');
+        exceptionTypeInput.value = 2;
+    } else {
         if (customTimes) customTimes.style.display = 'grid';
-        exceptionTypeInput.value = 0; // 0 corresponds to CustomHours
+        exceptionTypeInput.value = 0;
     }
 }
 
-/**
- * Add new exception
- */
 function addException() {
     const container = document.getElementById('exceptionsContainer');
     if (!container) return;
@@ -166,29 +654,33 @@ function addException() {
     const newIndex = exceptionIndex;
     const today = new Date().toISOString().split('T')[0];
 
-    // NOTE: The hidden inputs for IsClosedAllDay and IsOpen24Hours are REMOVED
-    // and replaced by the single ExceptionType input, reflecting the model optimization.
     const exceptionHtml = `
-        <div class="exception-item" data-index="${newIndex}">
+        <div class="exception-item" data-index="${newIndex}" style="animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
             <div class="exception-header">
-                <span class="exception-title">استثناء ${newIndex + 1}</span>
+                <span class="exception-title">
+                    <i class="fas fa-tag"></i>
+                    استثناء ${newIndex + 1}
+                </span>
                 <button type="button" class="btn-delete" onclick="removeException(this)">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
-            
+
             <input type="hidden" name="WorkingHourExceptions[${newIndex}].Id" value="0" />
-            <input type="hidden" name="WorkingHourExceptions[${newIndex}].ExceptionType" value="0" /> <!-- Default: CustomHours -->
+            <input type="hidden" name="WorkingHourExceptions[${newIndex}].ExceptionType" value="0" class="exception-type-input" />
 
             <div class="exception-type-buttons">
-                <button type="button" class="type-btn" onclick="setExceptionType(this, 'closed', ${newIndex})">
-                    <i class="fas fa-times-circle"></i> مغلق 24 ساعة
+                <button type="button" class="type-btn" onclick="setExceptionType(this, 'closed')">
+                    <i class="fas fa-times-circle"></i>
+                    <span>مغلق 24 ساعة</span>
                 </button>
-                <button type="button" class="type-btn" onclick="setExceptionType(this, 'open24', ${newIndex})">
-                    <i class="fas fa-clock"></i> مفتوح 24 ساعة
+                <button type="button" class="type-btn" onclick="setExceptionType(this, 'open24')">
+                    <i class="fas fa-infinity"></i>
+                    <span>مفتوح 24 ساعة</span>
                 </button>
-                <button type="button" class="type-btn active" onclick="setExceptionType(this, 'custom', ${newIndex})">
-                    <i class="fas fa-edit"></i> ساعات مخصصة
+                <button type="button" class="type-btn active" onclick="setExceptionType(this, 'custom')">
+                    <i class="fas fa-sliders-h"></i>
+                    <span>ساعات مخصصة</span>
                 </button>
             </div>
 
@@ -220,7 +712,7 @@ function addException() {
                 </div>
             </div>
 
-            <div class="form-row custom-times-${newIndex}">
+            <div class="form-row custom-times" style="display: grid;">
                 <div class="form-group">
                     <label class="form-label">وقت الفتح</label>
                     <input type="time" name="WorkingHourExceptions[${newIndex}].OpeningTime" 
@@ -238,26 +730,35 @@ function addException() {
 
     container.insertAdjacentHTML('beforeend', exceptionHtml);
     exceptionIndex++;
+    initTimePickers();
+
+    showNotification('✓ تم إضافة استثناء جديد', 'success');
 }
 
-/**
- * Remove exception and reindex
- */
 function removeException(button) {
-    // --- UPDATED: Use custom modal instead of built-in confirm() ---
-    showConfirmModal('هل أنت متأكد من حذف هذا الاستثناء؟', () => {
-        const item = button.closest('.exception-item');
-        if (!item) return;
+    if (typeof showConfirmModal === 'function') {
+        showConfirmModal('هل أنت متأكد من حذف هذا الاستثناء؟', () => {
+            const item = button.closest('.exception-item');
+            if (!item) return;
 
-        item.remove();
-        reindexExceptions();
-        showNotification('تم حذف الاستثناء بنجاح', 'success');
-    });
+            item.style.animation = 'slideUp 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
+            setTimeout(() => {
+                item.remove();
+                reindexExceptions();
+                showNotification('✓ تم حذف الاستثناء بنجاح', 'success');
+            }, 200);
+        });
+    } else {
+        if (confirm('هل أنت متأكد من حذف هذا الاستثناء؟')) {
+            const item = button.closest('.exception-item');
+            if (!item) return;
+
+            item.remove();
+            reindexExceptions();
+        }
+    }
 }
 
-/**
- * Reindex all exceptions after removal
- */
 function reindexExceptions() {
     const container = document.getElementById('exceptionsContainer');
     if (!container) return;
@@ -265,16 +766,13 @@ function reindexExceptions() {
     const items = container.querySelectorAll('.exception-item');
 
     items.forEach((item, index) => {
-        // Update data-index
         item.dataset.index = index;
 
-        // Update title
         const title = item.querySelector('.exception-title');
         if (title) {
-            title.textContent = `استثناء ${index + 1}`;
+            title.innerHTML = `<i class="fas fa-tag"></i>استثناء ${index + 1}`;
         }
 
-        // Update all input names
         item.querySelectorAll('input, select, textarea').forEach(input => {
             const name = input.getAttribute('name');
             if (name) {
@@ -282,36 +780,24 @@ function reindexExceptions() {
             }
         });
 
-        // Update onclick attributes for type buttons
         const typeButtons = item.querySelectorAll('.type-btn');
         typeButtons.forEach(btn => {
             const onclick = btn.getAttribute('onclick');
             if (onclick) {
-                // Ensure the index argument replacement is precise
                 const updatedOnclick = onclick.replace(/setExceptionType\(this,\s*'[^']+',\s*\d+\)/,
                     (match) => match.replace(/\d+/, index));
                 btn.setAttribute('onclick', updatedOnclick);
             }
         });
-
-        // Update custom-times class
-        const customTimes = item.querySelector('[class*="custom-times-"]');
-        if (customTimes) {
-            customTimes.className = customTimes.className.replace(/custom-times-\d+/, `custom-times-${index}`);
-        }
     });
 
-    // Update global index
     exceptionIndex = items.length;
 }
 
 // ============================================================================
-// 4. IMAGE MANAGEMENT
+// 6. IMAGE MANAGEMENT
 // ============================================================================
 
-/**
- * Initialize image preview
- */
 function initImagePreview() {
     const imageUpload = document.getElementById('imageUpload');
     if (!imageUpload) return;
@@ -322,9 +808,8 @@ function initImagePreview() {
 
         preview.innerHTML = '';
 
-        Array.from(e.target.files).forEach(file => {
+        Array.from(e.target.files).forEach((file, index) => {
             if (file.type.startsWith('image/')) {
-                // Validate file size (10MB)
                 if (file.size > 10 * 1024 * 1024) {
                     showNotification(`الملف ${file.name} كبير جداً (أكثر من 10 ميجا)`, 'error');
                     return;
@@ -334,22 +819,50 @@ function initImagePreview() {
                 reader.onload = function (e) {
                     const div = document.createElement('div');
                     div.className = 'image-item';
-                    div.innerHTML = `<img src="${e.target.result}" alt="Preview" />`;
+                    div.style.animation = `slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) ${index * 50}ms`;
+                    div.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview" />
+                        <button type="button" class="btn-delete-image" onclick="this.closest('.image-item').style.animation='slideUp 0.2s'; setTimeout(() => this.closest('.image-item').remove(), 200);">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    `;
                     preview.appendChild(div);
                 };
                 reader.readAsDataURL(file);
             }
         });
     });
+
+    // Drag and drop support
+    const uploadArea = document.getElementById('uploadArea');
+    if (uploadArea) {
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#185499';
+            uploadArea.style.background = 'rgba(24, 84, 153, 0.05)';
+            uploadArea.style.transform = 'scale(1.02)';
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = 'var(--border)';
+            uploadArea.style.background = 'transparent';
+            uploadArea.style.transform = 'scale(1)';
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'var(--border)';
+            uploadArea.style.background = 'transparent';
+            uploadArea.style.transform = 'scale(1)';
+            imageUpload.files = e.dataTransfer.files;
+            imageUpload.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    }
 }
 
-/**
- * Delete existing image
- */
 async function deleteImage(imageUrl, event) {
     event.preventDefault();
 
-    // --- UPDATED: Use custom modal instead of built-in confirm() ---
     showConfirmModal('هل أنت متأكد من حذف هذه الصورة؟', async () => {
         const branchIdInput = document.querySelector('input[name="Id"]');
         const branchId = branchIdInput ? branchIdInput.value : 0;
@@ -370,8 +883,12 @@ async function deleteImage(imageUrl, event) {
             });
 
             if (response.ok) {
-                event.target.closest('.image-item').remove();
-                showNotification('تم حذف الصورة بنجاح', 'success');
+                const imageItem = event.target.closest('.image-item');
+                imageItem.style.animation = 'slideUp 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
+                setTimeout(() => {
+                    imageItem.remove();
+                }, 200);
+                showNotification('✓ تم حذف الصورة بنجاح', 'success');
             } else {
                 showNotification('فشل حذف الصورة', 'error');
             }
@@ -382,37 +899,41 @@ async function deleteImage(imageUrl, event) {
     });
 }
 
-
 // ============================================================================
-// 5. PHONE VALIDATION
+// 7. PHONE VALIDATION
 // ============================================================================
 
-/**
- * Initialize phone validation (01 or 05)
- */
 function initPhoneValidation() {
     const phoneInput = document.querySelector('input[name="Phone"]');
     if (!phoneInput) return;
 
+    const mobileOrSaudiPattern = /^(01|05)[0-9]{9}$/;
+    const landlinePattern = /^(02|03|04|05|06|08|09)[0-9]{7}$/;
+    const MAX_LENGTH = 11;
+
     phoneInput.addEventListener('input', function (e) {
         let value = e.target.value.replace(/\D/g, '');
 
-        // Limit to 11 digits
-        if (value.length > 11) {
-            value = value.slice(0, 11);
+        if (value.length > MAX_LENGTH) {
+            value = value.slice(0, MAX_LENGTH);
         }
 
         e.target.value = value;
 
-        // Validate pattern
         if (value.length === 11) {
-            if (!/^(01|05)[0-9]{9}$/.test(value)) {
-                e.target.setCustomValidity('رقم الهاتف يجب أن يبدأ بـ 01 أو 05 ويكون 11 رقم');
+            if (!mobileOrSaudiPattern.test(value)) {
+                e.target.setCustomValidity('رقم الهاتف المحمول يجب أن يبدأ بـ 01 أو 05 ويكون 11 رقم');
+            } else {
+                e.target.setCustomValidity('');
+            }
+        } else if (value.length === 8) {
+            if (!landlinePattern.test(value)) {
+                e.target.setCustomValidity('رقم الهاتف الأرضي يجب أن يكون 8 أرقام ويبدأ بكود المحافظة (02, 03, إلخ).');
             } else {
                 e.target.setCustomValidity('');
             }
         } else if (value.length > 0) {
-            e.target.setCustomValidity('رقم الهاتف يجب أن يكون 11 رقم');
+            e.target.setCustomValidity('رقم الهاتف يجب أن يكون 8 أرقام (أرضي) أو 11 رقم (محمول).');
         } else {
             e.target.setCustomValidity('');
         }
@@ -420,47 +941,44 @@ function initPhoneValidation() {
 }
 
 // ============================================================================
-// 6. FORM VALIDATION
+// 8. FORM VALIDATION
 // ============================================================================
 
-/**
- * Validate form before submit
- */
 function validateForm(e) {
     const errors = [];
 
-    // 1. Validate at least one working day
     const enabledDays = document.querySelectorAll('.day-enabled:checked');
     if (enabledDays.length === 0) {
         errors.push('يجب تحديد يوم عمل واحد على الأقل');
     }
 
-    // 2. Validate each enabled day has times
     enabledDays.forEach(checkbox => {
         const day = checkbox.dataset.day;
-        const openTime = document.querySelector(`.opening-time[data-day="${day}"]`)?.value;
-        const closeTime = document.querySelector(`.closing-time[data-day="${day}"]`)?.value;
+        const dayItem = checkbox.closest('.working-hour-item');
+        const openTime = dayItem?.querySelector('.opening-time')?.value;
+        const closeTime = dayItem?.querySelector('.closing-time')?.value;
 
         if (!openTime || !closeTime) {
-            errors.push('يرجى إدخال أوقات العمل لجميع الأيام المحددة');
+            const dayName = checkbox.nextElementSibling?.textContent || 'اليوم المختار';
+            errors.push(`${dayName}: يرجى إدخال أوقات العمل`);
+        } else if (openTime === closeTime) {
+            const dayName = checkbox.nextElementSibling?.textContent || 'اليوم المختار';
+            errors.push(`${dayName}: لا يمكن أن يكون وقت الفتح والإغلاق متطابقين تماماً (مدة العمل صفر).`);
         }
     });
 
-    // 3. Validate exceptions
     const exceptions = document.querySelectorAll('.exception-item');
     exceptions.forEach((item, index) => {
         const nameAr = item.querySelector('[name*="ExceptionNameAr"]')?.value;
         const nameEn = item.querySelector('[name*="ExceptionNameEn"]')?.value;
         const startDate = item.querySelector('[name*="StartDate"]')?.value;
         const endDate = item.querySelector('[name*="EndDate"]')?.value;
-        const exceptionType = item.querySelector('[name*="ExceptionType"]')?.value; // Get the type
+        const exceptionType = item.querySelector('[name*="ExceptionType"]')?.value;
 
-        // Check required fields
         if (!nameAr || !nameEn || !startDate || !endDate) {
             errors.push(`الاستثناء ${index + 1}: يجب ملء جميع الحقول المطلوبة`);
         }
 
-        // Only validate times if the type is CustomHours (value 0)
         if (exceptionType === '0') {
             const openTime = item.querySelector('[name*="OpeningTime"]')?.value;
             const closeTime = item.querySelector('[name*="ClosingTime"]')?.value;
@@ -469,25 +987,21 @@ function validateForm(e) {
             }
         }
 
-        // Check date range
         if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
             errors.push(`الاستثناء ${index + 1}: تاريخ البداية يجب أن يكون قبل تاريخ النهاية`);
         }
     });
 
-    // 4. Show errors if any
     if (errors.length > 0) {
         e.preventDefault();
-        showNotification(errors.join('\n'), 'error');
+        showNotification('❌ ' + errors.join('\n'), 'error');
         return false;
     }
 
+    prepareWorkingHoursForSubmission();
     return true;
 }
 
-/**
- * Initialize form validation
- */
 function initFormValidation() {
     const form = document.getElementById('branchForm');
     if (!form) return;
@@ -496,14 +1010,10 @@ function initFormValidation() {
 }
 
 // ============================================================================
-// 7. NOTIFICATIONS & CUSTOM MODALS
+// 9. NOTIFICATIONS & MODALS
 // ============================================================================
 
-/**
- * Show notification message
- */
 function showNotification(message, type = 'info') {
-    // Create notification element if doesn't exist
     let notification = document.getElementById('notification');
 
     if (!notification) {
@@ -515,116 +1025,154 @@ function showNotification(message, type = 'info') {
             right: 20px;
             z-index: 9999;
             padding: 16px 24px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            max-width: 400px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            max-width: 420px;
             font-weight: 500;
-            transition: opacity 0.3s, transform 0.3s;
-            text-align: right; /* Ensure RTL text is aligned correctly */
+            font-size: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: right;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         `;
         document.body.appendChild(notification);
     }
 
-    // Set colors based on type
     const colors = {
-        success: { bg: '#10b981', text: '#ffffff' },
-        error: { bg: '#ef4444', text: '#ffffff' },
-        warning: { bg: '#f59e0b', text: '#ffffff' },
-        info: { bg: '#3b82f6', text: '#ffffff' }
+        success: { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', text: '#ffffff' },
+        error: { bg: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', text: '#ffffff' },
+        warning: { bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', text: '#ffffff' },
+        info: { bg: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', text: '#ffffff' }
     };
 
     const color = colors[type] || colors.info;
-    notification.style.backgroundColor = color.bg;
+    notification.style.background = color.bg;
     notification.style.color = color.text;
     notification.textContent = message;
     notification.style.opacity = '1';
-    notification.style.transform = 'translateY(0)';
+    notification.style.transform = 'translateX(0)';
 
-    // Auto hide after 5 seconds
-    setTimeout(() => {
+    clearTimeout(notification.hideTimeout);
+    notification.hideTimeout = setTimeout(() => {
         notification.style.opacity = '0';
-        notification.style.transform = 'translateY(-20px)';
+        notification.style.transform = 'translateX(400px)';
     }, 5000);
 }
 
-/**
- * Show a custom confirmation modal (replaces window.confirm)
- */
 function showConfirmModal(message, onConfirm) {
-    let modal = document.getElementById('customConfirmModal');
     let overlay = document.getElementById('customConfirmOverlay');
 
-    if (!modal) {
+    if (!overlay) {
         overlay = document.createElement('div');
         overlay.id = 'customConfirmOverlay';
         overlay.style.cssText = `
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
             z-index: 10000;
             display: none;
             justify-content: center;
             align-items: center;
+            animation: fadeIn 0.2s ease;
         `;
         document.body.appendChild(overlay);
+    }
 
+    let modal = document.getElementById('customConfirmModal');
+    if (!modal) {
         modal = document.createElement('div');
         modal.id = 'customConfirmModal';
-        modal.style.cssText = `
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-        `;
         overlay.appendChild(modal);
     }
 
-    // Clear previous content
     modal.innerHTML = '';
+    modal.style.cssText = `
+        background: white;
+        padding: 32px;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        max-width: 420px;
+        width: 90%;
+        text-align: center;
+        animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    `;
 
     const messageP = document.createElement('p');
     messageP.textContent = message;
-    messageP.style.marginBottom = '20px';
-    messageP.style.fontSize = '1.1rem';
+    messageP.style.cssText = `
+        margin-bottom: 24px;
+        font-size: 1.05rem;
+        color: #1e293b;
+        font-weight: 500;
+        line-height: 1.5;
+    `;
     modal.appendChild(messageP);
 
     const buttonContainer = document.createElement('div');
-    buttonContainer.style.display = 'flex';
-    buttonContainer.style.gap = '10px';
-    buttonContainer.style.justifyContent = 'center';
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    `;
 
     const confirmBtn = document.createElement('button');
-    confirmBtn.textContent = 'نعم';
+    confirmBtn.textContent = 'نعم، احذف';
     confirmBtn.style.cssText = `
-        padding: 10px 20px;
-        background-color: #ef4444;
+        padding: 11px 24px;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         color: white;
         border: none;
-        border-radius: 6px;
+        border-radius: 8px;
         cursor: pointer;
         font-weight: 600;
+        font-size: 14px;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
     `;
+    confirmBtn.onmouseover = () => {
+        confirmBtn.style.transform = 'translateY(-2px)';
+        confirmBtn.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.4)';
+    };
+    confirmBtn.onmouseout = () => {
+        confirmBtn.style.transform = 'translateY(0)';
+        confirmBtn.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.3)';
+    };
     confirmBtn.onclick = () => {
-        overlay.style.display = 'none';
+        overlay.style.animation = 'fadeOut 0.2s ease';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            overlay.style.animation = 'fadeIn 0.2s ease';
+        }, 200);
         onConfirm();
     };
 
     const cancelBtn = document.createElement('button');
     cancelBtn.textContent = 'إلغاء';
     cancelBtn.style.cssText = `
-        padding: 10px 20px;
-        background-color: #ccc;
-        color: #333;
-        border: none;
-        border-radius: 6px;
+        padding: 11px 24px;
+        background: #f1f5f9;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
         cursor: pointer;
         font-weight: 600;
+        font-size: 14px;
+        transition: all 0.2s;
     `;
+    cancelBtn.onmouseover = () => {
+        cancelBtn.style.background = '#e2e8f0';
+    };
+    cancelBtn.onmouseout = () => {
+        cancelBtn.style.background = '#f1f5f9';
+    };
     cancelBtn.onclick = () => {
-        overlay.style.display = 'none';
+        overlay.style.animation = 'fadeOut 0.2s ease';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            overlay.style.animation = 'fadeIn 0.2s ease';
+        }, 200);
     };
 
     buttonContainer.appendChild(confirmBtn);
@@ -634,27 +1182,93 @@ function showConfirmModal(message, onConfirm) {
     overlay.style.display = 'flex';
 }
 
+// Add animation styles if not present
+function addGlobalAnimationStyles() {
+    if (!document.getElementById('branchFormAnimations')) {
+        const style = document.createElement('style');
+        style.id = 'branchFormAnimations';
+        style.textContent = `
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes slideUp {
+                from {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+            }
+
+            @keyframes slideInRight {
+                from {
+                    opacity: 0;
+                    transform: translateX(400px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                }
+                to {
+                    opacity: 1;
+                }
+            }
+
+            @keyframes fadeOut {
+                from {
+                    opacity: 1;
+                }
+                to {
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
 // ============================================================================
-// 8. INITIALIZATION
+// 10. INITIALIZATION
 // ============================================================================
 
-/**
- * Initialize all form functionality
- */
 function initBranchForm() {
-    // Initialize governorate/area cascade
+    console.log('🚀 Initializing Branch Form...');
+
+    addGlobalAnimationStyles();
+
     initGovernorateAreaCascade();
+    console.log('✓ Governorate/Area cascade initialized');
 
-    // Initialize image preview
     initImagePreview();
+    console.log('✓ Image preview initialized');
 
-    // Initialize phone validation
     initPhoneValidation();
+    console.log('✓ Phone validation initialized');
 
-    // Initialize form validation
     initFormValidation();
+    console.log('✓ Form validation initialized');
 
-    // Ensure working hours display correctly on page load
+    setTimeout(() => {
+        initTimePickers();
+        console.log('✓ Modern time pickers initialized');
+    }, 100);
+
     document.querySelectorAll('.day-enabled').forEach(checkbox => {
         const day = checkbox.dataset.day;
         const timeInputs = document.getElementById(`timeInputs_${day}`);
@@ -666,41 +1280,38 @@ function initBranchForm() {
             });
         }
     });
+    console.log('✓ Working hours display set');
 
-    // --- UPDATED: Initialize Exception State on Load ---
     document.querySelectorAll('.exception-item').forEach(item => {
         const index = item.dataset.index;
         const exceptionTypeInput = item.querySelector(`input[name="WorkingHourExceptions[${index}].ExceptionType"]`);
         if (!exceptionTypeInput) return;
 
         const typeValue = exceptionTypeInput.value;
-        const customTimes = item.querySelector(`.custom-times-${index}`);
+        const customTimes = item.querySelector(`.custom-times`);
         const typeButtons = item.querySelectorAll('.type-btn');
 
-        // Find the correct button and set its state
         let targetButton = null;
-        if (typeValue === '1') { // ClosedAllDay
+        if (typeValue === '1') {
             targetButton = typeButtons[0];
             if (customTimes) customTimes.style.display = 'none';
-        } else if (typeValue === '2') { // Open24Hours
+        } else if (typeValue === '2') {
             targetButton = typeButtons[1];
             if (customTimes) customTimes.style.display = 'none';
-        } else { // CustomHours (0)
+        } else {
             targetButton = typeButtons[2];
             if (customTimes) customTimes.style.display = 'grid';
         }
 
         if (targetButton) {
             targetButton.classList.add('active');
-            if (typeValue === '1') targetButton.classList.add('closed');
-            if (typeValue === '2') targetButton.classList.add('open24');
         }
     });
+    console.log('✓ Exception states initialized');
 
-    console.log('Branch form initialized successfully');
+    console.log('✅ Branch form fully initialized');
 }
 
-// Initialize when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initBranchForm);
 } else {
@@ -708,14 +1319,14 @@ if (document.readyState === 'loading') {
 }
 
 // ============================================================================
-// 9. EXPORT FUNCTIONS (for inline onclick handlers)
+// 11. EXPORT FUNCTIONS FOR INLINE HANDLERS
 // ============================================================================
 
-// Make functions globally accessible
 window.toggleDay = toggleDay;
-window.fillAllDays = fillAllDays;
+window.copyFirstDayToAll = copyFirstDayToAll;
 window.setExceptionType = setExceptionType;
 window.addException = addException;
 window.removeException = removeException;
 window.deleteImage = deleteImage;
-window.showNotification = showNotification; // Exporting for general use
+window.showNotification = showNotification;
+window.showConfirmModal = showConfirmModal;

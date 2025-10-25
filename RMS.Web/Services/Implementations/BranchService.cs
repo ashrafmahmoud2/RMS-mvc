@@ -1,4 +1,5 @@
-﻿using RMS.Web.Core.ViewModels.Branches;
+﻿using RMS.Web.Core.Enums;
+using RMS.Web.Core.ViewModels.Branches;
 using RMS.Web.Core.ViewModels.GovernateAreaBranch;
 using RMS.Web.Services.Interfaces;
 
@@ -37,6 +38,7 @@ public class BranchService : IBranchService
             .Include(b => b.BranchImages)
             .OrderBy(b => b.Governorate!.NameAr)
             .ThenBy(b => b.NameAr)
+            .AsNoTracking()
             .ToListAsync();
 
         var branchViewModels = new List<BranchViewModel>();
@@ -52,6 +54,32 @@ public class BranchService : IBranchService
 
         return branchViewModels;
     }
+
+    public async Task<BranchIndexViewModel> GetBranchesGroupedByGovernorateAsync()
+    {
+        // Reuse the existing method to get all branches with calculated status
+        var allBranches = await GetAllBranchesAsync();
+
+        // Group the BranchViewModel objects by their GovernorateNameAr
+        var groupedBranches = allBranches
+            .GroupBy(b => new { b.GovernorateId, b.GovernorateNameAr,b.GovernorateNameEn })
+            .OrderBy(g => g.Key.GovernorateNameAr) // Order by Arabic name for display
+            .Select(g => new GovernorateWithBranchesViewModel
+            {
+                Id = g.Key.GovernorateId, // Assuming GovernorateId is available or can be added to BranchViewModel if missing
+                NameAr = g.Key.GovernorateNameAr,
+                NameEn = g.Key.GovernorateNameEn,
+                Branches = g.OrderBy(b => b.NameAr) // Order branches within the governorate
+                            .ToList()
+            })
+            .ToList();
+
+        return new BranchIndexViewModel
+        {
+            Governorates = groupedBranches
+        };
+    }
+
 
     public async Task<Branch?> GetBranchByIdAsync(int id)
     {
@@ -152,8 +180,7 @@ public class BranchService : IBranchService
                         ExceptionNameEn = ex.ExceptionNameEn,
                         StartDate = ex.StartDate,
                         EndDate = ex.EndDate,
-                        IsClosedAllDay = ex.IsClosedAllDay,
-                        IsOpen24Hours = ex.IsOpen24Hours,
+                        ExceptionType = (int)ex.ExceptionType,
                         OpeningTime = ex.OpeningTime ,
                         ClosingTime = ex.ClosingTime 
                     });
@@ -288,9 +315,13 @@ public class BranchService : IBranchService
             branch.LastUpdatedById = userId;
             branch.LastUpdatedOn = DateTime.UtcNow;
 
-           
 
-            branch.BranchWorkingHours.Clear();
+
+            if (branch.BranchWorkingHours.Any())
+            {
+                _context.BranchWorkingHours.RemoveRange(branch.BranchWorkingHours);
+            }
+            //branch.BranchWorkingHours.Clear();
             if (viewModel.WorkingHours != null)
             {
                 foreach (var wh in viewModel.WorkingHours)
@@ -323,8 +354,7 @@ public class BranchService : IBranchService
                         ExceptionNameEn = ex.ExceptionNameEn,
                         StartDate = ex.StartDate,
                         EndDate = ex.EndDate,
-                        IsClosedAllDay = ex.IsClosedAllDay,
-                        IsOpen24Hours = ex.IsOpen24Hours,
+                        ExceptionType = (int)ex.ExceptionType,
                         OpeningTime = ex.OpeningTime,
                         ClosingTime = ex.ClosingTime
                     });
@@ -508,13 +538,21 @@ public class BranchService : IBranchService
             return (false, "End date must be after start date");
 
         // Validate time range (only if not closed/open 24h)
-        if (!exceptionViewModel.IsClosedAllDay && !exceptionViewModel.IsOpen24Hours)
+        if (exceptionViewModel.ExceptionType == WorkingHourExceptionType.Custom)
         {
-            if (exceptionViewModel.OpeningTime is null || exceptionViewModel.ClosingTime is null)
-                return (false, "Opening and closing times are required unless the branch is open 24 hours or closed all day");
+            // 1. Check for null times when type is Custom
+            // Note: If OpeningTime and ClosingTime are NOT nullable in your ViewModel, 
+            // this check might be simplified or removed, but I've kept it to match your original intent.
+            if (exceptionViewModel.OpeningTime == null || exceptionViewModel.ClosingTime == null)
+            {
+                return (false, "وقت الفتح ووقت الإغلاق مطلوبان عند تحديد ساعات مخصصة.");
+            }
 
+            // 2. Check time order
             if (exceptionViewModel.OpeningTime >= exceptionViewModel.ClosingTime)
-                return (false, "Opening time must be before closing time");
+            {
+                return (false, "وقت الفتح يجب أن يكون قبل وقت الإغلاق.");
+            }
         }
 
         // Prevent duplicates for overlapping date ranges
@@ -556,23 +594,28 @@ public class BranchService : IBranchService
         var now = DateTime.Now;
         var today = DateOnly.FromDateTime(now);
         var currentTime = TimeOnly.FromDateTime(now);
+        var currentTimeSpan = currentTime.ToTimeSpan();
 
-        // ✅ Check if there's an active exception for today
         var exception = branch.WorkingHourExceptions
             .FirstOrDefault(e => today >= e.StartDate && today <= e.EndDate);
 
         if (exception != null)
         {
-            // Case 1: branch closed all day
-            if (exception.IsClosedAllDay)
-                return false;
+            switch ((WorkingHourExceptionType)exception.ExceptionType)
+            {
+                case WorkingHourExceptionType.ClosedAllDay:
+                    return false;
 
-            // Case 2: branch open 24h
-            if (exception.IsOpen24Hours)
-                return true;
+                case WorkingHourExceptionType.Open24Hours:
+                    return true;
 
-            // Case 3: normal custom hours
-            return IsTimeInRange(currentTime.ToTimeSpan(), exception.OpeningTime, exception.ClosingTime);
+                case WorkingHourExceptionType.Custom:
+                    return IsTimeInRange(currentTimeSpan, exception.OpeningTime, exception.ClosingTime);
+
+                default:
+                    // Default to checking custom hours if type is unrecognized (e.g., 0)
+                    return IsTimeInRange(currentTimeSpan, exception.OpeningTime, exception.ClosingTime);
+            }
         }
 
         // ✅ Check regular working hours
@@ -584,6 +627,8 @@ public class BranchService : IBranchService
 
         return IsTimeInRange(currentTime.ToTimeSpan(), todayWorkingHours.OpeningTime, todayWorkingHours.ClosingTime);
     }
+
+
 
     public string GetWorkingHoursStatus(Branch branch)
     {
@@ -602,23 +647,34 @@ public class BranchService : IBranchService
         var now = DateTime.Now;
         var today = DateOnly.FromDateTime(now);
         var currentTime = TimeOnly.FromDateTime(now);
+        var currentTimeSpan = currentTime.ToTimeSpan();
 
-        // ✅ Check exceptions first
         var exception = branch.WorkingHourExceptions
             .FirstOrDefault(e => today >= e.StartDate && today <= e.EndDate);
 
         if (exception != null)
         {
-            if (exception.IsClosedAllDay)
-                return $"مغلق - {exception.ExceptionNameAr}";
+            switch ((WorkingHourExceptionType)exception.ExceptionType)
+            {
+                case WorkingHourExceptionType.ClosedAllDay:
+                    return $"مغلق - {exception.ExceptionNameAr}";
 
-            if (exception.IsOpen24Hours)
-                return $"مفتوح 24 ساعة - {exception.ExceptionNameAr}";
+                case WorkingHourExceptionType.Open24Hours:
+                    return $"مفتوح 24 ساعة - {exception.ExceptionNameAr}";
 
-            if (IsTimeInRange(currentTime.ToTimeSpan(), exception.OpeningTime, exception.ClosingTime))
-                return $"مفتوح حتى {FormatTime(exception.ClosingTime)} - {exception.ExceptionNameAr}";
+                case WorkingHourExceptionType.Custom:
+                    if (IsTimeInRange(currentTimeSpan, exception.OpeningTime, exception.ClosingTime))
+                        return $"مفتوح حتى {FormatTime(exception.ClosingTime)} - {exception.ExceptionNameAr}";
 
-            return $"مغلق - {exception.ExceptionNameAr}";
+                    // If it's a custom exception but currently outside the time range
+                    return $"مغلق - {exception.ExceptionNameAr}";
+
+                default:
+                    // Fallback to custom hours status for any other value
+                    if (IsTimeInRange(currentTimeSpan, exception.OpeningTime, exception.ClosingTime))
+                        return $"مفتوح حتى {FormatTime(exception.ClosingTime)} - {exception.ExceptionNameAr}";
+                    return $"مغلق - {exception.ExceptionNameAr}";
+            }
         }
 
         // ✅ Check regular working hours
@@ -720,47 +776,46 @@ public class BranchService : IBranchService
         return (true, string.Empty);
     }
 
-    private (bool IsValid, string Message) ValidateWorkingHourExceptions(IEnumerable<BranchWorkingHourExceptionViewModel> exceptions)
+    private (bool IsValid, string Message) ValidateWorkingHourExceptions(
+       IEnumerable<BranchExceptionHoursFormViewModel> exceptions)
     {
         if (exceptions == null || !exceptions.Any())
             return (true, string.Empty);
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var exceptionsList = exceptions.ToList();
 
-        // ✅ Check for overlapping date ranges
-        var overlappingRanges = exceptions
-            .SelectMany(ex1 => exceptions.Where(ex2 =>
-                ex1 != ex2 &&
-                ex1.StartDate <= ex2.EndDate &&
-                ex1.EndDate >= ex2.StartDate)
-                .Select(ex2 => (ex1, ex2)))
-            .FirstOrDefault();
-
-        if (overlappingRanges != default)
+        for (int i = 0; i < exceptionsList.Count; i++)
         {
-            return (false, $"Overlapping exception date ranges found between {overlappingRanges.ex1.StartDate} - {overlappingRanges.ex1.EndDate} and {overlappingRanges.ex2.StartDate} - {overlappingRanges.ex2.EndDate}");
+            for (int j = i + 1; j < exceptionsList.Count; j++)
+            {
+                var ex1 = exceptionsList[i];
+                var ex2 = exceptionsList[j];
+
+                if (ex1.StartDate <= ex2.EndDate && ex1.EndDate >= ex2.StartDate)
+                {
+                    return (false, $"توجد نطاقات تواريخ استثناء متداخلة بين {ex1.StartDate:yyyy-MM-dd} و {ex2.StartDate:yyyy-MM-dd}.");
+                }
+            }
         }
 
-        // ✅ Validate each exception
-        foreach (var ex in exceptions)
+        foreach (var ex in exceptionsList)
         {
             if (string.IsNullOrWhiteSpace(ex.ExceptionNameAr) || string.IsNullOrWhiteSpace(ex.ExceptionNameEn))
-                return (false, "Exception name is required in both Arabic and English");
+                return (false, "اسم الاستثناء مطلوب باللغتين العربية والإنجليزية.");
 
             if (ex.StartDate < today)
-                return (false, $"Start date {ex.StartDate} cannot be in the past");
+                return (false, $"تاريخ البداية ({ex.StartDate:yyyy-MM-dd}) لا يمكن أن يكون في الماضي.");
 
             if (ex.EndDate < ex.StartDate)
-                return (false, $"End date {ex.EndDate} must be after start date {ex.StartDate}");
+                return (false, $"تاريخ النهاية ({ex.EndDate:yyyy-MM-dd}) يجب أن يكون بعد تاريخ البداية ({ex.StartDate:yyyy-MM-dd}).");
 
-            // Skip time validation if closed/open 24h
-            if (!ex.IsClosedAllDay && !ex.IsOpen24Hours)
+            // Use the ExceptionType enum for validation
+            if (ex.ExceptionType == WorkingHourExceptionType.Custom)
             {
-                if (ex.OpeningTime == null || ex.ClosingTime == null)
-                    return (false, $"Opening and closing times are required for {ex.ExceptionNameEn}");
-
+                // The null checks are removed as TimeSpan is not nullable in the form model
                 if (ex.OpeningTime >= ex.ClosingTime)
-                    return (false, $"Invalid time range for {ex.ExceptionNameEn}: opening time must be before closing time");
+                    return (false, $"نطاق وقت غير صالح للاستثناء '{ex.ExceptionNameAr}': يجب أن يكون وقت الفتح قبل وقت الإغلاق.");
             }
         }
 

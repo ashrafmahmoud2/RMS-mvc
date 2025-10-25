@@ -1,0 +1,313 @@
+﻿@model IEnumerable<RMS.Web.Core.ViewModels.Order.OrderListViewModel>
+
+@{
+    Layout = null;
+}
+<style>
+    /* --- 1. General Table Appearance --- */
+
+    .data-table {
+        width: 100%;
+        border-collapse: separate; /* Allows border-radius on cells */
+        border-spacing: 0 8px; /* Space between rows */
+    }
+
+        .data-table thead th {
+            background-color: #f7f9fc;
+            color: #6c757d;
+            font-weight: 600;
+            text-align: start;
+            padding: 12px 15px;
+            position: sticky; /* Keep header visible on scroll */
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table tbody tr {
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Soft shadow for lift */
+            transition: transform 0.15s ease-in-out;
+        }
+
+            .data-table tbody tr:hover {
+                transform: translateY(-2px); /* Slight lift on hover */
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+        .data-table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+            border: none;
+            font-size: 0.95rem;
+        }
+
+        /* Ensure rounded corners on the first/last cells of the row */
+        .data-table tbody tr td:first-child {
+            border-top-left-radius: 6px;
+            border-bottom-left-radius: 6px;
+        }
+
+        .data-table tbody tr td:last-child {
+            border-top-right-radius: 6px;
+            border-bottom-right-radius: 6px;
+        }
+    /* RTL adjustment */
+    html[dir='rtl'] .data-table tbody tr td:first-child {
+        border-radius: 0 6px 6px 0;
+    }
+
+    html[dir='rtl'] .data-table tbody tr td:last-child {
+        border-radius: 6px 0 0 6px;
+    }
+
+
+    /* --- 2. Custom Column Styling --- */
+
+    /* Order Number Tag */
+    .order-no-tag {
+        font-weight: 700;
+        color: #333;
+        background-color: #e9ecef;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-family: monospace;
+    }
+
+    /* Customer Info Cell */
+    .customer-info-cell {
+        display: flex;
+        align-items: center;
+    }
+
+    .customer-icon {
+        font-size: 1.5rem;
+        color: #007bff;
+        margin-inline-end: 10px;
+    }
+
+    .user-details .customer-name {
+        font-weight: 600;
+        color: #212529;
+    }
+
+    .user-details .customer-phone {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    /* Total Cell */
+    .total-cell {
+        font-weight: 700;
+        color: #28a745; /* Success color for total */
+    }
+
+    /* Date/Time Cell */
+    .date-time-col .order-date {
+        font-weight: 500;
+    }
+
+    .date-time-col .order-time {
+        font-size: 0.8rem;
+        color: #adb5bd;
+    }
+
+
+    /* --- 3. Status Badges (Crucial for Clarity) --- */
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        text-align: center;
+        min-width: 80px;
+    }
+
+    /* Define colors for common statuses (adjust to your OrderStatusEnum names) */
+    .status-received {
+        background-color: #ffc10720; /* Light warning */
+        color: #ffc107;
+    }
+
+    .status-preparing {
+        background-color: #17a2b820; /* Light info */
+        color: #17a2b8;
+    }
+
+    .status-outfordelivery {
+        background-color: #007bff20; /* Light primary */
+        color: #007bff;
+    }
+
+    .status-delivered {
+        background-color: #28a74520; /* Light success */
+        color: #28a745;
+    }
+
+    .status-cancelled {
+        background-color: #dc354520; /* Light danger */
+        color: #dc3545;
+    }
+
+    /* --- 4. Header and Controls --- */
+
+    .card-header-with-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 20px;
+    }
+
+    .filter-controls {
+        display: flex;
+        gap: 10px;
+    }
+
+    .search-input {
+        padding: 8px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        transition: border-color 0.2s;
+    }
+
+        .search-input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+    /* Action Button Icon */
+    .btn-icon {
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        text-decoration: none;
+    }
+
+    /* --- 5. Empty State Message --- */
+
+    .empty-state {
+        text-align: center;
+        padding: 50px 0;
+        color: #6c757d;
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        color: #ced4da;
+        margin-bottom: 15px;
+    }
+
+    .empty-state p {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+</style>
+
+<div class="page-header">
+    <h1 class="page-title" data-en="Orders" data-ar="الطلبات">الطلبات</h1>
+    <div class="page-breadcrumb">
+        <i class="fas fa-home"></i>
+        <span data-en="Home" data-ar="الرئيسية">الرئيسية</span>
+        <span>/</span>
+        <span data-en="Orders" data-ar="الطلبات">الطلبات</span>
+    </div>
+</div>
+
+<div class="content-card">
+    <div class="card-header-with-actions">
+        <h2 class="card-title" data-en="All Orders" data-ar="جميع الطلبات">جميع الطلبات</h2>
+        <div class="filter-controls">
+            <input type="text" class="search-input" placeholder="Search by Order No. or Customer" />
+            <button class="btn btn-secondary filter-btn"><i class="fas fa-filter"></i></button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th class="col-order-no" data-en="Order No." data-ar="رقم الطلب">رقم الطلب</th>
+                    <th class="col-customer" data-en="Customer" data-ar="العميل">العميل</th>
+                    <th class="col-branch" data-en="Branch" data-ar="الفرع">الفرع</th>
+                    <th class="col-total" data-en="Total" data-ar="الإجمالي">الإجمالي</th>
+                    <th class="col-date" data-en="Date" data-ar="التاريخ">التاريخ</th>
+                    <th class="col-status" data-en="Status" data-ar="الحالة">الحالة</th>
+                    <th class="col-actions" data-en="Actions" data-ar="الإجراءات">الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td class="order-number-cell">
+                                <span class="order-no-tag">@order.OrderNumber</span>
+                            </td>
+                            <td class="customer-info-cell">
+                                <i class="fas fa-user-circle customer-icon"></i>
+                                <div class="user-details">
+                                    <div class="customer-name">@(order.CustomerName ?? "Guest")</div>
+                                    <div class="customer-phone">@order.CustomerPhoneNumber</div>
+                                </div>
+                            </td>
+                            <td>@order.BranchName</td>
+                            <td class="total-cell">
+                                <span class="currency-symbol">$</span>
+                                <span class="grand-total">@order.GrandTotal.ToString("N2")</span>
+                            </td>
+                            <td>
+                                <div class="date-time-col">
+                                    <div class="order-date">@order.CreatedOn.ToLocalTime().ToString("yyyy-MM-dd")</div>
+                                    <div class="order-time">@order.CreatedOn.ToLocalTime().ToString("HH:mm")</div>
+                                </div>
+                            </td>
+                            <td>
+                                @{
+                                    // Use a helper function or map the enum to CSS classes
+                                    var statusClass = order.CurrentStatus.ToString().ToLower();
+                                }
+                                <span class="status-badge status-@statusClass"
+                                      data-en="@order.CurrentStatus.ToString()" data-ar="@order.CurrentStatusArabic">
+                                    @order.CurrentStatusArabic
+                                </span>
+                            </td>
+                            <td class="actions-cell">
+                                <a href="@Url.Action("OrderDetails", "Order", new { orderId = order.Id })"
+                                   class="btn-icon btn-info nav-link" data-page="orderDetails" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <i class="fas fa-box-open empty-icon"></i>
+                            <p data-en="No orders found." data-ar="لم يتم العثور على طلبات.">
+                                **لم يتم العثور على طلبات حاليًا.**
+                            </p>
+                            <small data-en="Check back later or adjust your filters." data-ar="عدل الفلاتر أو حاول لاحقاً.">
+                                يرجى التأكد من صلاحية الفلاتر المستخدمة.
+                            </small>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    if (typeof applyAnimations === 'function') {
+        applyAnimations();
+    }
+</script>

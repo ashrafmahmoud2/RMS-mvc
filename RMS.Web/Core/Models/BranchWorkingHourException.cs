@@ -22,13 +22,9 @@ public class BranchWorkingHourException:BaseModel
     [Required]
     public DateOnly EndDate { get; set; }
 
-    // 1. If true, the branch is closed the entire day(s) in the range. 
-    // (Addresses the "close 24h" request). Opening/Closing Times are ignored.
-    public bool IsClosedAllDay { get; set; } = false;
+    // Value 0: Custom, 1: ClosedAllDay, 2: Open24Hours (based on JS logic)
+    public int ExceptionType { get; set; }
 
-    // 2. If true (and IsClosedAllDay is false), the branch operates 24 hours 
-    // (00:00 to 00:00) during this period. (Addresses the "open 24h" request).
-    public bool IsOpen24Hours { get; set; } = false;
     [Required]
     public TimeSpan OpeningTime { get; set; }
 

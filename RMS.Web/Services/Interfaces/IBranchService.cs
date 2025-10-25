@@ -13,6 +13,7 @@ public interface IBranchService
 
     // Branch CRUD
     Task<IEnumerable<BranchViewModel>> GetAllBranchesAsync();
+    Task<BranchIndexViewModel> GetBranchesGroupedByGovernorateAsync();
     Task<Branch?> GetBranchByIdAsync(int id);
 
     Task<(bool Success, string Message, int? BranchId)> CreateBranchAsync(BranchFormViewModel viewModel, string userId);

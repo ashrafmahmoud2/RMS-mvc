@@ -39,6 +39,22 @@ public class OrderController : Controller
         _signInManager = signInManager;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        var orders = await _context.Orders
+            .Include(o => o.Customer)
+                .ThenInclude(c => c.User) // Assuming ApplicationUser holds customer name/phone
+            .Include(o => o.Branch)
+            .Include(o => o.StatusHistory) // Required to determine current status
+            .OrderByDescending(o => o.CreatedOn)
+            .Take(100) // Limit results for dashboard performance
+            .ToListAsync();
+
+        var viewModel = _mapper.Map<IEnumerable<OrderListViewModel>>(orders);
+
+        return PartialView("_OrderList", viewModel);
+    }
 
     public IActionResult OrderConfirmation(int? orderId)
     {
@@ -457,7 +473,7 @@ public class OrderController : Controller
             return NotFound();
 
         var viewModel = _mapper.Map<OrderDetailsViewModel>(order);
-        return View(viewModel);
+        return PartialView("OrderDetails",viewModel);
     }
 
     [HttpGet]

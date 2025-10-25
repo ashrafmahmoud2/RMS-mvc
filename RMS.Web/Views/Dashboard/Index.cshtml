@@ -12,6 +12,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            scrollbar-width:none;
         }
 
         :root {
@@ -548,6 +549,10 @@
         }
 
         @@media (max-width: 640px) {
+
+            .fa-utensils {
+                display: none;
+            }
             .topbar {
                 padding: 0 16px;
             }
@@ -607,28 +612,34 @@
             <div class="nav-section-title" data-en="MAIN MENU" data-ar="القائمة الرئيسية">القائمة الرئيسية</div>
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="#dashboard" class="nav-link active" data-page="dashboard">
+                    <a  asp-controller="dashboard" asp-action="Index" class="nav-link active" data-page="dashboard">
                         <i class="fas fa-home"></i>
                         <span data-en="Dashboard" data-ar="لوحة التحكم">لوحة التحكم</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#orders" class="nav-link" data-page="orders">
+                    <a asp-controller="order" asp-action="Index" class="nav-link" data-page="orders">
                         <i class="fas fa-shopping-cart"></i>
                         <span data-en="Orders" data-ar="الطلبات">الطلبات</span>
                         <span class="badge">12</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#items" class="nav-link" data-page="items">
+                    <a  asp-controller="items" asp-action="Index" class="nav-link" data-page="items">
                         <i class="fas fa-box"></i>
                         <span data-en="Items" data-ar="المنتجات">المنتجات</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#customers" class="nav-link" data-page="customers">
+                    <a  asp-controller="customers" asp-action="Index" class="nav-link" data-page="customers">
                         <i class="fas fa-users"></i>
                         <span data-en="Customers" data-ar="العملاء">العملاء</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a asp-controller="Branch" asp-action="AdminIndex" class="nav-link" data-page="branches">
+                        <i class="fas fa-users"></i>
+                        <span data-en="branches" data-ar="الفروع">الفروع</span>
                     </a>
                 </li>
             </ul>
@@ -788,333 +799,221 @@
             </div>
         </div>
     </main>
-
     <script>
-        // Language Switcher
+                // --------------------------------------
+        // 1. Setup & Utilities
+        // --------------------------------------
         const langButtons = document.querySelectorAll('.lang-btn');
         const html = document.documentElement;
+        const mainContent = document.querySelector('.main-content');
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const navLinks = document.querySelectorAll('.nav-link');
 
+        // Define initial active language based on HTML direction
+        let currentLang = html.getAttribute('dir') === 'rtl' ? 'ar' : 'en';
+
+        // Function to set the page's direction and language
+        function setPageDirection(lang) {
+            const dir = lang === 'ar' ? 'rtl' : 'ltr';
+            html.setAttribute('lang', lang);
+            html.setAttribute('dir', dir);
+            currentLang = lang; // Update the global state
+        }
+
+        // Function to translate all elements
+        function translateContent(lang) {
+            document.querySelectorAll('[data-ar]').forEach(el => {
+                const text = lang === 'ar' ? el.dataset.ar : el.dataset.en;
+                // Check for common input types
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    el.placeholder = text;
+                } else if (el.tagName !== 'I') {
+                    // Check if the element only contains an icon/span to prevent overwriting
+                    // the icon tag. If the element is a plain container, update text.
+                    const hasIcon = el.querySelector('i');
+                    const hasBadge = el.querySelector('.badge');
+
+                    if (!hasIcon && !hasBadge) {
+                        el.textContent = text;
+                    } else {
+                        // If it contains an icon/badge, selectively update the text node (span)
+                        const textSpan = el.querySelector('span[data-ar]');
+                        if (textSpan) {
+                            textSpan.textContent = text;
+                        } else if (el.tagName === 'SPAN') { // For standalone spans like user-name/role
+                             el.textContent = text;
+                        }
+                    }
+                }
+            });
+
+            // Update arrow directions
+            document.querySelectorAll('.card-action i').forEach(icon => {
+                icon.className = lang === 'ar' ? 'fas fa-arrow-left' : 'fas fa-arrow-right';
+            });
+        }
+
+        // Function to handle fetching and rendering new page content
+        async function loadPage(controller, action) {
+            const url = `/${controller}/${action}`;
+
+            const errorHtml = (message, url) => `
+                <div class="content-card" style="border: 2px solid #dc3545; background: #f8d7da; padding: 20px; text-align: center;">
+                    <h2 class="card-title" data-en="Error Loading Page" data-ar="خطأ في تحميل الصفحة">Error Loading Page</h2>
+                    <p style="color: #dc3545;">${message}</p>
+                    <p data-en="Could not load content for: ${url}" data-ar="تعذر تحميل المحتوى للرابط: ${url}">Could not load content for: ${url}</p>
+                </div>`;
+
+            try {
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+                }
+
+                const htmlContent = await response.text();
+
+                // 1. Inject new HTML
+                mainContent.innerHTML = htmlContent;
+
+                // 2. Re-translate the newly loaded content using the current global language state
+                translateContent(currentLang);
+
+                // 3. Re-apply animations
+                applyAnimations();
+
+                // 4. Scroll to top and close sidebar on mobile
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                if (window.innerWidth <= 1024) {
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                }
+
+            } catch (error) {
+                mainContent.innerHTML = errorHtml(error.message, url);
+                // Ensure error message is translated by running it through the translator after insertion
+                translateContent(currentLang);
+            }
+        }
+
+        // Function to handle element visibility/fade-in
+        function applyAnimations() {
+            // ... (Your existing applyAnimations function remains the same)
+            const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
+
+            // Re-initialize observer to prevent observing stale elements
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.stat-card, .content-card').forEach(card => {
+                // Reset styles before observing
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'all 0.6s ease-out';
+                observer.observe(card);
+            });
+        }
+
+
+        // --------------------------------------
+        // 2. Event Listeners
+        // --------------------------------------
+
+        // Language Switcher (Updated to use setPageDirection)
         langButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 const lang = btn.dataset.lang;
 
-                // Update active button
+                // Update button states
                 langButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
 
-                // Update HTML lang and dir
-                html.setAttribute('lang', lang);
-                html.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+                // Update document direction and language attributes
+                setPageDirection(lang);
 
-                // Update all translatable elements
-                document.querySelectorAll('[data-ar]').forEach(el => {
-                    const text = lang === 'ar' ? el.dataset.ar : el.dataset.en;
-                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                        el.placeholder = text;
-                    } else {
-                        el.textContent = text;
-                    }
-                });
-
-                // Update arrow directions in card actions
-                document.querySelectorAll('.card-action i').forEach(icon => {
-                    icon.className = lang === 'ar' ? 'fas fa-arrow-left' : 'fas fa-arrow-right';
-                });
+                // Apply translation to content
+                translateContent(lang);
             });
         });
 
-        // Sidebar Toggle for Mobile
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-
-        menuToggle.addEventListener('click', () => {
+        // Sidebar Toggle (Uses a single function for toggling)
+        const toggleSidebar = () => {
             sidebar.classList.toggle('active');
             sidebarOverlay.classList.toggle('active');
-        });
+        };
+        menuToggle.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
 
-        sidebarOverlay.addEventListener('click', () => {
-            sidebar.classList.remove('active');
-            sidebarOverlay.classList.remove('active');
-        });
-
-        // Navigation
-        const navLinks = document.querySelectorAll('.nav-link');
-
+        // Navigation Click Handler (Main Logic - Modified to handle ASP.NET Core Tag Helpers by falling back to data-page if href is just '#')
         navLinks.forEach(link => {
+            // Check for the ASP.NET Core Tag Helper attributes and construct the URL
+            // since the original HTML uses them but the original JS only used `href`.
+            const controllerAttr = link.getAttribute('asp-controller');
+            const actionAttr = link.getAttribute('asp-action');
+            const dataPageAttr = link.getAttribute('data-page');
+
             link.addEventListener('click', (e) => {
                 e.preventDefault();
 
-                // Update active state
-                navLinks.forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
+                let controller = controllerAttr;
+                let action = actionAttr || 'Index'; // Default action is 'Index'
 
-                // Close sidebar on mobile
-                if (window.innerWidth <= 1024) {
-                    sidebar.classList.remove('active');
-                    sidebarOverlay.classList.remove('active');
-                }
+                // If Tag Helpers are not present, fall back to parsing the href
+                if (!controller) {
+                    const href = link.getAttribute('href');
 
-                // Here you would load the actual page content
-                console.log('Navigate to:', link.dataset.page);
-            });
-        });
-
-        // Smooth scroll to top on page change
-        window.addEventListener('hashchange', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-
-        // Add subtle animations on scroll
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.stat-card, .content-card').forEach(card => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
-            card.style.transition = 'all 0.6s ease-out';
-            observer.observe(card);
-        });
-
-        // Auto-close sidebar when clicking nav items on mobile
-        const handleResize = () => {
-            if (window.innerWidth > 1024) {
-                sidebar.classList.remove('active');
-                sidebarOverlay.classList.remove('active');
-            }
-        };
-
-        window.addEventListener('resize', handleResize);
-
-        // Page Content Management (Demo)
-        const pageContents = {
-            dashboard: `
-                <div class="page-header">
-                    <h1 class="page-title" data-en="Dashboard" data-ar="لوحة التحكم">لوحة التحكم</h1>
-                    <div class="page-breadcrumb">
-                        <i class="fas fa-home"></i>
-                        <span data-en="Home" data-ar="الرئيسية">الرئيسية</span>
-                        <span>/</span>
-                        <span data-en="Dashboard" data-ar="لوحة التحكم">لوحة التحكم</span>
-                    </div>
-                </div>
-            `,
-            orders: `
-                <div class="page-header">
-                    <h1 class="page-title" data-en="Orders Management" data-ar="إدارة الطلبات">إدارة الطلبات</h1>
-                    <div class="page-breadcrumb">
-                        <i class="fas fa-home"></i>
-                        <span data-en="Home" data-ar="الرئيسية">الرئيسية</span>
-                        <span>/</span>
-                        <span data-en="Orders" data-ar="الطلبات">الطلبات</span>
-                    </div>
-                </div>
-                <div class="content-card">
-                    <div class="card-header">
-                        <h2 class="card-title" data-en="All Orders" data-ar="جميع الطلبات">جميع الطلبات</h2>
-                        <button class="card-action" style="background: var(--primary); color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">
-                            <i class="fas fa-plus"></i>
-                            <span data-en="New Order" data-ar="طلب جديد">طلب جديد</span>
-                        </button>
-                    </div>
-                    <p style="color: var(--text-secondary); padding: 20px; text-align: center;" data-en="Orders list will appear here" data-ar="ستظهر قائمة الطلبات هنا">ستظهر قائمة الطلبات هنا</p>
-                </div>
-            `,
-            items: `
-                <div class="page-header">
-                    <h1 class="page-title" data-en="Items Management" data-ar="إدارة المنتجات">إدارة المنتجات</h1>
-                    <div class="page-breadcrumb">
-                        <i class="fas fa-home"></i>
-                        <span data-en="Home" data-ar="الرئيسية">الرئيسية</span>
-                        <span>/</span>
-                        <span data-en="Items" data-ar="المنتجات">المنتجات</span>
-                    </div>
-                </div>
-                <div class="content-card">
-                    <div class="card-header">
-                        <h2 class="card-title" data-en="All Items" data-ar="جميع المنتجات">جميع المنتجات</h2>
-                        <button class="card-action" style="background: var(--primary); color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">
-                            <i class="fas fa-plus"></i>
-                            <span data-en="Add Item" data-ar="إضافة منتج">إضافة منتج</span>
-                        </button>
-                    </div>
-                    <p style="color: var(--text-secondary); padding: 20px; text-align: center;" data-en="Items list will appear here" data-ar="ستظهر قائمة المنتجات هنا">ستظهر قائمة المنتجات هنا</p>
-                </div>
-            `,
-            customers: `
-                <div class="page-header">
-                    <h1 class="page-title" data-en="Customers Management" data-ar="إدارة العملاء">إدارة العملاء</h1>
-                    <div class="page-breadcrumb">
-                        <i class="fas fa-home"></i>
-                        <span data-en="Home" data-ar="الرئيسية">الرئيسية</span>
-                        <span>/</span>
-                        <span data-en="Customers" data-ar="العملاء">العملاء</span>
-                    </div>
-                </div>
-                <div class="content-card">
-                    <div class="card-header">
-                        <h2 class="card-title" data-en="All Customers" data-ar="جميع العملاء">جميع العملاء</h2>
-                        <button class="card-action" style="background: var(--primary); color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">
-                            <i class="fas fa-user-plus"></i>
-                            <span data-en="Add Customer" data-ar="إضافة عميل">إضافة عميل</span>
-                        </button>
-                    </div>
-                    <p style="color: var(--text-secondary); padding: 20px; text-align: center;" data-en="Customers list will appear here" data-ar="ستظهر قائمة العملاء هنا">ستظهر قائمة العملاء هنا</p>
-                </div>
-            `,
-            analytics: `
-                <div class="page-header">
-                    <h1 class="page-title" data-en="Analytics & Reports" data-ar="التحليلات والتقارير">التحليلات والتقارير</h1>
-                    <div class="page-breadcrumb">
-                        <i class="fas fa-home"></i>
-                        <span data-en="Home" data-ar="الرئيسية">الرئيسية</span>
-                        <span>/</span>
-                        <span data-en="Analytics" data-ar="التحليلات">التحليلات</span>
-                    </div>
-                </div>
-                <div class="content-card">
-                    <div class="card-header">
-                        <h2 class="card-title" data-en="Performance Analytics" data-ar="تحليلات الأداء">تحليلات الأداء</h2>
-                    </div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 20px;">
-                        <div style="text-align: center; padding: 20px; background: var(--bg-hover); border-radius: 12px;">
-                            <i class="fas fa-chart-line" style="font-size: 32px; color: var(--primary); margin-bottom: 10px;"></i>
-                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 5px;">85%</div>
-                            <div style="color: var(--text-secondary); font-size: 14px;" data-en="Growth Rate" data-ar="معدل النمو">معدل النمو</div>
-                        </div>
-                        <div style="text-align: center; padding: 20px; background: var(--bg-hover); border-radius: 12px;">
-                            <i class="fas fa-star" style="font-size: 32px; color: var(--warning); margin-bottom: 10px;"></i>
-                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 5px;">4.8</div>
-                            <div style="color: var(--text-secondary); font-size: 14px;" data-en="Avg Rating" data-ar="متوسط التقييم">متوسط التقييم</div>
-                        </div>
-                        <div style="text-align: center; padding: 20px; background: var(--bg-hover); border-radius: 12px;">
-                            <i class="fas fa-clock" style="font-size: 32px; color: var(--success); margin-bottom: 10px;"></i>
-                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 5px;">25m</div>
-                            <div style="color: var(--text-secondary); font-size: 14px;" data-en="Avg Delivery" data-ar="متوسط التوصيل">متوسط التوصيل</div>
-                        </div>
-                    </div>
-                </div>
-            `,
-            users: `
-                <div class="page-header">
-                    <h1 class="page-title" data-en="Admins & Users" data-ar="المسؤولون والمستخدمون">المسؤولون والمستخدمون</h1>
-                    <div class="page-breadcrumb">
-                        <i class="fas fa-home"></i>
-                        <span data-en="Home" data-ar="الرئيسية">الرئيسية</span>
-                        <span>/</span>
-                        <span data-en="Users" data-ar="المستخدمون">المستخدمون</span>
-                    </div>
-                </div>
-                <div class="content-card">
-                    <div class="card-header">
-                        <h2 class="card-title" data-en="User Management" data-ar="إدارة المستخدمين">إدارة المستخدمين</h2>
-                        <button class="card-action" style="background: var(--primary); color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">
-                            <i class="fas fa-user-plus"></i>
-                            <span data-en="Add User" data-ar="إضافة مستخدم">إضافة مستخدم</span>
-                        </button>
-                    </div>
-                    <div style="padding: 20px;">
-                        <div style="display: grid; gap: 16px;">
-                            <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--bg-hover); border-radius: 10px;">
-                                <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-light)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">AM</div>
-                                <div style="flex: 1;">
-                                    <div style="font-weight: 600; margin-bottom: 4px;" data-en="Ahmed Mohamed" data-ar="أحمد محمد">أحمد محمد</div>
-                                    <div style="font-size: 14px; color: var(--text-secondary);" data-en="Administrator" data-ar="مسؤول">مسؤول</div>
-                                </div>
-                                <div style="display: flex; gap: 8px;">
-                                    <button style="padding: 8px 16px; border: none; background: var(--primary); color: white; border-radius: 6px; cursor: pointer;">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button style="padding: 8px 16px; border: none; background: var(--danger); color: white; border-radius: 6px; cursor: pointer;">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--bg-hover); border-radius: 10px;">
-                                <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--success), #059669); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">FA</div>
-                                <div style="flex: 1;">
-                                    <div style="font-weight: 600; margin-bottom: 4px;" data-en="Fatima Ali" data-ar="فاطمة علي">فاطمة علي</div>
-                                    <div style="font-size: 14px; color: var(--text-secondary);" data-en="Manager" data-ar="مدير">مدير</div>
-                                </div>
-                                <div style="display: flex; gap: 8px;">
-                                    <button style="padding: 8px 16px; border: none; background: var(--primary); color: white; border-radius: 6px; cursor: pointer;">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button style="padding: 8px 16px; border: none; background: var(--danger); color: white; border-radius: 6px; cursor: pointer;">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `
-        };
-
-        // Update content based on navigation
-        const mainContent = document.querySelector('.main-content');
-        const initialContent = mainContent.innerHTML;
-
-        navLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-
-                const page = link.dataset.page;
-                const currentLang = document.documentElement.getAttribute('lang') || 'ar';
-
-                // Update active state
-                navLinks.forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
-
-                // Update content
-                if (page === 'dashboard') {
-                    mainContent.innerHTML = initialContent;
-                } else if (pageContents[page]) {
-                    mainContent.innerHTML = pageContents[page];
-                }
-
-                // Re-translate after content update
-                document.querySelectorAll('[data-ar]').forEach(el => {
-                    const text = currentLang === 'ar' ? el.dataset.ar : el.dataset.en;
-                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                        el.placeholder = text;
-                    } else {
-                        el.textContent = text;
+                    if (href) {
+                        if (href.startsWith('/')) {
+                            // Case: /Controller/Action
+                            const parts = href.substring(1).split('/').filter(p => p.length > 0);
+                            if (parts.length > 0) {
+                                controller = parts[0];
+                                action = parts.length > 1 ? parts[1] : 'Index';
+                            }
+                        } else if (href.startsWith('#')) {
+                            // Case: #page (e.g., #analytics). Use hash as controller/page name.
+                            controller = href.substring(1).split('/')[0];
+                            action = 'Index';
+                        }
+                    } else if (dataPageAttr) {
+                         // Fallback: Use data-page as controller (Common for single-page apps)
+                         controller = dataPageAttr;
+                         action = 'Index';
                     }
-                });
-
-                // Re-apply animations
-                document.querySelectorAll('.content-card').forEach(card => {
-                    card.style.opacity = '0';
-                    card.style.transform = 'translateY(20px)';
-                    setTimeout(() => {
-                        card.style.opacity = '1';
-                        card.style.transform = 'translateY(0)';
-                    }, 100);
-                });
-
-                // Close sidebar on mobile
-                if (window.innerWidth <= 1024) {
-                    sidebar.classList.remove('active');
-                    sidebarOverlay.classList.remove('active');
                 }
 
-                // Scroll to top
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                console.log(`Attempting to load: ${controller}/${action}`);
+
+                if (controller) {
+                    // Update active state immediately
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+
+                    // Load the new content via AJAX
+                    loadPage(controller, action);
+                }
             });
         });
+
+        // --------------------------------------
+        // 3. Initial Load and Animation
+        // --------------------------------------
+
+        // Apply initial translation and set direction based on HTML dir attribute
+        setPageDirection(currentLang);
+        translateContent(currentLang);
+        document.addEventListener('DOMContentLoaded', applyAnimations);
     </script>
+
 </body>
 </html> 
 

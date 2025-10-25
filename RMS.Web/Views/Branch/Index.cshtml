@@ -1,4 +1,5 @@
-﻿@using RMS.Web.Core.ViewModels.GovernateAreaBranch
+﻿
+@using RMS.Web.Core.ViewModels.GovernateAreaBranch
 @model BranchIndexViewModel
 @{
     ViewData["Title"] = "الفروع";
@@ -470,7 +471,7 @@
                 <div class="governorate-header">
                     <h1 class="governorate-title">
                         <i class="fas fa-map-marker-alt"></i>
-                        @governorate.Name
+                        @governorate.NameAr
                     </h1>
                 </div>
 
@@ -483,7 +484,7 @@
                             <div class="branch-image">
                                 @if (!string.IsNullOrEmpty(branch.BranchImages))
                                 {
-                                    <img src="@Url.Content(branch.BranchImages)" alt="@branch.Name" loading="lazy">
+                                    <img src="@Url.Content(branch.BranchImages)" alt="@branch.NameAr" loading="lazy">
                                 }
                                 else
                                 {
@@ -502,7 +503,7 @@
                             <!-- Branch Content -->
                             <div class="branch-content">
                                 <!-- Branch Name -->
-                                <h2 class="branch-name">@branch.Name</h2>
+                                <h2 class="branch-name">@branch.NameAr</h2>
 
                                 <!-- Working Hours -->
                                 <div class="branch-working-hours">
@@ -525,7 +526,7 @@
                                         <div class="branch-info-icon">
                                             <i class="fas fa-map-marker-alt"></i>
                                         </div>
-                                        <div class="branch-info-text">@branch.Address</div>
+                                        <div class="branch-info-text">@branch.AddressAr</div>
                                     </div>
                                 </div>
 

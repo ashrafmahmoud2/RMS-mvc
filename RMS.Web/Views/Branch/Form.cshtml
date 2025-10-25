@@ -1,37 +1,55 @@
 ﻿@model BranchFormViewModel
 
-@* 1. in edit mode show the expetions and images , and why in click make chek to all days
-2. (حالة الفرع) make when , removeing is open he will not need
-3. optize js vldation , and ui input  *@
-
+@using RMS.Web.Core.Enums
 @using RMS.Web.Core.ViewModels.Branches
 @{
     ViewBag.Title = Model.Id.HasValue ? "تعديل الفرع" : "إضافة فرع جديد";
-  
     var isEdit = Model.Id.HasValue;
+    var exceptionsList = Model.WorkingHourExceptions?.ToList() ?? new List<BranchExceptionHoursFormViewModel>();
+
+    // Ensure we have all 7 days in working hours
+    var allDays = new[] {
+        DayOfWeek.Sunday, DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday,
+        DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday
+    };
 }
 
-
 <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
     :root {
         --primary: #185499;
-        --primary-dark: #124075;
+        --primary-dark: #0f3a6f;
+        --primary-light: #e3f2fd;
         --secondary: #6b7280;
         --danger: #ef4444;
         --success: #10b981;
         --warning: #f59e0b;
-        --bg-main: #f9fafb;
+        --bg-main: #f8fafc;
         --bg-card: #ffffff;
-        --text-primary: #1f2937;
-        --text-secondary: #6b7280;
-        --border: #e5e7eb;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --border: #e2e8f0;
         --radius: 12px;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+        --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+        background: var(--bg-main);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        color: var(--text-primary);
     }
 
     .form-container {
-        max-width: 1200px;
+        max-width: 1100px;
         margin: 0 auto;
-        padding: 24px;
+        padding: 32px 20px;
     }
 
     .page-header {
@@ -39,20 +57,38 @@
     }
 
     .page-title {
-        font-size: 28px;
+        font-size: 32px;
         font-weight: 700;
         color: var(--text-primary);
         margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+        .page-title i {
+            color: var(--primary);
+            font-size: 28px;
+        }
+
+    .page-subtitle {
+        font-size: 14px;
+        color: var(--text-secondary);
     }
 
     .card {
         background: var(--bg-card);
         border-radius: var(--radius);
-        padding: 24px;
+        padding: 28px;
         margin-bottom: 24px;
         border: 1px solid var(--border);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: var(--shadow-sm);
+        transition: box-shadow 0.3s ease;
     }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
 
     .card-header {
         display: flex;
@@ -67,20 +103,21 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 700;
         color: var(--text-primary);
         margin: 0;
     }
 
-    .card-title i {
-        color: var(--primary);
-        font-size: 24px;
-    }
+        .card-title i {
+            color: var(--primary);
+            font-size: 22px;
+            width: 24px;
+        }
 
     .form-row {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         gap: 20px;
         margin-bottom: 20px;
     }
@@ -95,74 +132,103 @@
         color: var(--text-primary);
         margin-bottom: 8px;
         font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
     }
 
-    .form-label.required::after {
-        content: '*';
-        color: var(--danger);
-        margin-inline-start: 4px;
-    }
+        .form-label.required::after {
+            content: '*';
+            color: var(--danger);
+            font-weight: 700;
+        }
 
     .form-control {
-        padding: 12px 16px;
+        padding: 11px 14px;
         border: 2px solid var(--border);
         border-radius: 8px;
         font-size: 15px;
-        transition: all 0.3s;
+        transition: all 0.2s ease;
         background: white;
+        font-family: inherit;
     }
 
-    .form-control:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 4px rgba(24, 84, 153, 0.1);
-    }
+        .form-control:hover {
+            border-color: #cbd5e1;
+        }
 
-    .form-control:disabled {
-        background: #f3f4f6;
-        cursor: not-allowed;
-    }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+            background: white;
+        }
+
+        .form-control:disabled {
+            background: #f1f5f9;
+            cursor: not-allowed;
+            color: var(--text-secondary);
+        }
+
+        .form-control[type="time"] {
+            padding: 11px 14px;
+        }
 
     .text-danger {
         color: var(--danger);
-        font-size: 13px;
+        font-size: 12px;
         margin-top: 6px;
         font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 4px;
     }
+
+        .text-danger::before {
+            content: '⚠';
+            font-size: 12px;
+        }
 
     .text-muted {
         color: var(--text-secondary);
-        font-size: 13px;
+        font-size: 12px;
         margin-top: 6px;
+        font-style: italic;
     }
 
-    /* Working Hours */
+    .working-hours-section {
+        display: grid;
+        gap: 12px;
+    }
+
     .working-hour-item {
         background: var(--bg-main);
         border: 2px solid var(--border);
-        border-radius: var(--radius);
-        padding: 16px;
-        margin-bottom: 12px;
-        transition: all 0.3s;
+        border-radius: 10px;
+        padding: 18px;
+        transition: all 0.3s ease;
+       /*  overflow: hidden; */
     }
 
-    .working-hour-item:has(.day-enabled:checked) {
-        border-color: var(--primary);
-        background: rgba(24, 84, 153, 0.05);
-    }
+        .working-hour-item:has(.day-enabled:checked) {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(24, 84, 153, 0.05);
+        }
 
     .day-header {
         display: flex;
         align-items: center;
         gap: 12px;
-        margin-bottom: 12px;
+        margin-bottom: 14px;
     }
 
     .day-checkbox {
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
         cursor: pointer;
         accent-color: var(--primary);
+        border-radius: 4px;
     }
 
     .day-name {
@@ -175,47 +241,89 @@
     .time-inputs {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 16px;
+        gap: 14px;
+        animation: slideDown 0.3s ease;
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .time-group label {
-        font-size: 13px;
-        font-weight: 500;
+        font-size: 12px;
+        font-weight: 600;
         color: var(--text-secondary);
         margin-bottom: 6px;
         display: block;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
-    /* Exceptions */
-    .exception-item {
-        background: var(--bg-main);
-        border: 2px solid var(--border);
-        border-radius: var(--radius);
-        padding: 20px;
-        margin-bottom: 16px;
-        position: relative;
+    .validation-error {
+        display: none;
+        color: var(--danger);
+        font-size: 12px;
+        margin-top: 4px;
+        padding: 8px 10px;
+        background: rgba(239, 68, 68, 0.1);
+        border-radius: 4px;
+        border-left: 3px solid var(--danger);
     }
+
+        .validation-error.show {
+            display: block;
+        }
+
+    .exceptions-section {
+        display: grid;
+        gap: 16px;
+    }
+
+    .exception-item {
+        background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        padding: 20px;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+        .exception-item:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+        }
 
     .exception-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 16px;
+        margin-bottom: 18px;
         padding-bottom: 12px;
         border-bottom: 1px solid var(--border);
     }
 
     .exception-title {
         font-weight: 700;
-        font-size: 16px;
+        font-size: 15px;
         color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
     .exception-type-buttons {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        margin-bottom: 16px;
+        gap: 10px;
+        margin-bottom: 18px;
     }
 
     .type-btn {
@@ -224,39 +332,64 @@
         border-radius: 8px;
         background: white;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
         text-align: center;
         font-weight: 600;
-        font-size: 14px;
+        font-size: 13px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
     }
 
-    .type-btn:hover {
-        border-color: var(--primary);
-    }
+        .type-btn:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
 
-    .type-btn.active {
-        border-color: var(--primary);
-        background: rgba(24, 84, 153, 0.1);
-        color: var(--primary);
-    }
+        .type-btn.active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(24, 84, 153, 0.1);
+            border: 5px solid;
+            border-radius: 13px;
+        }
 
-    .type-btn.closed {
-        border-color: var(--danger);
-        background: rgba(239, 68, 68, 0.1);
-        color: var(--danger);
-    }
+        .type-btn.closed {
+            border-color: #fecaca;
+           /*  background: #fef2f2; */
+        }
 
-    .type-btn.open24 {
-        border-color: var(--success);
-        background: rgba(16, 185, 129, 0.1);
-        color: var(--success);
-    }
+            .type-btn.closed.active {
+                border-color: var(--danger);
+                background: rgba(239, 68, 68, 0.1);
+                color: var(--danger);
+                border: 5px solid;
+                border-radius: 13px;
+            }
 
-    /* Images */
+        .type-btn.open24 {
+            border-color: #bbf7d0;
+           /*  background: #f0fdf4; */
+        }
+
+            .type-btn.open24.active {
+                border-color: var(--success);
+                background: rgba(16, 185, 129, 0.1);
+                color: var(--success);
+                border: 5px solid;
+                border-radius: 13px;
+            }
+
+        .type-btn i {
+            font-size: 16px;
+        }
+
     .images-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 16px;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 14px;
     }
 
     .image-item {
@@ -265,50 +398,66 @@
         overflow: hidden;
         aspect-ratio: 1;
         border: 2px solid var(--border);
+        background: var(--bg-main);
+        transition: transform 0.3s ease;
     }
 
-    .image-item img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
+        .image-item:hover {
+            transform: scale(1.02);
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
     .btn-delete-image {
         position: absolute;
-        top: 8px;
-        right: 8px;
+        top: 6px;
+        right: 6px;
         width: 32px;
         height: 32px;
         border: none;
-        background: var(--danger);
+        background: rgba(239, 68, 68, 0.9);
         color: white;
-        border-radius: 50%;
+        border-radius: 6px;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
     }
 
-    .btn-delete-image:hover {
-        transform: scale(1.1);
-    }
+        .btn-delete-image:hover {
+            background: var(--danger);
+            transform: scale(1.1);
+        }
 
-    /* Buttons */
     .btn {
         display: inline-flex;
         align-items: center;
-        gap: 10px;
-        padding: 12px 24px;
+        gap: 8px;
+        padding: 11px 22px;
         border: none;
         border-radius: 8px;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
         text-decoration: none;
-        font-size: 15px;
+        font-size: 14px;
+        font-family: inherit;
     }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
     .btn-sm {
         padding: 8px 16px;
-        font-size: 14px;
+        font-size: 13px;
     }
 
     .btn-primary {
@@ -317,19 +466,19 @@
         box-shadow: 0 4px 12px rgba(24, 84, 153, 0.3);
     }
 
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(24, 84, 153, 0.4);
-    }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(24, 84, 153, 0.4);
+        }
 
     .btn-secondary {
         background: var(--secondary);
         color: white;
     }
 
-    .btn-secondary:hover {
-        background: #4b5563;
-    }
+        .btn-secondary:hover:not(:disabled) {
+            background: #4b5563;
+        }
 
     .btn-delete {
         width: 32px;
@@ -340,35 +489,74 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        padding: 0;
     }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
 
     .form-actions {
         position: sticky;
         bottom: 0;
         background: var(--bg-card);
         border-top: 2px solid var(--border);
-        padding: 20px;
-        margin: 32px -24px -24px;
+        padding: 20px 28px;
+        margin: 32px -28px -28px;
         display: flex;
-        gap: 16px;
-        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+        gap: 14px;
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+        z-index: 100;
     }
 
     .alert {
-        padding: 16px;
+        padding: 14px 16px;
         border-radius: 8px;
         margin-bottom: 24px;
+        border-left: 4px solid;
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
 
     .alert-danger {
-        background: rgba(239, 68, 68, 0.1);
-        border: 1px solid var(--danger);
+        background: #fef2f2;
+        border-left-color: var(--danger);
         color: var(--danger);
     }
+
+    .checkbox-group {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+    }
+
+        .checkbox-item input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            font-weight: 500;
+        }
 
     @@media (max-width: 768px) {
         .form-container {
             padding: 16px;
+        }
+
+        .card {
+            padding: 18px;
         }
 
         .form-row {
@@ -385,20 +573,40 @@
 
         .form-actions {
             flex-direction: column;
+            gap: 10px;
+            margin: 32px -18px -18px;
+            padding: 16px 18px;
+        }
+
+        .images-grid {
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        }
+
+        .page-title {
+            font-size: 24px;
         }
     }
 </style>
 
 <div class="form-container">
     <div class="page-header">
-        <h1 class="page-title">@ViewBag.Title</h1>
+        <h1 class="page-title">
+            <i class="fas fa-@(isEdit ? "edit" : "plus-circle")"></i>
+            @ViewBag.Title
+        </h1>
+        <p class="page-subtitle">
+            @(isEdit ? "تحديث معلومات الفرع وساعات العمل والاستثناءات" : "أضف فرع جديد مع جميع التفاصيل المطلوبة")
+        </p>
     </div>
 
-    <form asp-action="@(isEdit ? "Edit" : "Create")" method="post" enctype="multipart/form-data" id="branchForm">
+    <form asp-action="@(isEdit ? "Edit" : "Create")" method="post" enctype="multipart/form-data" id="branchForm" novalidate>
         @Html.AntiForgeryToken()
         @Html.HiddenFor(m => m.Id)
-        
-        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" id="validationSummary" style="display:none;">
+            <i class="fas fa-exclamation-circle"></i>
+            <div id="validationErrors"></div>
+        </div>
 
         <!-- Basic Information -->
         <div class="card">
@@ -411,14 +619,14 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label asp-for="NameAr" class="form-label required">الاسم بالعربية</label>
-                    <input asp-for="NameAr" class="form-control" placeholder="مثال: فرع السالمية" />
+                    <label asp-for="NameAr" class="form-label required">اسم الفرع (عربي)</label>
+                    <input asp-for="NameAr" class="form-control" placeholder="مثال: فرع السالمية" required />
                     <span asp-validation-for="NameAr" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label asp-for="NameEn" class="form-label required">الاسم بالإنجليزية</label>
-                    <input asp-for="NameEn" class="form-control" placeholder="Example: Salmiya Branch" />
+                    <label asp-for="NameEn" class="form-label required">اسم الفرع (إنجليزي)</label>
+                    <input asp-for="NameEn" class="form-control" placeholder="Example: Salmiya Branch" required />
                     <span asp-validation-for="NameEn" class="text-danger"></span>
                 </div>
             </div>
@@ -426,7 +634,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label asp-for="GovernorateId" class="form-label required">المحافظة</label>
-                    <select asp-for="GovernorateId" class="form-control" id="governorateSelect" asp-items="Model.GovernorateList">
+                    <select asp-for="GovernorateId" class="form-control" id="governorateSelect" asp-items="Model.GovernorateList" required>
                         <option value="">-- اختر المحافظة --</option>
                     </select>
                     <span asp-validation-for="GovernorateId" class="text-danger"></span>
@@ -434,7 +642,7 @@
 
                 <div class="form-group">
                     <label asp-for="AreaId" class="form-label required">المنطقة</label>
-                    <select asp-for="AreaId" class="form-control" id="areaSelect" asp-items="Model.AreaList">
+                    <select asp-for="AreaId" class="form-control" id="areaSelect" asp-items="Model.AreaList" required>
                         <option value="">-- اختر المنطقة --</option>
                     </select>
                     <span asp-validation-for="AreaId" class="text-danger"></span>
@@ -443,14 +651,14 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label asp-for="AddressAr" class="form-label required">العنوان بالعربية</label>
-                    <input asp-for="AddressAr" class="form-control" placeholder="أدخل العنوان بالعربية" />
+                    <label asp-for="AddressAr" class="form-label required">العنوان (عربي)</label>
+                    <input asp-for="AddressAr" class="form-control" placeholder="أدخل العنوان بالعربية" required />
                     <span asp-validation-for="AddressAr" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label asp-for="AddressEn" class="form-label required">العنوان بالإنجليزية</label>
-                    <input asp-for="AddressEn" class="form-control" placeholder="Enter address in English" />
+                    <label asp-for="AddressEn" class="form-label required">العنوان (إنجليزي)</label>
+                    <input asp-for="AddressEn" class="form-control" placeholder="Enter address in English" required />
                     <span asp-validation-for="AddressEn" class="text-danger"></span>
                 </div>
             </div>
@@ -458,15 +666,26 @@
             <div class="form-row">
                 <div class="form-group">
                     <label asp-for="Phone" class="form-label required">رقم الهاتف</label>
-                    <input asp-for="Phone" class="form-control" placeholder="01xxxxxxxxx أو 05xxxxxxxx" 
-                           pattern="^(01|05)[0-9]{9}$" />
+                    <input asp-for="Phone" class="form-control" placeholder="01xxxxxxxxx" pattern="^(01|05)[0-9]{9}$" required />
                     <span asp-validation-for="Phone" class="text-danger"></span>
-                    <small class="text-muted">يجب أن يبدأ بـ 01 أو 05 ويكون 11 رقم</small>
+                    <small class="text-muted">يجب أن يبدأ بـ 01 أو 05 (11 رقم)</small>
                 </div>
 
                 <div class="form-group">
                     <label asp-for="DeliveryFee" class="form-label required">رسوم التوصيل</label>
-                    <input asp-for="DeliveryFee" class="form-control" type="number" step="0.01" />
+
+                    <div class="input-group">
+                        <input asp-for="DeliveryFee"
+                               class="form-control text-end"
+                               type="number"
+                               
+                               placeholder="0"
+                               max="1000"
+                               min="0"
+                               required />
+                        <span class="input-group-text">جنيه</span>
+                    </div>
+
                     <span asp-validation-for="DeliveryFee" class="text-danger"></span>
                 </div>
             </div>
@@ -474,33 +693,41 @@
             <div class="form-row">
                 <div class="form-group">
                     <label asp-for="DeliveryTimeInMinutes" class="form-label required">وقت التوصيل (دقيقة)</label>
-                    <input asp-for="DeliveryTimeInMinutes" class="form-control" type="number" />
+                    <input asp-for="DeliveryTimeInMinutes" class="form-control"
+                    type="number"
+                           max="400"
+                           min="0"
+                    placeholder="30" required />
+                    <span class="input-group-text">جنيه</span>
+
                     <span asp-validation-for="DeliveryTimeInMinutes" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
                     <label asp-for="MaxCashOnDeliveryAllowed" class="form-label required">الحد الأقصى للدفع عند الاستلام</label>
-                    <input asp-for="MaxCashOnDeliveryAllowed" class="form-control" type="number" step="0.01" />
+                    <input asp-for="MaxCashOnDeliveryAllowed" class="form-control" type="number" max="10000"
+                           min="0" placeholder="0" required />
                     <span asp-validation-for="MaxCashOnDeliveryAllowed" class="text-danger"></span>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label asp-for="MaxAllowedOrdersInDay" class="form-label">الحد الأقصى للطلبات يوميًا (اختياري)</label>
-                    <input asp-for="MaxAllowedOrdersInDay" class="form-control" type="number" />
+                    <label asp-for="MaxAllowedOrdersInDay" class="form-label">الحد الأقصى للطلبات يوميًا</label>
+                    <input asp-for="MaxAllowedOrdersInDay" class="form-control" type="number" max="10000"
+                           min="0" placeholder="بدون حد" />
                     <span asp-validation-for="MaxAllowedOrdersInDay" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">حالة الفرع</label>
-                    <div style="display: flex; gap: 16px;">
-                        <label style="display: flex; align-items: center; gap: 8px;">
-                            <input asp-for="IsOpen" type="checkbox" class="day-checkbox" />
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input asp-for="IsOpen" type="checkbox" />
                             <span>مفتوح</span>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 8px;">
-                            <input asp-for="IsBusy" type="checkbox" class="day-checkbox" />
+                        <label class="checkbox-item">
+                            <input asp-for="IsBusy" type="checkbox" />
                             <span>مشغول</span>
                         </label>
                     </div>
@@ -515,67 +742,75 @@
                     <i class="fas fa-clock"></i>
                     <span>ساعات العمل</span>
                 </h2>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="fillAllDays()">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="copyFirstDayToAll()">
                     <i class="fas fa-copy"></i>
-                    نسخ لكل الأيام
+                    نسخ اليوم الأول لكل الأيام
                 </button>
             </div>
 
-            @{
-                var days = new[] {
-                    new { Value = DayOfWeek.Sunday, NameAr = "الأحد" },
-                    new { Value = DayOfWeek.Monday, NameAr = "الإثنين" },
-                    new { Value = DayOfWeek.Tuesday, NameAr = "الثلاثاء" },
-                    new { Value = DayOfWeek.Wednesday, NameAr = "الأربعاء" },
-                    new { Value = DayOfWeek.Thursday, NameAr = "الخميس" },
-                    new { Value = DayOfWeek.Friday, NameAr = "الجمعة" },
-                    new { Value = DayOfWeek.Saturday, NameAr = "السبت" }
-                };
+            <div class="working-hours-section">
+                @{
+                    var days = new[] {
+                                new { Value = DayOfWeek.Sunday, NameAr = "الأحد" },
+                                new { Value = DayOfWeek.Monday, NameAr = "الإثنين" },
+                                new { Value = DayOfWeek.Tuesday, NameAr = "الثلاثاء" },
+                                new { Value = DayOfWeek.Wednesday, NameAr = "الأربعاء" },
+                                new { Value = DayOfWeek.Thursday, NameAr = "الخميس" },
+                                new { Value = DayOfWeek.Friday, NameAr = "الجمعة" },
+                                new { Value = DayOfWeek.Saturday, NameAr = "السبت" }
+                                };
 
-                for (int i = 0; i < days.Length; i++)
-                {
-                    var day = days[i];
-                    var existing = Model.WorkingHours?.FirstOrDefault(wh => wh.DayOfWeek == day.Value);
-                    var isChecked = existing != null;
+                    for (int i = 0; i < days.Length; i++)
+                    {
+                        var day = days[i];
+                        var existing = Model.WorkingHours?.FirstOrDefault(wh => wh.DayOfWeek == day.Value);
+                        var isChecked = existing != null;
 
-                    <div class="working-hour-item">
-                        <div class="day-header">
-                            <input type="checkbox" 
-                                   class="day-checkbox day-enabled" 
-                                   id="dayEnabled_@((int)day.Value)"
-                                   data-day="@((int)day.Value)"
-                                   @(isChecked ? "checked" : "")
-                                   onchange="toggleDay(this)" />
-                            <label for="dayEnabled_@((int)day.Value)" class="day-name">@day.NameAr</label>
-                        </div>
-
-                        <div class="time-inputs" id="timeInputs_@((int)day.Value)" style="display: @(isChecked ? "grid" : "none")">
-                            <input type="hidden" name="WorkingHours[@i].DayOfWeek" value="@((int)day.Value)" />
-                            
-                            <div class="time-group">
-                                <label>وقت الفتح</label>
-                                <input type="time" 
-                                       name="WorkingHours[@i].OpeningTime" 
-                                       class="form-control opening-time"
+                        <div class="working-hour-item">
+                            <div class="day-header">
+                                <input type="checkbox" class="day-checkbox day-enabled"
+                                       id="dayEnabled_@((int)day.Value)"
                                        data-day="@((int)day.Value)"
-                                       value="@existing?.OpeningTime.ToString(@"hh\:mm")" />
+                                       @(isChecked ? "checked" : "")
+                                       onchange="toggleDay(this)" />
+                                <label for="dayEnabled_@((int)day.Value)" class="day-name">@day.NameAr</label>
                             </div>
 
-                            <div class="time-group">
-                                <label>وقت الإغلاق</label>
-                                <input type="time" 
-                                       name="WorkingHours[@i].ClosingTime" 
-                                       class="form-control closing-time"
-                                       data-day="@((int)day.Value)"
-                                       value="@existing?.ClosingTime.ToString(@"hh\:mm")" />
+                            <div class="time-inputs" id="timeInputs_@((int)day.Value)" style="display: @(isChecked ? "grid" : "none")">
+                                <!-- Hidden input to always send DayOfWeek -->
+                                <input type="hidden" name="WorkingHours[@i].DayOfWeek" value="@((int)day.Value)" />
+
+                                <div class="form-group">
+                                    <label>وقت الفتح</label>
+                                    <input type="time"
+                                           name="WorkingHours[@i].OpeningTime"
+                                           class="form-control opening-time"
+                                           data-day="@((int)day.Value)"
+                                           data-enabled="@isChecked.ToString().ToLower()"
+                                           value="@(existing?.OpeningTime.ToString(@"hh\:mm") ?? "09:00")" />
+                                    <div class="validation-error" data-day="@((int)day.Value)" data-type="opening"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>وقت الإغلاق</label>
+                                    <input type="time"
+                                           name="WorkingHours[@i].ClosingTime"
+                                           class="form-control closing-time"
+                                           data-day="@((int)day.Value)"
+                                           data-enabled="@isChecked.ToString().ToLower()"
+                                           value="@(existing?.ClosingTime.ToString(@"hh\:mm") ?? "22:00")" />
+                                    <div class="validation-error" data-day="@((int)day.Value)" data-type="closing"></div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    }
                 }
-            }
+            </div>
+
+            <div class="validation-error" id="workingHoursError" style="margin-top: 12px;"></div>
         </div>
 
-        <!-- Working Hour Exceptions -->
+
         <div class="card">
             <div class="card-header">
                 <h2 class="card-title">
@@ -588,15 +823,25 @@
                 </button>
             </div>
 
-            <div id="exceptionsContainer">
-                @if (Model.WorkingHourExceptions != null && Model.WorkingHourExceptions.Any())
+            <div id="exceptionsContainer" class="exceptions-section">
+                @if (exceptionsList.Count > 0)
                 {
-@*                     for (int i = 0; i < Model.WorkingHourExceptions.Count; i++)
+                    for (int i = 0; i < exceptionsList.Count; i++)
                     {
-                        var ex = Model.WorkingHourExceptions[i];
+                        var ex = exceptionsList[i];
+                        var exceptionTypeValue = (int)ex.ExceptionType; // Get the enum integer value
+
+                        // Determine CSS classes for buttons based on ExceptionType
+                        var isClosed = exceptionTypeValue == (int)WorkingHourExceptionType.ClosedAllDay;
+                        var isOpen24 = exceptionTypeValue == (int)WorkingHourExceptionType.Open24Hours;
+                        var isCustom = exceptionTypeValue == (int)WorkingHourExceptionType.Custom;
+
                         <div class="exception-item" data-index="@i">
                             <div class="exception-header">
-                                <span class="exception-title">استثناء @(i + 1)</span>
+                                <span class="exception-title">
+                                    <i class="fas fa-tag"></i>
+                                    استثناء @(i + 1)
+                                </span>
                                 <button type="button" class="btn-delete" onclick="removeException(this)">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -604,73 +849,72 @@
 
                             <input type="hidden" name="WorkingHourExceptions[@i].Id" value="@ex.Id" />
 
+                            <input type="hidden" name="WorkingHourExceptions[@i].ExceptionType" value="@exceptionTypeValue" class="exception-type-input" />
+
                             <div class="exception-type-buttons">
-                                <button type="button" class="type-btn @(ex.IsClosedAllDay ? "closed active" : "")" 
+                                <button type="button" class="type-btn closed @(isClosed ? "active" : "")"
                                         onclick="setExceptionType(this, 'closed', @i)">
-                                    <i class="fas fa-times-circle"></i> مغلق 24 ساعة
+                                    <i class="fas fa-times-circle"></i>
+                                    <span>مغلق 24 ساعة</span>
                                 </button>
-                                <button type="button" class="type-btn @(ex.IsOpen24Hours ? "open24 active" : "")" 
+                                <button type="button" class="type-btn open24 @(isOpen24 ? "active" : "")"
                                         onclick="setExceptionType(this, 'open24', @i)">
-                                    <i class="fas fa-clock"></i> مفتوح 24 ساعة
+                                    <i class="fas fa-infinity"></i>
+                                    <span>مفتوح 24 ساعة</span>
                                 </button>
-                                <button type="button" class="type-btn @(!ex.IsClosedAllDay && !ex.IsOpen24Hours ? "active" : "")" 
+                                <button type="button" class="type-btn @(isCustom ? "active" : "")"
                                         onclick="setExceptionType(this, 'custom', @i)">
-                                    <i class="fas fa-edit"></i> ساعات مخصصة
+                                    <i class="fas fa-sliders-h"></i>
+                                    <span>ساعات مخصصة</span>
                                 </button>
                             </div>
-
-                            <input type="hidden" name="WorkingHourExceptions[@i].IsClosedAllDay" value="@ex.IsClosedAllDay.ToString().ToLower()" class="is-closed-input" />
-                            <input type="hidden" name="WorkingHourExceptions[@i].IsOpen24Hours" value="@ex.IsOpen24Hours.ToString().ToLower()" class="is-open24-input" />
 
                             <div class="form-row">
                                 <div class="form-group">
                                     <label class="form-label required">اسم الاستثناء (عربي)</label>
-                                    <input type="text" name="WorkingHourExceptions[@i].ExceptionNameAr" 
-                                           class="form-control" value="@ex.ExceptionNameAr" 
-                                           placeholder="مثال: عيد الفطر" />
+                                    <input type="text" name="WorkingHourExceptions[@i].ExceptionNameAr" class="form-control"
+                                           value="@ex.ExceptionNameAr" placeholder="مثال: عيد الفطر" required />
                                 </div>
 
                                 <div class="form-group">
                                     <label class="form-label required">اسم الاستثناء (إنجليزي)</label>
-                                    <input type="text" name="WorkingHourExceptions[@i].ExceptionNameEn" 
-                                           class="form-control" value="@ex.ExceptionNameEn" 
-                                           placeholder="Example: Eid Al-Fitr" />
+                                    <input type="text" name="WorkingHourExceptions[@i].ExceptionNameEn" class="form-control"
+                                           value="@ex.ExceptionNameEn" placeholder="Example: Eid Al-Fitr" required />
                                 </div>
                             </div>
 
                             <div class="form-row">
                                 <div class="form-group">
                                     <label class="form-label required">من تاريخ</label>
-                                    <input type="date" name="WorkingHourExceptions[@i].StartDate" 
-                                           class="form-control" value="@ex.StartDate.ToString("yyyy-MM-dd")" />
+                                    <input type="date" name="WorkingHourExceptions[@i].StartDate" class="form-control"
+                                           value="@ex.StartDate.ToString("yyyy-MM-dd")" required />
                                 </div>
 
                                 <div class="form-group">
                                     <label class="form-label required">إلى تاريخ</label>
-                                    <input type="date" name="WorkingHourExceptions[@i].EndDate" 
-                                           class="form-control" value="@ex.EndDate.ToString("yyyy-MM-dd")" />
+                                    <input type="date" name="WorkingHourExceptions[@i].EndDate" class="form-control"
+                                           value="@ex.EndDate.ToString("yyyy-MM-dd")" required />
                                 </div>
                             </div>
 
-                            <div class="form-row custom-times-@i" style="display: @(!ex.IsClosedAllDay && !ex.IsOpen24Hours ? "grid" : "none")">
+                                <div class="form-row custom-times" data-index="@i" style="display: @(isCustom ? "grid" : "none")">
                                 <div class="form-group">
                                     <label class="form-label">وقت الفتح</label>
-                                    <input type="time" name="WorkingHourExceptions[@i].OpeningTime" 
-                                           class="form-control" value="@ex.OpeningTime.ToString(@"hh\:mm")" />
+                                    <input type="time" name="WorkingHourExceptions[@i].OpeningTime" class="form-control"
+                                           value="@ex.OpeningTime.ToString(@"hh\:mm")" />
                                 </div>
 
                                 <div class="form-group">
                                     <label class="form-label">وقت الإغلاق</label>
-                                    <input type="time" name="WorkingHourExceptions[@i].ClosingTime" 
-                                           class="form-control" value="@ex.ClosingTime.ToString(@"hh\:mm")" />
+                                    <input type="time" name="WorkingHourExceptions[@i].ClosingTime" class="form-control"
+                                           value="@ex.ClosingTime.ToString(@"hh\:mm")" />
                                 </div>
                             </div>
                         </div>
                     }
- *@                }
+                }
             </div>
         </div>
-
         <!-- Branch Images -->
         <div class="card">
             <div class="card-header">
@@ -682,14 +926,17 @@
 
             @if (isEdit && Model.ExistingBranchImagePaths != null && Model.ExistingBranchImagePaths.Any())
             {
-                <div style="margin-bottom: 24px;">
-                    <h4 style="font-weight: 600; margin-bottom: 16px;">الصور الحالية</h4>
+                <div style="margin-bottom: 28px;">
+                    <h4 style="font-weight: 600; margin-bottom: 16px; color: var(--text-primary);">
+                        <i class="fas fa-check-circle" style="color: var(--success); margin-right: 8px;"></i>
+                        الصور الحالية
+                    </h4>
                     <div class="images-grid">
                         @foreach (var imagePath in Model.ExistingBranchImagePaths)
                         {
                             <div class="image-item">
-                                <img src="@imagePath" alt="Branch Image" />
-                                <button type="button" class="btn-delete-image" onclick="deleteImage('@imagePath', event)">
+                                <img src="@imagePath" alt="Branch Image" loading="lazy" />
+                                <button type="button" class="btn-delete-image" onclick="deleteImage('@imagePath', event)" title="حذف الصورة">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -700,11 +947,17 @@
 
             <div class="form-group">
                 <label class="form-label">رفع صور جديدة</label>
-                <input type="file" name="NewImageFiles" class="form-control" multiple accept="image/*" id="imageUpload" />
+                <div style="border: 2px dashed var(--border); border-radius: 8px; padding: 28px; text-align: center; cursor: pointer; transition: all 0.3s ease;"
+                     onclick="document.getElementById('imageUpload').click()" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 32px; color: var(--primary); margin-bottom: 12px; display: block;"></i>
+                    <span style="font-weight: 600; color: var(--text-primary); display: block;">انقر هنا أو اسحب الصور</span>
+                    <small style="color: var(--text-secondary);">JPG, PNG, WEBP, AVIF (حد أقصى 10 ميجا لكل صورة)</small>
+                </div>
+                <input type="file" name="NewImageFiles" class="form-control" multiple accept="image/*" id="imageUpload" style="display: none;" />
                 <small class="text-muted">المسموح: JPG, PNG, WEBP, AVIF (حد أقصى 10 ميجا لكل صورة)</small>
             </div>
 
-            <div id="imagePreview" class="images-grid" style="margin-top: 16px;"></div>
+            <div id="imagePreview" class="images-grid" style="margin-top: 20px;"></div>
         </div>
 
         <!-- Form Actions -->
@@ -714,13 +967,17 @@
                 @(isEdit ? "تحديث الفرع" : "إنشاء الفرع")
             </button>
             <a asp-action="Index" class="btn btn-secondary">
-                <i class="fas fa-times"></i>
-                إلغاء
+                <i class="fas fa-arrow-left"></i>
+                رجوع
             </a>
         </div>
     </form>
 </div>
 
-    @section Scripts {
-        <script src="~/js/branch-form.js"></script>
-    }
+
+@section Scripts {
+    <script>
+          let exceptionIndex = @exceptionsList.Count;
+    </script>
+    <script src="~/js/branch-form.js" asp-append-version="true"></script>
+}

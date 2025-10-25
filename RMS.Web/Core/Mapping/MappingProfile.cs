@@ -83,6 +83,8 @@ public class MappingProfile : Profile
                .ForMember(dest => dest.DeliveryTimeInMinutes, opt => opt.MapFrom(src => src.Branch.DeliveryTimeInMinutes))
                .ForMember(dest => dest.OrderDate, opt => opt.MapFrom(src => src.OrderDate));
 
+        CreateMap<Order, OrderListViewModel>();
+
         // ===============================
         // Payment
         // ===============================
@@ -104,11 +106,21 @@ public class MappingProfile : Profile
         // ===============================
 
         CreateMap<Branch, BranchViewModel>()
-           .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.NameAr))
-           .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.AddressAr))
+           .ForMember(dest => dest.NameAr, opt => opt.MapFrom(src => src.NameAr))
+           .ForMember(dest => dest.NameEn, opt => opt.MapFrom(src => src.NameEn))
+           .ForMember(dest => dest.AddressAr, opt => opt.MapFrom(src => src.AddressAr))
+           .ForMember(dest => dest.AddressEn, opt => opt.MapFrom(src => src.AddressEn))
            .ForMember(dest => dest.GovernorateNameAr, opt => opt.MapFrom(src => src.Governorate!.NameAr))
+           .ForMember(dest => dest.GovernorateNameEn, opt => opt.MapFrom(src => src.Governorate!.NameEn))
            .ForMember(dest => dest.AreaNameAr, opt => opt.MapFrom(src => src.Area!.NameAr))
-           .ForMember(dest => dest.WorkingHours, opt => opt.MapFrom(src => src.BranchWorkingHours));
+           .ForMember(dest => dest.AreaNameEn, opt => opt.MapFrom(src => src.Area!.NameEn))
+           .ForMember(dest => dest.WorkingHours, opt => opt.MapFrom(src => src.BranchWorkingHours))
+           .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src =>
+                src.BranchImages
+                   .OrderBy(img => img.DisplayOrder) 
+                   .Select(img => img.ImageUrl)
+                   .ToList()
+            ));
 
         CreateMap<Branch, BranchFormViewModel>()
                 .ForMember(dest => dest.ExistingBranchImagePaths,

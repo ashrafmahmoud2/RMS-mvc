@@ -1,4 +1,6 @@
-﻿namespace RMS.Web.Core.ViewModels.GovernateAreaBranch;
+﻿using RMS.Web.Core.Enums;
+
+namespace RMS.Web.Core.ViewModels.GovernateAreaBranch;
 
 
 public class BranchIndexViewModel
@@ -9,15 +11,18 @@ public class BranchIndexViewModel
 public class GovernorateWithBranchesViewModel
 {
     public int Id { get; set; }
-    public string Name { get; set; } = null!;
+    public string NameEn { get; set; } = null!;
+    public string NameAr { get; set; } = null!;
     public List<BranchViewModel> Branches { get; set; } = new();
 }
 
 public class BranchViewModel
 {
     public int Id { get; set; }
-    public string Name { get; set; } = null!;
-    public string Address { get; set; } = null!;
+    public string NameEn { get; set; } = null!;
+    public string NameAr { get; set; } = null!;
+    public string AddressEn { get; set; } = null!;
+    public string AddressAr { get; set; } = null!;
     public string Phone { get; set; } = null!;
     public string? BranchImages { get; set; }
     public bool IsBusy { get; set; }
@@ -27,10 +32,14 @@ public class BranchViewModel
     public string WorkingHoursStatus { get; set; } = null!; // "مفتوح" or "مغلق"
     public string WorkingHoursText { get; set; } = null!; // "مفتوح حتى 11:30 م" or "مغلق - يفتح غداً 9:00 ص"
     public bool IsCurrentlyOpen { get; set; }
+    public int GovernorateId { get; set; }
     public string GovernorateNameAr { get; set; } = null!;
+    public string GovernorateNameEn { get; set; } = null!;
     public string AreaNameAr { get; set; } = null!;
+    public string AreaNameEn { get; set; } = null!;
 
     public List<BranchWorkingHourViewModel> WorkingHours { get; set; } = new();
+    public IEnumerable<string> ImageUrls { get; set; } = new List<string>();
 }
 
 public class BranchWorkingHourViewModel
@@ -51,14 +60,13 @@ public class BranchWorkingHourExceptionViewModel
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
 
-    public bool IsClosedAllDay { get; set; }
-    public bool IsOpen24Hours { get; set; }
+    public WorkingHourExceptionType ExceptionType { get; set; }
+
 
     public TimeSpan? OpeningTime { get; set; }
     public TimeSpan? ClosingTime { get; set; }
 
-    public string Status =>
-     IsClosedAllDay ? "Closed All Day" :
-     IsOpen24Hours ? "Open 24 Hours" :
-     $"{OpeningTime:hh\\:mm} - {ClosingTime:hh\\:mm}";
+
 }
+
+

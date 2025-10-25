@@ -1,4 +1,6 @@
-﻿namespace RMS.Web.Core.ViewModels.Branches;
+﻿using RMS.Web.Core.Enums;
+
+namespace RMS.Web.Core.ViewModels.Branches;
 
 public class BranchExceptionHoursFormViewModel
 {
@@ -24,11 +26,8 @@ public class BranchExceptionHoursFormViewModel
     [DataType(DataType.Date)]
     public DateOnly EndDate { get; set; }
 
-    [Display(Name = "Closed All Day (24h)")]
-    public bool IsClosedAllDay { get; set; } = false;
-
-    [Display(Name = "Open 24 Hours")]
-    public bool IsOpen24Hours { get; set; } = false;
+    [Required(ErrorMessage = "نوع الاستثناء مطلوب")]
+    public WorkingHourExceptionType ExceptionType { get; set; }
 
     [Display(Name = "Opening Time")]
     [DataType(DataType.Time)]
@@ -41,15 +40,13 @@ public class BranchExceptionHoursFormViewModel
     // Custom validation
     public bool IsValid(out string errorMessage)
     {
-        // Start date must be before or equal to end date
         if (StartDate > EndDate)
         {
             errorMessage = "تاريخ البداية يجب أن يكون قبل أو يساوي تاريخ النهاية";
             return false;
         }
 
-        // If not closed all day and not open 24h, times must be valid
-        if (!IsClosedAllDay && !IsOpen24Hours)
+          if (ExceptionType == WorkingHourExceptionType.Custom)
         {
             if (OpeningTime >= ClosingTime)
             {
@@ -57,6 +54,7 @@ public class BranchExceptionHoursFormViewModel
                 return false;
             }
         }
+       
 
         errorMessage = string.Empty;
         return true;

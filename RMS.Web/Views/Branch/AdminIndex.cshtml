@@ -1,0 +1,710 @@
+﻿@* stop 
+feat : Add the idex view of admain to show the branches , optmzie the brach form , 
+2. makw model to the add/edit in him
+3. make the logic of open and close branches
+4. add btn change status
+5. make detail view
+ *@
+
+@using RMS.Web.Core.ViewModels.GovernateAreaBranch
+@model BranchIndexViewModel
+
+@{
+    ViewData["Title"] = "إدارة الفروع";
+}
+
+<style>
+    :root {
+        --primary: #185499;
+        --primary-dark: #124075;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #3b82f6;
+        --bg-main: #f9fafb;
+        --bg-card: #ffffff;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --text-muted: #9ca3af;
+        --border: #e5e7eb;
+        --radius: 12px;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .page-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        font-size: 15px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        box-shadow: 0 4px 12px rgba(24, 84, 153, 0.3);
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(24, 84, 153, 0.4);
+        }
+
+    .btn-sm {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .search-filter-bar {
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        padding: 20px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        display: none;
+    }
+
+    .search-box {
+        position: relative;
+        max-width: 400px;
+    }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px 12px 45px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+            .search-box input:focus {
+                outline: none;
+                border-color: var(--primary);
+                box-shadow: 0 0 0 4px rgba(24, 84, 153, 0.1);
+            }
+
+        .search-box i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+
+    .governorate-section {
+        background: var(--bg-card);
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    .governorate-header {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        padding: 20px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 20px;
+    }
+
+        .governorate-header:hover {
+            background: linear-gradient(135deg, var(--primary-dark), #0a2d5c);
+        }
+
+    .governorate-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+        .governorate-title i {
+            font-size: 24px;
+        }
+
+    .branch-count {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        backdrop-filter: blur(10px);
+    }
+
+    .branches-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 300px));
+        gap: 20px;
+        padding: 24px;
+        background-color: #f1f2f8;
+    }
+
+    .branch-card {
+        background: white;
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .branch-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        .branch-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+            transform: scaleY(0);
+            transition: transform 0.3s;
+        }
+
+        .branch-card:hover::before {
+            transform: scaleY(1);
+        }
+
+    .branch-image-wrapper {
+        position: relative;
+        width: 100%;
+        height: 180px; /* Kept consistent with original height */
+        margin-bottom: 16px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: linear-gradient(135deg, #f3f4f6, #e5e7eb); /* Placeholder background */
+    }
+
+    .branch-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Badge for showing image count */
+    .image-count-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .branch-image {
+        width: 100%;
+        height: 180px;
+        border-radius: 8px;
+        object-fit: cover;
+        margin-bottom: 16px;
+        background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+    }
+
+    .branch-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+    }
+
+    .branch-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 8px 0;
+    }
+
+    .branch-area {
+        font-size: 14px;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-badges {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-end;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+        .status-badge.open {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-badge.closed {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .status-badge.busy {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+    .branch-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: space-between;
+    }
+
+    .btn-action {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        font-size: 13px;
+    }
+
+    .btn-edit {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--info);
+    }
+
+        .btn-edit:hover {
+            background: var(--info);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .btn-details {
+        background: rgba(107, 114, 128, 0.1);
+        color: var(--text-secondary);
+    }
+
+        .btn-details:hover {
+            background: var(--text-secondary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .btn-delete {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+    }
+
+        .btn-delete:hover {
+            background: var(--danger);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+    }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+    .stats-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        padding: 20px;
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+
+        .stat-icon.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+
+        .stat-icon.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .stat-icon.warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+    .stat-info h4 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 4px 0;
+    }
+
+    .stat-info p {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    @@media (max-width: 768px) {
+        .branches-grid {
+            grid-template-columns: 1fr;
+            padding: 16px;
+        }
+
+
+
+        .page-header {
+            /* flex-direction: column;
+    */ align-items: stretch;
+        }
+        /* .header-actions {
+                width: 100%;
+            } */
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .stats-bar {
+            grid-template-columns: 1fr;
+        }
+
+        .branch-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <h1 class="page-title" data-en="Branch Management" data-ar="إدارة الفروع">إدارة الفروع</h1>
+    <div class="header-actions">
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
+            <span data-en="Add New Branch" data-ar="إضافة فرع جديد">إضافة فرع جديد</span>
+        </a>
+    </div>
+</div>
+
+@if (Model.Governorates != null && Model.Governorates.Any())
+{
+    var totalBranches = Model.Governorates.Sum(g => g.Branches.Count);
+    var openBranches = Model.Governorates.SelectMany(g => g.Branches).Count(b => b.IsCurrentlyOpen && b.IsOpen);
+    var busyBranches = Model.Governorates.SelectMany(g => g.Branches).Count(b => b.IsBusy);
+
+    <div class="stats-bar">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-store"></i>
+            </div>
+            <div class="stat-info">
+                <h4>@totalBranches</h4>
+                <p data-en="Total Branches" data-ar="إجمالي الفروع">إجمالي الفروع</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-door-open"></i>
+            </div>
+            <div class="stat-info">
+                <h4>@openBranches</h4>
+                <p data-en="Open Now" data-ar="مفتوح الآن">مفتوح الآن</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-pause-circle"></i>
+            </div>
+            <div class="stat-info">
+                <h4>@busyBranches</h4>
+                <p data-en="Busy" data-ar="مشغول">مشغول</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="search-filter-bar">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="ابحث عن فرع..." data-en-placeholder="Search branches..." data-ar-placeholder="ابحث عن فرع..." />
+        </div>
+    </div>
+
+    @foreach (var governorate in Model.Governorates)
+    {
+        <div class="governorate-section" data-governorate="@governorate.NameEn">
+            <div class="governorate-header">
+                <h2 class="governorate-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>  @governorate.NameAr</span>
+                </h2>
+                <span class="branch-count">
+                    @governorate.Branches.Count
+                    <span data-en="Branches" data-ar="فرع">فرع</span>
+                </span>
+            </div>
+
+            @if (governorate.Branches.Any())
+            {
+                <div class="branches-grid">
+                    @foreach (var branch in governorate.Branches)
+                    {
+                        <div class="branch-card" data-branch-name="@branch.NameAr.ToLower()" data-area="@branch.AreaNameAr.ToLower()">
+                            <div class="branch-image-wrapper">
+                                @{
+                                    var imageUrls = branch.ImageUrls?.ToList() ?? new List<string>();
+                                    var firstImageUrl = imageUrls.FirstOrDefault();
+                                    var imageCount = imageUrls.Count;
+
+                                    if (imageCount > 0 && !string.IsNullOrEmpty(firstImageUrl))
+                                    {
+                                        // Case 1: Has one or more images (display the first one)
+                                        <img src="@firstImageUrl"
+                                             alt="@branch.NameAr"
+                                             class="branch-image"
+                                             onerror="this.src='https://placehold.co/400x200/e5e7eb/6b7280?text=Image+Failed+to+Load'"
+                                             loading="lazy" />
+
+                                        // Case 2: Show image count badge if there's more than one
+                                        @if (imageCount > 1)
+                                        {
+                                            <span class="image-count-badge" title="Total Images">
+                                                <i class="fas fa-camera"></i>
+                                                @imageCount
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // <img src="https://placehold.co/400x200/185499/ffffff?text=@Uri.EscapeDataString(branch.NameAr)"
+                                        //      alt="@branch.NameAr"
+                                        //      class="branch-image" />
+                                     <img src="https://placehold.co/400x200/185499/ffffff?text=No+Image"
+         alt="@branch.NameAr"
+         class="branch-image" />
+}
+                                    }
+                                }
+                            </div>
+
+                            <div class="branch-header">
+                                <div>
+                                    <h3 class="branch-name">@branch.NameAr</h3>
+                                    <div class="branch-area">
+                                        <i class="fas fa-map-pin"></i>
+                                        <span>@branch.AreaNameAr</span>
+                                    </div>
+                                </div>
+
+                                <div class="status-badges">
+                                    @if (branch.IsBusy)
+                                    {
+                                        <span class="status-badge busy">
+                                            <i class="fas fa-pause-circle"></i>
+                                            <span data-en="Busy" data-ar="مشغول">مشغول</span>
+                                        </span>
+                                    }
+                                    else if (branch.IsCurrentlyOpen && branch.IsOpen)
+                                    {
+                                        <span class="status-badge open">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>@branch.WorkingHoursStatus</span>
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge closed">
+                                            <i class="fas fa-times-circle"></i>
+                                            <span>@branch.WorkingHoursStatus</span>
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+
+
+                            <div class="branch-actions">
+                                <a asp-action="Edit" asp-route-id="@branch.Id" class="btn-action btn-edit" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                    <span data-en="Edit" data-ar="تعديل">تعديل</span>
+                                </a>
+
+                                <a asp-action="Details" asp-route-id="@branch.Id" class="btn-action btn-details" title="Details">
+                                    <i class="fas fa-eye"></i>
+                                    <span data-en="Details" data-ar="التفاصيل">التفاصيل</span>
+                                </a>
+
+                                <form asp-action="Delete" asp-route-id="@branch.Id" method="post" style="flex: 1;"
+                                      onsubmit="return confirm('هل أنت متأكد من حذف هذا الفرع؟');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn-action btn-delete" title="Delete" style="width: 100%;">
+                                        <i class="fas fa-trash"></i>
+                                        <span data-en="Delete" data-ar="حذف">حذف</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-store-slash"></i>
+                    <h3 data-en="No Branches Found" data-ar="لا توجد فروع">لا توجد فروع</h3>
+                    <p data-en="No branches in this governorate" data-ar="لا توجد فروع في هذه المحافظة">لا توجد فروع في هذه المحافظة</p>
+                </div>
+            }
+        </div>
+    }
+}
+else
+{
+    <div class="empty-state" style="background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border);">
+        <i class="fas fa-store-slash"></i>
+        <h3 data-en="No Branches Yet" data-ar="لا توجد فروع بعد">لا توجد فروع بعد</h3>
+        <p data-en="Start by adding your first branch" data-ar="ابدأ بإضافة أول فرع">ابدأ بإضافة أول فرع</p>
+        <a asp-action="Create" class="btn btn-primary" style="margin-top: 16px;">
+            <i class="fas fa-plus"></i>
+            <span data-en="Add First Branch" data-ar="إضافة أول فرع">إضافة أول فرع</span>
+        </a>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                const branchCards = document.querySelectorAll('.branch-card');
+                const governorateSections = document.querySelectorAll('.governorate-section');
+
+                branchCards.forEach(card => {
+                    const branchName = card.dataset.branchName || '';
+                    const area = card.dataset.area || '';
+                    const matches = branchName.includes(searchTerm) || area.includes(searchTerm);
+
+                    card.style.display = matches ? 'block' : 'none';
+                });
+
+                // Hide governorates with no visible branches
+                governorateSections.forEach(section => {
+                    const visibleBranches = section.querySelectorAll('.branch-card[style="display: block;"], .branch-card:not([style*="display: none"])');
+                    section.style.display = visibleBranches.length > 0 || searchTerm === '' ? 'block' : 'none';
+                });
+            });
+        }
+
+        // Language switcher support (if you have one in your layout)
+        function updateLanguage(lang) {
+            document.querySelectorAll('[data-ar]').forEach(el => {
+                const text = lang === 'ar' ? el.dataset.ar : el.dataset.en;
+                if (el.tagName === 'INPUT') {
+                    el.placeholder = text;
+                } else {
+                    el.textContent = text;
+                }
+            });
+
+            // Update search placeholder
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.placeholder = lang === 'ar' ?
+                    searchInput.dataset.arPlaceholder :
+                    searchInput.dataset.enPlaceholder;
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Branch index page loaded');
+        });
+    </script>
+}
