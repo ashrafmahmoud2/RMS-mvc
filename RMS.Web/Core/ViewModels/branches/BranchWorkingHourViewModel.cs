@@ -8,6 +8,9 @@ public class BranchWorkingHoursFormViewModel
     [Display(Name = "Day of Week")]
     public DayOfWeek DayOfWeek { get; set; }
 
+    [Display(Name = "Working Day")]
+    public bool IsWorking { get; set; } = false;
+
     [Required]
     [Display(Name = "Opening Time")]
     [DataType(DataType.Time)]

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using RMS.Web.Core.ViewModels.Branches;
+using RMS.Web.Core.ViewModels.Category;
 using RMS.Web.Core.ViewModels.GovernateAreaBranch;
 using RMS.Web.Core.ViewModels.Home;
 using RMS.Web.Core.ViewModels.Item;
@@ -100,6 +101,10 @@ public class MappingProfile : Profile
       .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.NameAr));
 
 
+        // ===============================
+        // Category 
+        // ===============================
+        CreateMap<Category, CategoryFormViewModel>().ReverseMap();
 
         // ===============================
         //    Branch

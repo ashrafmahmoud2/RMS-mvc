@@ -1,11 +1,6 @@
 ﻿using RMS.Web.Core.ViewModels.Branches;
 using RMS.Web.Core.ViewModels.GovernateAreaBranch;
 
-//1.make form(razor pages) of add/edit branches wiht his working hour  and WorkingHourExceptions have  aribic and english
-//2. in image using cloude flair r2 not s3
-//3. split controller to have services IBranchService , BranchService with opmtize logic and add vldations and case i forget to handel
-//this the code of model and viewmodel wiht controller
-
 namespace RMS.Web.Services.Interfaces;
 
 public interface IBranchService

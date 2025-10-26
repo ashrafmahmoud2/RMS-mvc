@@ -5,7 +5,6 @@ using RMS.Web.Services.Interfaces;
 
 namespace RMS.Web.Services.Implementations;
 
-
 public class BranchService : IBranchService
 {
     private readonly ApplicationDbContext _context;

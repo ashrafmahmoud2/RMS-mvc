@@ -1,6 +1,11 @@
 using Azure;
 using Humanizer;
 using RMS.Web.Core.ViewModels.Item;
+//# when creat item form ui
+//--1.when shoice price in item in BranchItems(you can ignour if it will take time)
+//--2. in options and hsi group will make it from item form , in future you can make split tab for topping
+//--3. in ToppingOptions you can make ToppingGroupId many to many if have same price , and if not have make another row
+//--4. 
 
 public class ItemController : Controller
 {
@@ -49,7 +54,5 @@ public class ItemController : Controller
 
 
 }
-
-
 
 

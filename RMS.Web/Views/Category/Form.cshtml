@@ -1,0 +1,669 @@
+﻿@model RMS.Web.Core.ViewModels.Category.CategoryFormViewModel
+
+@{
+    var isEdit = Model?.Id > 0;
+    var pageTitle = isEdit ? "تعديل الصنف" : "إضافة صنف جديد";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@pageTitle</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #185499;
+            --primary-dark: #0f3a6f;
+            --primary-light: #e3f2fd;
+            --primary-lighter: #f0f7ff;
+            --secondary: #6b7280;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --bg-main: #f8fafb;
+            --bg-card: #ffffff;
+            --bg-hover: #f3f4f6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --radius: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html, body {
+            background: linear-gradient(135deg, var(--primary-lighter) 0%, #ffffff 50%, #f0f7ff 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .form-wrapper {
+            min-height: 100vh;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, var(--primary-lighter) 0%, #ffffff 50%, #f0f7ff 100%);
+            position: relative;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .page-title i {
+                color: var(--primary);
+                font-size: 24px;
+            }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .section-title i {
+                width: 20px;
+                height: 20px;
+                background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+                border-radius: 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 10px;
+            }
+
+        .form-section {
+            margin-bottom: 24px;
+        }
+
+            .form-section:last-child {
+                margin-bottom: 0;
+            }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+            .form-label.required::after {
+                content: '*';
+                color: var(--danger);
+                margin-right: 4px;
+            }
+
+        .form-control, .form-select {
+            padding: 10px 12px;
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 13px;
+            transition: var(--transition);
+            font-family: inherit;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+
+            .form-control::placeholder {
+                color: var(--text-secondary);
+            }
+
+            .form-control:focus, .form-select:focus {
+                outline: none;
+                border-color: var(--primary);
+                background: var(--bg-card);
+                box-shadow: 0 0 0 2px var(--primary-light);
+            }
+
+            .form-control:disabled {
+                background: var(--bg-hover);
+                cursor: not-allowed;
+                opacity: 0.6;
+            }
+
+        .validation-message {
+            color: var(--danger);
+            font-size: 11px;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+            .validation-message::before {
+                content: '⚠';
+            }
+
+        .checkbox-group {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+            .checkbox-item input {
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
+                accent-color: var(--primary);
+            }
+
+            .checkbox-item label {
+                cursor: pointer;
+                font-weight: 600;
+                color: var(--text-primary);
+                font-size: 13px;
+            }
+
+        .image-upload-area {
+            background: linear-gradient(135deg, var(--primary-lighter) 0%, var(--primary-light) 100%);
+            border: 2px dashed var(--primary);
+            border-radius: 6px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 12px;
+        }
+
+            .image-upload-area:hover {
+                border-color: var(--primary-dark);
+                background: linear-gradient(135deg, var(--primary-light) 0%, #e8f1ff 100%);
+                transform: translateY(-1px);
+            }
+
+            .image-upload-area.dragover {
+                border-color: var(--primary-dark);
+                background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            }
+
+            .image-upload-area i {
+                font-size: 28px;
+                color: var(--primary);
+                margin-bottom: 10px;
+                display: block;
+            }
+
+        .image-upload-text {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+            font-size: 13px;
+        }
+
+        .image-upload-hint {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .image-preview {
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--bg-main);
+            margin-bottom: 10px;
+            max-width: 140px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+            .image-preview img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(24, 84, 153, 0.25);
+        }
+
+            .btn-primary:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(24, 84, 153, 0.3);
+            }
+
+            .btn-primary:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+
+            .btn-secondary:hover {
+                border-color: var(--primary);
+                color: var(--primary);
+                transform: translateY(-1px);
+            }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            padding-top: 20px;
+            margin-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+            .form-actions .btn {
+                min-width: 130px;
+            }
+
+        .alert {
+            padding: 12px 14px;
+            border-radius: 6px;
+            margin-bottom: 18px;
+            border-left: 3px solid;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13px;
+            background: rgba(239, 68, 68, 0.05);
+            border-left-color: #dc2626;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.05);
+            border-left-color: #dc2626;
+            color: #991b1b;
+        }
+
+            .alert-danger strong {
+                color: #dc2626;
+            }
+
+        .alert ul {
+            margin: 0;
+            padding-right: 18px;
+            list-style: none;
+        }
+
+        .alert li {
+            margin-bottom: 3px;
+        }
+
+            .alert li::before {
+                content: '• ';
+                color: #dc2626;
+                font-weight: bold;
+                margin-right: 6px;
+            }
+
+        small {
+            display: block;
+            color: var(--text-secondary);
+            margin-top: 5px;
+            font-size: 12px;
+        }
+
+        @@keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@media (max-width: 640px) {
+            .form-wrapper {
+                padding: 16px 12px;
+            }
+
+            .page-title {
+                font-size: 20px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+                .form-actions .btn {
+                    width: 100%;
+                }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-wrapper">
+        <div class="container">
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-@(isEdit ? "edit" : "plus-circle")"></i>
+                    @pageTitle
+                </h1>
+                <p class="page-subtitle">
+                    @(isEdit ? "تحديث معلومات الصنف والصور" : "إضافة صنف جديد")
+                </p>
+            </div>
+
+            <div class="card">
+                <form method="post" enctype="multipart/form-data" id="categoryForm" novalidate>
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.Id)
+
+                    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <div>
+                                <strong>يوجد أخطاء:</strong>
+                                <ul style="margin-top: 6px;">
+                                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                    {
+                                        <li>@error.ErrorMessage</li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Basic Information Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-info-circle"></i>
+                            المعلومات الأساسية
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label asp-for="NameEn" class="form-label required">الاسم (إنجليزي)</label>
+                                <input asp-for="NameEn" class="form-control" placeholder="Electronics" required />
+                                <span asp-validation-for="NameEn" class="validation-message"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="NameAr" class="form-label required">الاسم (عربي)</label>
+                                <input asp-for="NameAr" class="form-control" placeholder="إلكترونيات" required />
+                                <span asp-validation-for="NameAr" class="validation-message"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label asp-for="CategorySort" class="form-label">ترتيب الصنف</label>
+                                <input asp-for="CategorySort" class="form-control" type="number" placeholder="1" min="1" max="999" />
+                                <small>يحدد ترتيب ظهور الصنف (اختياري)</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="ItemsCardsLayout" class="form-label required">تخطيط المنتجات</label>
+                                <select asp-for="ItemsCardsLayout" class="form-select" required>
+                                    <option value="">-- اختر --</option>
+                                    <option value="@ItemLayoutType.RectangleItemLayout">مستطيل</option>
+                                    <option value="@ItemLayoutType.SquareItemLayout">مربع</option>
+                                    <option value="@ItemLayoutType.TwoSquareItemLayout">مربع صغير 2</option>
+                                </select>
+                                <span asp-validation-for="ItemsCardsLayout" class="validation-message"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">الحالة</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-item">
+                                    <input asp-for="IsAvailable" type="checkbox" />
+                                    <span>متاح للعملاء</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Images Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-images"></i>
+                            الصور والرموز
+                        </div>
+
+                        <!-- Icon Upload -->
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="form-label">رمز الصنف</label>
+                            <div class="image-upload-area" onclick="document.getElementById('iconInput').click()" ondrop="handleDrop(event, 'iconInput')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                                @if (!string.IsNullOrEmpty(Model?.Icon))
+                                {
+                                    <div style="margin-bottom: 8px;">
+                                        <img src="@Model.Icon" alt="Current Icon" style="max-width: 70px; max-height: 70px; margin: 0 auto; border-radius: 4px;" />
+                                    </div>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-image"></i>
+                                }
+                                <div class="image-upload-text">اضغط أو اسحب الصورة</div>
+                                <div class="image-upload-hint">PNG, JPG (100x100 بكسل) | 5 ميجا</div>
+                            </div>
+                            <input type="file" id="iconInput" name="IconFile" accept="image/*" style="display: none;" onchange="handleFileSelect" />
+                            @if (!string.IsNullOrEmpty(Model?.Icon))
+                            {
+                                <input type="hidden" asp-for="Icon" />
+                            }
+                        </div>
+
+                        <!-- Placeholder Image Upload -->
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="form-label">صورة افتراضية للمنتجات</label>
+                            <div class="image-upload-area" onclick="document.getElementById('placeholderInput').click()" ondrop="handleDrop(event, 'placeholderInput')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                                @if (!string.IsNullOrEmpty(Model?.PlaceholderItemImage))
+                                {
+                                    <div style="margin-bottom: 8px;">
+                                        <img src="@Model.PlaceholderItemImage" alt="Placeholder" style="max-width: 100px; max-height: 100px; margin: 0 auto; border-radius: 4px;" />
+                                    </div>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-image"></i>
+                                }
+                                <div class="image-upload-text">اضغط أو اسحب الصورة</div>
+                                <div class="image-upload-hint">PNG, JPG (400x400 بكسل) | 5 ميجا</div>
+                            </div>
+                            <input type="file" id="placeholderInput" name="PlaceholderItemImageFile" accept="image/*" style="display: none;" onchange="handleFileSelect" />
+                            @if (!string.IsNullOrEmpty(Model?.PlaceholderItemImage))
+                            {
+                                <input type="hidden" asp-for="PlaceholderItemImage" />
+                            }
+                        </div>
+
+                        <!-- Explore Bar Image Upload -->
+                        <div class="form-group">
+                            <label class="form-label">صورة شريط الاستكشاف</label>
+                            <div class="image-upload-area" onclick="document.getElementById('exploreInput').click()" ondrop="handleDrop(event, 'exploreInput')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                                @if (!string.IsNullOrEmpty(Model?.CategoryExploreBarImage))
+                                {
+                                    <div style="margin-bottom: 8px;">
+                                        <img src="@Model.CategoryExploreBarImage" alt="Explore Bar" style="max-width: 120px; max-height: 80px; margin: 0 auto; border-radius: 4px;" />
+                                    </div>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-image"></i>
+                                }
+                                <div class="image-upload-text">اضغط أو اسحب الصورة</div>
+                                <div class="image-upload-hint">PNG, JPG (600x300 بكسل) | 5 ميجا</div>
+                            </div>
+                            <input type="file" id="exploreInput" name="CategoryExploreBarImageFile" accept="image/*" style="display: none;" onchange="handleFileSelect" />
+                            @if (!string.IsNullOrEmpty(Model?.CategoryExploreBarImage))
+                            {
+                                <input type="hidden" asp-for="CategoryExploreBarImage" />
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            @(isEdit ? "تحديث" : "حفظ")
+                        </button>
+                        <a href="@Url.Action("Index", "Category")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i>
+                            رجوع
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(e, inputId) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            const input = document.getElementById(inputId);
+            input.files = files;
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('حجم الملف كبير جداً (حد أقصى 5 ميجا)');
+                e.target.value = '';
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                alert('الملف يجب أن يكون صورة');
+                e.target.value = '';
+            }
+        }
+
+        document.getElementById('categoryForm')?.addEventListener('submit', function(e) {
+            const nameEn = document.querySelector('[name="NameEn"]').value.trim();
+            const nameAr = document.querySelector('[name="NameAr"]').value.trim();
+            const layout = document.querySelector('[name="ItemsCardsLayout"]').value.trim();
+
+            if (!nameEn || !nameAr || !layout) {
+                e.preventDefault();
+                alert('يرجى ملء جميع الحقول المطلوبة');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

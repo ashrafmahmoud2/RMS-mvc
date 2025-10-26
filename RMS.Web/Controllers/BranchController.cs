@@ -13,23 +13,20 @@ using RMS.Web.Services.Interfaces;
 namespace RMS.Web.Controllers;
 
 /*
-stop in this palylist : https://www.youtube.com/watch?v=D_3Ycq1v4mI&list=PL62tSREI9C-c_yZ0a7Yui1U22Tv4mBjSF
-https://drive.google.com/drive/u/1/folders/1OcsI1rr1qVIALQlBq_E-_8fy5FuSu4hc
-
-# Clude ai
-1. make the model of using in froms , like otp model , and optmize branch form and do the notic in form.cshmlt
 
 
-# stop
-1. add clinet ui add alart of close time like drik it or jahaz
+stop in
+1. fix crate working houre 
+2. in edit why its send the old value to server
+3. make details view
+4. make btn form chnage status open close
+5. add clinet ui add alart of close time like drik it or jahaz
 
 
 
-# when creat item form ui
---1. when shoice price in item in BranchItems(you can ignour if it will take time)
---2. in options and hsi group will make it from item form , in future you can make split tab for topping
---3. in ToppingOptions you can make ToppingGroupId many to many if have same price , and if not have make another row
---4. 
+
+
+
 */
 
 public class BranchController : Controller
@@ -310,7 +307,7 @@ public class BranchController : Controller
         if (success)
         {
             TempData["SuccessMessage"] = message;
-            return RedirectToAction(nameof(Details), new { id });
+            return RedirectToAction(nameof(Edit), new { id });
         }
 
         ModelState.AddModelError(string.Empty, message);

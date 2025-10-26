@@ -25,7 +25,7 @@ public class Category
     public int? CategorySort { get; set; }
 
 
-    public string ItemsCardsLayout { get; set; }= null!; /*CategoryItemsCardsLayout*/
+    public string ItemsCardsLayout { get; set; }= null!;  
 
     public virtual ICollection<Item> Items { get; set; } = new List<Item>();
 }

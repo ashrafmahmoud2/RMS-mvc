@@ -45,6 +45,9 @@
 - add max allowd number of order in same time
 - handel if add more then order like show 2 progress box , and add in kds 
 
+#Settings
+- add duffult branch
+- 
 
 
 

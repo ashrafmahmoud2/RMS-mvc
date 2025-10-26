@@ -75,8 +75,8 @@ public class BranchFormViewModel
     public ICollection<string> ExistingBranchImagePaths { get; set; } = new List<string>();
 
     [Display(Name = "Working Hours")]
-    public ICollection<BranchWorkingHoursFormViewModel> WorkingHours { get; set; } = new List<BranchWorkingHoursFormViewModel>();
+    public List<BranchWorkingHoursFormViewModel> WorkingHours { get; set; } = new List<BranchWorkingHoursFormViewModel>();
 
     [Display(Name = "Exception Hours")]
-    public ICollection<BranchExceptionHoursFormViewModel> WorkingHourExceptions { get; set; } = new List<BranchExceptionHoursFormViewModel>();
+    public List<BranchExceptionHoursFormViewModel> WorkingHourExceptions { get; set; } = new List<BranchExceptionHoursFormViewModel>();
 }
